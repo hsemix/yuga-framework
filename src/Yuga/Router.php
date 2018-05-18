@@ -22,6 +22,5 @@ class Router extends Route
         static::group(['namespace' => env('APP_NAMESPACE', 'App').'\Controllers'], function () {
             require_once env('base_path') . DIRECTORY_SEPARATOR. 'routes' . DIRECTORY_SEPARATOR . 'web.php';
         });
-        //require_once env('base_path') . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Yuga'  . DIRECTORY_SEPARATOR .  'framework.php';
     }
 }
