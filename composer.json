@@ -19,7 +19,7 @@
     },
     "autoload": {
         "psr-4": {
-            "yuga\\": "src/Yuga/"
+            "Yuga\\": "src/Yuga/"
         }
     },
     "config": {
