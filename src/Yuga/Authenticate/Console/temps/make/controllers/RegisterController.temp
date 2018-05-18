@@ -1,0 +1,74 @@
+<?php
+namespace {namespace}\Controllers\Auth;
+
+use Yuga\Hash\Hash;
+use {namespace}\Models\User;
+use Yuga\Http\Request;
+use {namespace}\Controllers\Controller;
+use Yuga\Authenticate\Shared\RegisterUser;
+
+class RegisterController extends Controller
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Register Controller
+    |--------------------------------------------------------------------------
+    |
+    | This controller handles the registration of new users as well as their
+    | validation and creation. By default this controller uses a trait to
+    | provide this functionality without requiring any additional code.
+    |
+    */
+
+    use RegisterUser;
+
+    /**
+     * Where to redirect users after registration.
+     *
+     * @var string
+     */
+    protected $redirectTo = '/home';
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('guest');
+    }
+
+    /**
+     * Get a validator for an incoming registration request.
+     *
+     * @param  array  $data
+     * @return \Yuga\Validate\Validate
+     */
+    protected function validator(Request $request)
+    {
+        return $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+        ]);
+    }
+
+    /**
+     * Create a new user instance after a valid registration.
+     *
+     * @param  array  $data
+     * @return \App\User
+     */
+    protected function create(array $data)
+    {
+        $hash = new Hash;
+        $user_code = $hash->code();
+        return User::create([
+            'first_name' => $data['name'],
+            'email' => $data['email'],
+            'user_code' => $user_code,
+            'password' => $hash->password($data['password'], $user_code),
+        ]);
+    }
+}

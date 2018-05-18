@@ -1,0 +1,25 @@
+<?php
+namespace Yuga\Http\Middleware;
+
+class MiddleWare
+{
+    /**
+     * The apps route's middleware is to be registered here
+     *
+     * @var array
+     */
+    public $routerMiddleWare = {middleware}
+
+    /**
+     * The routes exceptions
+     */
+    public $except = [
+        
+    ];
+
+    public function except($except = null)
+    {
+        $this->except = $except;
+        return $this;
+    }
+}

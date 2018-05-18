@@ -1,0 +1,30 @@
+{
+    "name": "yuga/framework",
+    "description": "The Yuga Framework.",
+    "keywords": ["framework", "Yuga"],
+    "license": "MIT",
+    "homepage": "https://yuga.byakuno.com",
+    "authors": [
+        {
+            "name": "Hamidouh Semix",
+            "email": "semix.hamidouh@gmail.com"
+        }
+    ],
+    "require": {
+        "filp/whoops": "^2.1",
+        "nesbot/carbon": "^1.22",
+        "josegonzalez/dotenv": "dev-master",
+        "symfony/console": "~4.0",
+        "robmorgan/phinx": "^0.9.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "yuga\\": "src/Yuga/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

@@ -1,0 +1,9 @@
+<?php
+namespace {namespace}\Models;
+
+use Yuga\Models\ElegantModel as Elegant;
+
+class {class} extends Elegant
+{
+    
+}

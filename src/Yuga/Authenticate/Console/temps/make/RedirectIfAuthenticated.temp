@@ -1,0 +1,39 @@
+<?php
+
+namespace {namespace}\Middleware;
+
+use Auth;
+use Closure;
+use Yuga\Http\Request;
+use Yuga\Http\Response;
+use Yuga\Session\Session;
+use Yuga\Http\Middleware\IMiddleware;
+
+class RedirectIfAuthenticated implements IMiddleware
+{
+    protected $session;
+    protected $request;
+    protected $response;
+
+    public function __construct(Request $request, Session $session, Response $response)
+    {
+        $this->session = $session;
+        $this->request = $request;
+        $this->response = $response;
+    }
+
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Yuga\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function run(Request $request, Closure $next, $except = null)
+    {
+        if (!Auth::guest() && !Auth::except($except)) {
+            return redirect('/home');
+        }
+        return $next($request);
+    }
+}

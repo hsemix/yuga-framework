@@ -1,0 +1,36 @@
+<?php
+namespace {namespace}\Middleware;
+
+use Closure;
+use Yuga\Application;
+use Yuga\Http\Middleware\IMiddleware;
+
+class {middleware} implements IMiddleware
+{
+    /**
+     * @var \Yuga\Application | null
+     */
+    protected $app;
+    /**
+     * -------------------------------------------------------------------------
+     * Inject any objects (in the contructor) you want to use in this middleware
+     * We will worry about instantiating them for you
+     * -------------------------------------------------------------------------
+     */
+    public function __construct(Application $app)
+    {
+        $this->app      = $app;
+    }
+
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Yuga\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function run(Request $request, Closure $next)
+    {
+        return $next($request);
+    }
+}

@@ -1,0 +1,19 @@
+<?php
+namespace {namespace}\Controllers;
+
+use Yuga\Http\Request;
+use Yuga\Http\Response;
+use Yuga\Http\Redirect;
+
+class {class} extends Controller
+{
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+}

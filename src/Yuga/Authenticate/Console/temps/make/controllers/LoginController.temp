@@ -1,0 +1,47 @@
+<?php
+namespace {namespace}\Controllers\Auth;
+
+use Auth;
+use Yuga\Http\Request;
+use Yuga\Http\Response;
+use {namespace}\Controllers\Controller;
+use Yuga\Authenticate\Shared\AuthenticateUser;
+
+class LoginController extends Controller
+{
+    use AuthenticateUser;
+    protected $formFields = [
+        'username' => 'email',
+        'password' => 'password',
+        'remember' => 'remember'
+    ];
+
+    /**
+     * Where to redirect users after login.
+     *
+     * @var string
+     */
+    protected $redirectTo = '/home';
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        /*
+        |----------------------------------------------------------
+        | inject in all middleware you want to run
+        | before anything in the the array or just one as a string
+        |----------------------------------------------------------- 
+        |
+        | The second parameter is an array of exceptions that you want 
+        | to run no matter what the situation is. 
+        | i.e You want the logout route to run even if its action is in
+        | this controller which prevents all routes point to it from 
+        | running isn't it.
+        */
+        $this->middleware(['guest', 'remembered'], ['logout']);
+    }
+}
