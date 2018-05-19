@@ -3,13 +3,14 @@ namespace Yuga\Views\Widgets\Form;
 
 use Yuga\Boolean;
 use Yuga\Dataset\Dataset;
+use Yuga\Collection\Collection;
 use Yuga\Views\Widgets\Html\Html;
-use Yuga\Views\Widgets\Html\HtmlCheckbox;
 use Yuga\Views\Widgets\Html\HtmlForm;
 use Yuga\Views\Widgets\Html\HtmlInput;
 use Yuga\Views\Widgets\Html\HtmlSelect;
-use Yuga\Views\Widgets\Html\HtmlSelectOption;
+use Yuga\Views\Widgets\Html\HtmlCheckbox;
 use Yuga\Views\Widgets\Html\HtmlTextarea;
+use Yuga\Views\Widgets\Html\HtmlSelectOption;
 
 class Form
 {
@@ -130,7 +131,7 @@ class Form
     {
         $element = new HtmlSelect($name);
         if ($data !== null) {
-            if ($data instanceof Dataset) {
+            if ($data instanceof Collection) {
 
                 foreach ($data->getData() as $item) {
                     $val = isset($item['value']) ? $item['value'] : $item['name'];

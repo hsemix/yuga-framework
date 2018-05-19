@@ -41,9 +41,9 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
 
                 if (is_object($middleware) === false) {
                     $routeMiddleware = $this->loadClass(RouteMiddleware::class);
-                    
-                    if (isset($routeMiddleware->routerMiddleWare[$middleware])) {
-                        $middleware = $this->loadClass($routeMiddleware->routerMiddleWare[$middleware]);
+                    $wares = array_merge($routeMiddleware->routerMiddleWare, require path('config/AppMiddleware.php'));
+                    if (isset($wares[$middleware])) {
+                        $middleware = $this->loadClass($wares[$middleware]);
                     } else {
                         throw new NotFoundHttpException(sprintf('Middleware "%s" does not exist', $middleware), 404);
                     }

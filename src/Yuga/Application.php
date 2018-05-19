@@ -21,27 +21,24 @@ use Whoops\Handler\PrettyPageHandler as PrettyPage;
 
 class Application extends Container
 {
-    const CHARSET_UTF8 = 'UTF-8';
     const VERSION = '3.0.0';
+    const CHARSET_UTF8 = 'UTF-8';
+
+    public $site;
+    public $config;
     protected $basePath;
+    protected static $app;
+    protected $locale = 'en';
+    protected $debugEnabled = false;
+    
     /**
      * The names of the loaded service providers.
      *
      * @var array
      */
     protected $loadedProviders = [];
-    protected static $app;
-    public $config;
-    public $site;
-    protected $locale = 'en';
-    protected $debugEnabled = false;
     protected $encryptionMethod = 'AES-256-CBC';
-
-    protected $cssWrapRouteName = 'css/wrap';
-    protected $jsWrapRouteName = 'js/wrap';
-    protected $cssWrapRouteUrl = '/css-wrap';
-    protected $jsWrapRouteUrl = '/js-wrap';
-
+    
     public function __construct($root = null)
     {
         $this->site = new UI;
@@ -84,9 +81,11 @@ class Application extends Container
         $providers = $this->config->load('config.ServiceProviders');
         
         foreach ($this->config->getAll() as $name => $provider) {
-            $this->singleton($name, $provider);
-            $provider = $this->resolve($name);
-            $this->registerProvider($provider);
+            if (class_exists($provider)) {
+                $this->singleton($name, $provider);
+                $provider = $this->resolve($name);
+                $this->registerProvider($provider);
+            }
         }
     }
 
@@ -104,6 +103,7 @@ class Application extends Container
     {
         $this->singleton('app', $this);
         $this->singleton(Container::class, $this);
+        $this->bind('base_path', $this->basePath);
     }
 
     /**
@@ -137,6 +137,13 @@ class Application extends Container
         return $this;
     }
 
+    /**
+     * Get the Encryption method
+     * 
+     * @param null
+     * 
+     * @return string
+     */
     public function getEncryptionMethod()
     {
         return $this->encryptionMethod;
@@ -179,7 +186,7 @@ class Application extends Container
     /**
      * Refresh the bound request instance in the container.
      *
-     * @param  \Nova\Http\Request  $request
+     * @param  \Yuga\Http\Request  $request
      * @return void
      */
     protected function refreshRequest(Request $request)
@@ -200,10 +207,9 @@ class Application extends Container
     }
 
     /**
-    * @param \Yuga\Support\IServiceProvider $provider
-    * @return \Yuga\Application $this
-    */
-
+     * @param \Yuga\Support\IServiceProvider $provider
+     * @return \Yuga\Application $this
+     */
     public function registerProvider(IServiceProvider $provider)
     {
         if (!$this->providerLoaded($provider)) {
@@ -215,6 +221,13 @@ class Application extends Container
         }
     }
 
+    /**
+     * Determine whether a service provider has been loaded or not
+     * 
+     * @param IServiceProvider $provider
+     * 
+     * @return bool
+     */
     protected function providerLoaded(IServiceProvider $provider)
     {
         return array_key_exists(get_class($provider), $this->loadedProviders);
@@ -231,11 +244,25 @@ class Application extends Container
         return $this;
     }
 
+    /**
+     * Get the character set
+     * 
+     * @param null
+     * 
+     * @return string
+     */
     public function getCharset()
     {
         return $this->charset;
     }
     
+    /**
+     * Get the Application's Locale setting
+     * 
+     * @param null
+     * 
+     * @return string
+     */
     public function getLocale()
     {
         return $this->locale;
@@ -250,21 +277,39 @@ class Application extends Container
     }
 
     /**
-    * @param \string $timezone
-    */
+     * Set Application Timezone
+     * 
+     * @param \string $timezone
+     * 
+     * @return \Yuga\Application $this
+     */
     public function setTimezone($timezone)
     {
         $this->timezone = $timezone;
         date_default_timezone_set($timezone);
+        return $this;
     }
 
+    /**
+     * Set Application locale (language)
+     * 
+     * @param \string $timezone
+     * @return \Yuga\Application $this
+     */
     public function setLocale($locale)
     {
         $this->locale = strtolower($locale);
         setlocale(LC_ALL, $locale);
+        return $this;
     }
 
-
+    /**
+     * Get the default Application locale (language=en)
+     * 
+     * @param null
+     * 
+     * @return string
+     */
     public function getDefaultLocale()
     {
         return $this->defaultLocale;

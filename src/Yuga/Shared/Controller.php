@@ -77,22 +77,28 @@ trait Controller
     public function middleWare($ware, array $except = null)
     {
         $middleWare = new MiddleWare();
+        $wares = $middleWare->routerMiddleWare;
+        $wares = array_merge($wares, require path('config/AppMiddleware.php'));
         if ($except) {
             $middleWare->except = $except;
         }
         if (is_array($ware)) {
             foreach ($ware as $controllerMiddleware) {
-                $routeMiddleWare = App::resolve($middleWare->routerMiddleWare[$controllerMiddleware]);
-                $request = request();
-                if (($routeMiddleWare instanceof IMiddleware) === false) {
-                    throw new HttpException($controllerMiddleware . ' must inherit the IMiddleware interface');
+                if (isset($wares[$controllerMiddleware])) {
+                    $routeMiddleWare = App::resolve($wares[$controllerMiddleware]);
+                    $request = request();
+                    if (($routeMiddleWare instanceof IMiddleware) === false) {
+                        throw new HttpException($controllerMiddleware . ' must inherit the IMiddleware interface');
+                    }
+                    $results = $routeMiddleWare->run($request, function($request) {
+                        return $request;
+                    }, $middleWare->except);
+                } else {
+                    throw new HttpException($controllerMiddleware . ' Middleware is not yet defined');
                 }
-                $results = $routeMiddleWare->run($request, function($request) {
-                    return $request;
-                }, $middleWare->except);
             }
         } else {
-            $routeMiddleWare = App::resolve($middleWare->routerMiddleWare[$ware]);
+            $routeMiddleWare = App::resolve($wares[$ware]);
             $request = request();
             if (($routeMiddleWare instanceof IMiddleware) === false) {
                 throw new HttpException($ware . ' must inherit the IMiddleware interface');

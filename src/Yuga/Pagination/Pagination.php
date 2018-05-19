@@ -18,63 +18,148 @@ class Pagination
 		$this->totalCount = (int)$totalCount;
 	}
 
+	/**
+	 * Set the total number of records to be returned per page
+	 * 
+	 * @param int $perPage
+	 * 
+	 * @return int
+	 */
 	public function setPerPage($perPage = 15)
 	{
 		$this->perPage = $perPage;
 		return $this;
 	}
 
+	/**
+	 * Set the total number of records in an array or collection
+	 * 
+	 * @param int|0 $total
+	 * 
+	 * @return int
+	 */
 	public function setTotalCount($total = 0)
 	{
 		$this->totalCount = $total;
 		return $this;
 	}
 
+	/**
+	 * Set the current page
+	 * 
+	 * @param int $page
+	 * 
+	 * @return int
+	 */
 	public function setCurrentPage($page = 1)
 	{
 		$this->currentPage = $page;
 		return $this;
 	}
 
+	/**
+	 * Get the current page
+	 * 
+	 * @param null
+	 * 
+	 * @return int
+	 */
 	public function getCurrentPage()
 	{
 		return $this->currentPage;
 	}
 
+	/**
+	 * Get the number of records per page
+	 * 
+	 * @param null
+	 * 
+	 * @return int
+	 */
 	public function getPerPage()
 	{
 		return $this->perPage;
 	}
 
+	/**
+	 * Get the total records in a given array or collection
+	 * 
+	 * @param null
+	 * 
+	 * @return int
+	 */
 	public function getTotalCount()
 	{
 		return $this->totalCount;
 	}
 
+	/**
+	 * Calculate the offset
+	 * 
+	 * @param null
+	 * 
+	 * @return int
+	 */
 	public function offset()
 	{
 		return ($this->currentPage - 1) * $this->perPage;
 	}
 
+	/**
+	 * Get the total number of pages
+	 * 
+	 * @param null
+	 * 
+	 * @return int
+	 */
 	public function totalPages()
 	{
 		return ceil($this->totalCount / $this->perPage);
 	}
-	
+
+	/**
+	 * Get the previous page
+	 * 
+	 * @param null
+	 * 
+	 * @return int
+	 */
 	public function previousPage()
 	{
 		return $this->currentPage - 1;
 	}
 
+	/**
+	 * Get the next page
+	 * 
+	 * @param null
+	 * 
+	 * @return int
+	 */
 	public function nextPage()
 	{
 		return $this->currentPage + 1;
 	}
+
+	/**
+	 * Determine whether there can be a previous page
+	 * 
+	 * @param null
+	 * 
+	 * @return bool
+	 */
 	public function hasPreviousPage()
 	{
 		return $this->previousPage() >= 1 ? true : false;
 	}
 
+	/**
+	 * Determine whether there can be a next page
+	 * 
+	 * @param null
+	 * 
+	 * @return bool
+	 */
 	public function hasNextPage()
 	{
 		return $this->nextPage() <= $this->totalPages() ? true : false;

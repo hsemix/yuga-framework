@@ -375,7 +375,6 @@ class Request
 
     public function files($key = null, $default = null)
     {
-        //return (!$this->getInput()->findFile($key, $default)->hasError()) ? $this->getInput()->findFile($key, $default) : false;
         $files = $this->getInput()->findFile($key, $default);
 		if (is_array($files)) 
 			return $this->getInput()->findFile($key, $default);

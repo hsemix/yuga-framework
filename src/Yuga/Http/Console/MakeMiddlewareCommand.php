@@ -32,7 +32,7 @@ class MakeMiddlewareCommand extends Command
             $alias = strtolower(trim($this->argument('name')));
         }
         file_put_contents(
-            __DIR__.'../../Middleware/MiddleWare.php',
+            path('config/AppMiddleWare.php'),
             $this->compileYugaMiddlewareTemp(trim($this->argument('name')), $alias)
         );
 
@@ -78,24 +78,19 @@ class MakeMiddlewareCommand extends Command
      */
     protected function compileYugaMiddlewareTemp($name, $alias)
     {
-        $availableMiddleware = new MiddleWare;
-        $middleware = $availableMiddleware->routerMiddleWare;
+        $middleware = require path('config/AppMiddleware.php');
         $middleware[str_ireplace('middleware', '', $alias)] = env('APP_NAMESPACE', 'App').'\\Middleware\\'.$name;
-
-        // $generatedMiddleware = var_export($middleware, true);
-        // $generatedMiddleware = str_replace('array (', "[\t", $generatedMiddleware);
-        // $generatedMiddleware = str_replace(')', "\t]", $generatedMiddleware);
 
         $generatedMiddleware = '[';
         foreach ($middleware as $alias => $ware) {
-            $generatedMiddleware .= "\n\t\t'{$alias}' => \\". $ware. "::class,";
+            $generatedMiddleware .= "\n\t'{$alias}' => \\". $ware. "::class,";
         }
-        $generatedMiddleware .= "\n\t]";
+        $generatedMiddleware .= "\n]";
 
         return str_replace(
             '{middleware}',
             $generatedMiddleware.';',
-            file_get_contents(__DIR__.'/temps/YugaMiddleWare.temp')
+            file_get_contents(__DIR__.'/temps/AppMiddleWare.temp')
         );
     }
 

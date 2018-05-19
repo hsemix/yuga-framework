@@ -58,13 +58,19 @@ class SmxView extends View
         }
     }
     
-    
+    protected function createStorageDirectories()
+    {
+        if (!is_dir($directory = path('storage/hax'))) {
+            mkdir($directory, 0755, true);
+        }
+    }
     
     public function renderHaxTemplate($templateName, $data = false) 
     {
         $tempContents = $this->getTemplateDirectory().$templateName.$this->hax;
         $compiled = $this->compiled($templateName).'.php';
-        if ( !file_exists($compiled) || $this->expired($compiled, $tempContents)) {
+        if (!file_exists($compiled) || $this->expired($compiled, $tempContents)) {
+            $this->createStorageDirectories();
             file_put_contents($compiled, $this->compile($tempContents));
         }
         if ($data) {
@@ -104,6 +110,7 @@ class SmxView extends View
     {
         return path('storage').'/hax/'.md5($path);
     }
+
     public function renderArray ($fileName, $dataAr) 
     { 
         $rendered = "";

@@ -1,0 +1,5 @@
+<?php
+/**
+ * You can add as many providers as you want, by appending or prepending to the array
+ */
+return {providers}

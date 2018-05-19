@@ -11,8 +11,6 @@ class MiddleWare
     public $routerMiddleWare = [
 		'auth' => \Yuga\Authenticate\Authenticate::class,
 		'remembered' => \Yuga\Authenticate\LoginWithRemember::class,
-		'guest' => \App\Middleware\RedirectIfAuthenticated::class,
-		'loggedin' => \App\Middleware\LoggedInMiddleware::class,
 	];
 
     /**

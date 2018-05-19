@@ -9,14 +9,29 @@ use Yuga\Support\IServiceProvider;
 
 abstract class ServiceProvider implements IServiceProvider
 {
+    /**
+     * Register a service provider to the container and resolve it or later
+     * 
+     * @param \Yuga\Container\Container $app
+     * 
+     * @return \Yuga\Application
+     */
     public function register(Application $app)
     {
         return $this->load($app);
     }
+
+    /**
+     * Register a service provider to the container and resolve it or later
+     * 
+     * @param \Yuga\Container\Container $app
+     * 
+     * @return void
+     */
     abstract public function load(Application $app);
 
     /**
-     * Register the package's custom Forge commands.
+     * Register the package's custom Yuga commands.
      *
      * @param  array  $commands
      * @return void
@@ -25,13 +40,12 @@ abstract class ServiceProvider implements IServiceProvider
     {
         $commands = is_array($commands) ? $commands : func_get_args();
 
-        // To register the commands with Forge, we will grab each of the arguments
-        // passed into the method and listen for Forge "start" event which will
-        // give us the Forge console instance which we will give commands to.
+        // To register the commands with Yuga, we will grab each of the arguments
+        // passed into the method and listen for Yuga "start" an event which will
+        // give us the Yuga console instance which we will give commands to.
         $events = $this->app['console.events'];
 
-        $events->attach('yuga.start', function($yuga) use ($commands)
-        {
+        $events->attach('yuga.start', function($yuga) use ($commands) {
             $yuga->resolveCommands($commands);
         });
     }

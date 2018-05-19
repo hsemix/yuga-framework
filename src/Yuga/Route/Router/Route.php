@@ -4,13 +4,14 @@
  */
 namespace Yuga\Route\Router;
 use ReflectionClass;
-use ReflectionFunction;
-use Yuga\Http\Request;
 use Yuga\Application;
+use Yuga\Http\Request;
+use ReflectionFunction;
 use Yuga\Container\Container;
 use Yuga\Route\Support\IRoute;
 use Yuga\Route\Support\IGroupRoute;
 use Yuga\Http\Middleware\IMiddleware;
+use Yuga\Route\Exceptions\HttpException;
 use Yuga\Route\Exceptions\NotFoundHttpException;
 use Yuga\Http\Middleware\MiddleWare as RouteMiddleware;
 
@@ -63,7 +64,7 @@ abstract class Route implements IRoute
         if (class_exists($name) === false) {
             throw new NotFoundHttpException(sprintf('Class "%s" does not exist', $name), 404);
         }
-        return (new Container)->resolve($name);
+        return Application::getInstance()->resolve($name);
     }
 
     protected function instantiated($callback)
@@ -83,9 +84,6 @@ abstract class Route implements IRoute
                 if (array_key_exists($param->name, $this->getParameters())) {
                     $classes[$param->name] = $this->getParameters()[$param->name];
                 } 
-                /*else {
-                    throw new \InvalidArgumentException("The paramenter [{$param->name}] doesn't exist in this scope, Route parameter names should match callback arguments");
-                }*/
             }
             
         }
@@ -108,21 +106,31 @@ abstract class Route implements IRoute
     { 
         if (is_object($middleware) === false) {
             $routeMiddleware = $this->loadClass(RouteMiddleware::class);
-            if (isset($routeMiddleware->routerMiddleWare[$middleware])) {
-                $middleware = $this->loadClass($routeMiddleware->routerMiddleWare[$middleware]);
-            } else {
-                throw new NotFoundHttpException(sprintf('Middleware "%s" does not exist', $middleware), 404);
+            $wares = array_merge($routeMiddleware->routerMiddleWare, require path('config/AppMiddleware.php'));
+            $routeMiddlewares = [];
+            $middlewares = $middleware;
+            if (is_string($middleware) === true) {
+                $middlewares = [$middleware];
             }
-            
+            foreach ($middlewares as $ware) {
+               if (isset($wares[$ware])) {
+                    $routeMiddlewares[] = $this->loadClass($wares[$ware]);
+                } else {
+                    throw new NotFoundHttpException(sprintf('Middleware "%s" does not exist', $ware), 404);
+                } 
+            }  
         }
+        
 
-        if (($middleware instanceof IMiddleware) === false) {
-            throw new HttpException($middleware . ' must inherit the IMiddleware interface');
-        }
+        foreach ($routeMiddlewares as $mWare) {
+            if (($mWare instanceof IMiddleware) === false) {
+                throw new HttpException($mWare . ' must inherit the IMiddleware interface');
+            }
 
-        $middleware->run($request, function($request) {
-            return $request;
-        });
+            $mWare->run($request, function ($request) {
+                return $request;
+            });
+        } 
     }
 
     public function renderRoute(Request $request)
