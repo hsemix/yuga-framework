@@ -1,6 +1,8 @@
 <?php
 namespace Yuga\Http\Input;
-use Yuga\Support\IInputItem;
+
+use Yuga\Interfaces\Http\Input\IInputItem;
+
 class InputFile implements IInputItem
 {
     public $index;

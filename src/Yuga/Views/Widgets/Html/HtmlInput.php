@@ -98,4 +98,8 @@ class HtmlInput extends Html
         return $this;
     }
 
+    public function withErrors()
+    {
+        return (new Html('div'))->addInnerHtml($this);
+    }
 }

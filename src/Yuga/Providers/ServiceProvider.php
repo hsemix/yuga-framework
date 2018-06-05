@@ -1,11 +1,8 @@
 <?php
-/**
- * @author Mahad Tech Solutions
- */
 namespace Yuga\Providers;
 
-use Yuga\Application;
-use Yuga\Support\IServiceProvider;
+use Yuga\Interfaces\Application\Application;
+use Yuga\Interfaces\Providers\IServiceProvider;
 
 abstract class ServiceProvider implements IServiceProvider
 {
@@ -14,7 +11,7 @@ abstract class ServiceProvider implements IServiceProvider
      * 
      * @param \Yuga\Container\Container $app
      * 
-     * @return \Yuga\Application
+     * @return \Yuga\Interfaces\Application\Application
      */
     public function register(Application $app)
     {

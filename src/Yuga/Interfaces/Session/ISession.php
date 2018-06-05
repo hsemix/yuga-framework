@@ -1,5 +1,5 @@
 <?php
-namespace Yuga\Agree\Session;
+namespace Yuga\Interfaces\Session;
 
 interface ISession
 {

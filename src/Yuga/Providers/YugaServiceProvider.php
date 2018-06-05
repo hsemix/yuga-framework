@@ -1,11 +1,11 @@
 <?php
 namespace Yuga\Providers;
 
-use Yuga\Application;
 use Yuga\Console\Commands\ServeCommand;
 use Yuga\Models\Console\MakeModelCommand;
 use Yuga\View\Console\MakeViewModelCommand;
 use Yuga\Http\Console\MakeMiddlewareCommand;
+use Yuga\Interfaces\Application\Application;
 use Yuga\Authenticate\Console\MakeAuthCommand;
 use Yuga\Database\Console\MakeMigrationCommand;
 use Yuga\Database\Console\MakeMigrationUpCommand;

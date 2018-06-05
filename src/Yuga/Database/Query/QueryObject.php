@@ -1,17 +1,20 @@
 <?php
 namespace Yuga\Database\Query;
+
 use PDO;
+use Yuga\Database\Connection\Connection;
+
 class QueryObject
 {
 
     protected $sql;
     protected $bindings = [];
-    protected $pdo;
-    public function __construct($sql, array $bindings, PDO $pdo = null)
+    protected $connection;
+    public function __construct($sql, array $bindings, Connection $connection = null)
     {
         $this->sql = (string)$sql;
         $this->bindings = $bindings;
-        $this->pdo = $pdo;
+        $this->connection = $connection;
     }
     public function getSql()
     {
@@ -40,10 +43,10 @@ class QueryObject
                 $keys[] = '/[?]/';
             }
             if (is_string($value)) {
-                $values[$key] = $this->pdo->quote($value);
+                $values[$key] = $this->connection->getPdoInstance()->quote($value);
             }
             if (is_array($value)) {
-                $values[$key] = join(',', $this->pdo->quote($value));
+                $values[$key] = join(',', $this->connection->getPdoInstance()->quote($value));
             }
             if ($value === null) {
                 $values[$key] = 'NULL';

@@ -2,7 +2,7 @@
 /**
  * @author Mahad Tech Solutions
  */
-namespace Yuga\Support;
+namespace Yuga\Interfaces\Http\Input;
 
 interface IInputItem
 {

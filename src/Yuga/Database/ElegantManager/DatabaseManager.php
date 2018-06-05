@@ -6,8 +6,9 @@ use Yuga\Database\Connection\Connection;
 
 class DatabaseManager
 {
-    private $connection;
     private $container;
+    private $connection;
+    
     public function __construct(Connection $connection = null, Container $container = null)
     {
         $this->connection = $connection;

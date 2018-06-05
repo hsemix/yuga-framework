@@ -1,14 +1,13 @@
 <?php
-/**
- * @author Mahad Tech Solutions
- */
 namespace Yuga\Route\Router;
+
 use Yuga\Http\Request;
 use Yuga\Http\Middleware\IMiddleware;
 use Yuga\Route\Support\ILoadableRoute;
 use Yuga\Route\Exceptions\HttpException;
 use Yuga\Route\Exceptions\NotFoundHttpException;
 use Yuga\Http\Middleware\MiddleWare as RouteMiddleware;
+
 abstract class LoadableRoute extends Route implements ILoadableRoute
 {
     /**
@@ -152,9 +151,7 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
         $url .= join('/', $unknownParams);
 
         $url = rtrim($url, '/') . '/';
-        if (!is_null(env('APP_FOLDER'))) {
-            $url = '/' . env('APP_FOLDER') . $url;
-        }
+        
         return $url;
     }
 

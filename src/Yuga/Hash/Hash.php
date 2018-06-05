@@ -1,6 +1,8 @@
 <?php
 namespace Yuga\Hash;
+
 use Yuga\Database\Elegant\Model;
+
 class Hash
 {
     private $crypt;

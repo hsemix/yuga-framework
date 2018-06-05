@@ -10,6 +10,14 @@ class Menu
     protected $content = [];
     protected $class;
     protected $parent;
+    protected $parentTag;
+    protected $childTag;
+
+    public function __construct($parentTag = 'ul', $childTag = 'li', $child = true)
+    {
+        $this->childTag = $childTag;
+        $this->parentTag = $parentTag;
+    }
 
     public function getItems()
     {
@@ -270,7 +278,7 @@ class Menu
         $o = '';
         if (count($this->items)) {
 
-            $o .= '<ul' . ($this->class ? ' class="' . $this->class . '"' : '');
+            $o .= '<' . $this->parentTag . ($this->class ? ' class="' . $this->class . '"' : '');
 
             if (count($this->attributes)) {
                 $o .= $this->formatAttributes($this->attributes);
@@ -282,7 +290,7 @@ class Menu
             foreach ($this->items as $key => $menuItem) {
                 /* Write html */
 
-                $o .= '<li' . $this->formatAttributes($menuItem->getAttributes()) . '>';
+                $o .= '<' . $this->childTag . $this->formatAttributes($menuItem->getAttributes()) . '>';
                 $o .= '<a href="' . $menuItem->getUrl() . '"' .
                     $this->formatAttributes($menuItem->getLinkAttributes()) . '>' .
                     $menuItem->getLinkIcon();
@@ -309,10 +317,10 @@ class Menu
                     $o .= $this->content[$key]->__toString();
                 }
 
-                $o .= '</li>';
+                $o .= '</' . $this->childTag . '>';
             }
 
-            $o .= '</ul>';
+            $o .= '</' . $this->parentTag . '>';
 
             return $o;
         }

@@ -1,5 +1,6 @@
 <?php
 namespace Yuga\Exceptions;
+
 use Exception;
 use Yuga\Http\Request;
 

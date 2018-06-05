@@ -29,27 +29,6 @@ class View
 			$starter->$var = $value;	
 		}
 		
-		return $starter->display($file);
+		$starter->display($file);
 	}
-
-	// public function __construct($view, $extras = null)
-	// {
-	// 	$this->viewFile = $view;
-	// 	$this->viewEngine = App::make('view');
-	// 	if ($extras) {
-	// 		$this->data = $extras;
-	// 	}
-	// }
-
-	// public function with(array $data = null)
-	// {
-	// 	$view = clone $this;
-	// 	$view->data = $data;
-	// 	return $view;
-	// }
-
-	// public function __toString()
-	// {
-	// 	return $this->viewEngine->display($this->viewFile, $this->data);
-	// }
 }

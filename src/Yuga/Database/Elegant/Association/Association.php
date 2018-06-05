@@ -35,7 +35,6 @@ abstract class Association
     }
     public function noConditions(Closure $callback)
     {
-        
         return call_user_func($callback);
     }
 

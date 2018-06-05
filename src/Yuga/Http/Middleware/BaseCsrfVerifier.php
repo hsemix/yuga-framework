@@ -2,8 +2,8 @@
 namespace Yuga\Http\Middleware;
 
 use Yuga\CsrfToken;
-use Yuga\Http\Middleware\Exceptions\TokenMismatchException;
 use Yuga\Http\Request;
+use Yuga\Http\Middleware\Exceptions\TokenMismatchException;
 
 class BaseCsrfVerifier implements IMiddleware
 {

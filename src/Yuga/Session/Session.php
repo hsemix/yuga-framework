@@ -5,9 +5,9 @@
 namespace Yuga\Session;
 
 use Yuga\Guid;
-use Yuga\Application;
 use Yuga\Database\Elegant\Model;
-use Yuga\Agree\Session\ISession;
+use Yuga\Application\Application;
+use Yuga\Interfaces\Session\ISession;
 
 class Session implements ISession
 {

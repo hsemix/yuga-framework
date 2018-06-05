@@ -1,9 +1,9 @@
 <?php
 namespace Yuga\Events;
 
-use Yuga\Application;
 use Yuga\Console\Events\YugaStart;
 use Yuga\Providers\ServiceProvider;
+use Yuga\Interfaces\Application\Application;
 
 class EventServiceProvider extends ServiceProvider
 {

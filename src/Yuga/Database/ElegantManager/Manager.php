@@ -8,12 +8,14 @@ use Yuga\Database\Elegant\Model as Elegant;
 class Manager
 {
     protected $manager;
-    private $connection;
     private $container;
+    private $connection;
+    
     public function __construct(Container $container = null)
     {
         $this->setContainer($container ?: new Container);       
     }
+    
     public function addConnection(Connection $connection)
     {
         $this->connection = $connection;

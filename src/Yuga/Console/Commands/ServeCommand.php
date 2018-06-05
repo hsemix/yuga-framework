@@ -35,11 +35,11 @@ class ServeCommand extends Command
 
         $port = $this->input->getOption('port');
 
-        $public = path();
+        $public = path('public');
 
         $this->info("Yuga Framework development Server started on http://{$host}:{$port}");
 
-        passthru('"'.PHP_BINARY.'"'." -S {$host}:{$port} -t \"{$public}\"");
+        passthru('"'.PHP_BINARY.'"'." -S {$host}:{$port} -t \"{$public}\" server.php");
     }
 
     /**

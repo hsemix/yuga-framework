@@ -9,6 +9,7 @@ class MergeableMany extends HasMany
 {
     public $mergeType;
     public $mergeClass;
+
     public function __construct(Builder $query, Model $parent, $type, $id, $localKey)
     {
         $this->mergeType = $type;       
@@ -19,6 +20,7 @@ class MergeableMany extends HasMany
         
         parent::__construct($query, $parent, $id, $localKey);
     }
+
     public function addConditions()
     {     
         $this->query->where($this->mergeType, strtolower($this->mergeClass))->where($this->foreignKey, '=', $this->getParentIdValue());
@@ -26,7 +28,6 @@ class MergeableMany extends HasMany
 
     public function save(Model $model)
     {
-
         $mergeClassBase = class_base($this->mergeClass);
         $model->setAttribute($this->getPlainMergeableType(), strtolower($mergeClassBase));
         $model->setAttribute($this->getPlainMergeId(), $this->parent->{$this->parent->getPrimaryKey()});
@@ -42,6 +43,7 @@ class MergeableMany extends HasMany
 
         return $instance;
     }
+
     public function create(array $attributes)
     {
         $instance = $this->related->newInstance($attributes);
@@ -70,6 +72,7 @@ class MergeableMany extends HasMany
     {
         return end($colllection);
     }
+    
     public function saveMany($models)
     {
         foreach ($models as $model) {

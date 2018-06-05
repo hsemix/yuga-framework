@@ -2,11 +2,11 @@
 namespace Yuga\Authenticate;
 
 use Closure;
-use Yuga\Application;
 use Yuga\Models\User;
 use Yuga\Http\Request;
 use Yuga\Cookie\Cookie;
 use Yuga\Session\Session;
+use Yuga\Application\Application;
 use Yuga\Http\Middleware\IMiddleware;
 
 class LoginWithRemember implements IMiddleware

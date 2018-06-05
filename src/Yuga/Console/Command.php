@@ -367,9 +367,9 @@ class Command extends ConsoleCommand
     /**
      * Get the Yuga application instance.
      *
-     * @return \Yuga\Application
+     * @return \Yuga\Interfaces\Application\Application
      */
-    public function getNova()
+    public function getYuga()
     {
         return $this->yuga;
     }
@@ -377,7 +377,7 @@ class Command extends ConsoleCommand
     /**
      * Set the Yuga application instance.
      *
-     * @param  \Yuga\Application  $yuga
+     * @param  \Yuga\Interfaces\Application\Application
      * @return void
      */
     public function setContainer($yuga)

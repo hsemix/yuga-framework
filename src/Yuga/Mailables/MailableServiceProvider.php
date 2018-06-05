@@ -4,9 +4,10 @@
  */
 namespace Yuga\Mailables;
 
-use Yuga\Application;
-use Yuga\Mailables\Native\YugaMailer;
 use Yuga\Providers\ServiceProvider;
+use Yuga\Mailables\Native\YugaMailer;
+use Yuga\Interfaces\Application\Application;
+
 class MailableServiceProvider extends ServiceProvider
 {
     public function load(Application $app)

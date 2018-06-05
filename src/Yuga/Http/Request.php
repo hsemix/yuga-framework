@@ -1,11 +1,11 @@
 <?php
 namespace Yuga\Http;
 
-use Yuga\Application;
 use Yuga\Route\Route;
 use Yuga\Http\Input\Input;
 use Yuga\Validate\Validate;
 use Yuga\Route\Router\RouteUrl;
+use Yuga\Application\Application;
 use Yuga\Route\Support\ILoadableRoute;
 
 class Request
@@ -65,17 +65,38 @@ class Request
         return $this->getHeader('http-x-forwarded-proto') === 'https' || $this->getHeader('https') !== null || $this->getHeader('server-port') === 443;
     }
 
+    public function getPort()
+    {
+        return $this->getHeader('server-port');
+    }
+
     /**
      * @return string
      */
-    public function getUri()
+    public function getUri($trim = false)
     {
-        return $this->uri;
+        if ($trim) {
+            return $this->uri;
+        }
+        return str_replace($this->processHost(), '', $this->uri);
     }
 
-    public function getUrl()
+
+    public function processHost()
     {
-        return str_replace('/'.env('APP_FOLDER'), '', $this->uri);
+        $scriptName = substr($this->getHeader('php-self'),0,strlen($this->getHeader('php-self'))  - strlen('index.php'));;
+        $segs = explode('/', trim($scriptName, '/'));
+        $segs = array_reverse($segs);
+
+        $index = 0;
+        $last = count($segs);
+        $baseUrl = '';
+        do {
+            $seg = $segs[$index];
+            $baseUrl = '/'.$seg.$baseUrl;
+            ++$index;
+        } while ($last > $index && (false !== $pos = strpos($scriptName, $baseUrl)) && 0 != $pos);
+        return $baseUrl;
     }
 
     /**
@@ -447,6 +468,11 @@ class Request
             return $validation;
         }
         return $validation->getValidated();
+    }
+
+    public function getRouteParams($key = null)
+    {   
+        return $this->getLoadedRoute()->getParams($key);
     }
 
 }

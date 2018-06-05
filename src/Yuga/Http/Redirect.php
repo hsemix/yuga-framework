@@ -33,17 +33,6 @@ class Redirect
      */
     public function to($url, $httpCode = null)
     {
-        if (!is_null(env('APP_FOLDER'))) {
-            if ($url == '/') {
-                $url = '/'.env('APP_FOLDER').$url;
-            } else {
-                $url = ltrim($url, '/');
-                if (strpos($url, env('APP_FOLDER')) !== false && !$this->isValidUri($url)) {
-                    $url = str_replace(env('APP_FOLDER').'/', '', $url);
-                }
-            }
-        }
-
         if ($httpCode !== null) {
             $this->httpCode($httpCode);
         }

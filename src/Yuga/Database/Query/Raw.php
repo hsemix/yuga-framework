@@ -37,4 +37,9 @@ class Raw
     {
         return (string)$this->value;
     }
+
+    public function where()
+    {
+        return $this;
+    }
 }

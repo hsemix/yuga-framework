@@ -7,9 +7,11 @@ use Yuga\Database\Elegant\Collection;
 
 class BelongsTo extends Association
 {
-    protected $foreignKey;
-    protected $otherKey;
+
     protected $child;
+    protected $otherKey;
+    protected $foreignKey;
+
     public function __construct(Builder $query, Model $parent, $foreignKey, $otherKey, $child)
     {
         $this->otherKey = $otherKey;
@@ -19,6 +21,7 @@ class BelongsTo extends Association
         $this->query = $query;
         parent::__construct($query, $parent);
     }
+
     public function addConditions()
     {
         $table = $this->child->getTable();

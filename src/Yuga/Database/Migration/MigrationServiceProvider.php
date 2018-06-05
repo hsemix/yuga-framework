@@ -1,8 +1,8 @@
 <?php
 namespace Yuga\Database\Migration;
 
-use Yuga\Application;
 use Yuga\Providers\ServiceProvider;
+use Yuga\Interfaces\Application\Application;
 
 class MigrationServiceProvider extends ServiceProvider
 {
@@ -24,7 +24,7 @@ class MigrationServiceProvider extends ServiceProvider
     {
         foreach ($migrations as $migration) {
             if (class_exists($migration)) {
-                $migration = new $migration('1.0');
+                $migration = new $migration;
                 $migration->up();
             }
         }

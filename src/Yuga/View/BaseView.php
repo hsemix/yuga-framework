@@ -4,15 +4,27 @@
  */
 namespace Yuga\View;
 
+use ArrayAccess;
+use Yuga\Session\Session;
 use Yuga\Validate\Message;
+use Yuga\Models\ElegantModel;
+use Yuga\Http\Input\InputItem;
+use Yuga\Database\Elegant\Model;
+use Yuga\Views\Widgets\Form\FormMessage;
 use Yuga\Shared\Controller as SharedController;
-class BaseView
+
+class BaseView implements ArrayAccess
 {
     use SharedController;
+    
     protected $errors;
     protected $message;
-    protected $errorType = 'danger';
-    protected $defaultMessagePlacement = 'default';
+    protected $data = [];
+    protected $models = [];
+    protected $model = null;
+    protected $table = null;
+    protected $ignoreFields = [];
+
     public function __construct()
     {
         $this->init();
@@ -24,51 +36,43 @@ class BaseView
         $this->message = $this->errors;
     }
 
+    public function offsetSet($offset, $value) 
+    {
+        if (is_null($offset)) {
+            $this->data[] = $value;
+        } else {
+            $this->data[$offset] = $value;
+        }
+    }
+
+    public function offsetExists($offset) 
+    {
+        return isset($this->data[$offset]);
+    }
+
+    public function offsetUnset($offset) 
+    {
+        unset($this->data[$offset]);
+    }
+
+    public function offsetGet($offset) 
+    {
+        return isset($this->data[$offset]) ? $this->data[$offset] : null;
+    }
+
+    public function __set($name, $value) 
+    {
+        $this->data[$name] = $value;
+    }
+
+    public function __get($name) 
+    {
+        return $this->data[$name];
+    }
+
     /**
     * TO DO: handle automatic validation later
     */
-
-    protected function setError($message, $placement = null)
-    {
-        $this->setMessage($message, $this->errorType, $placement);
-    }
-    public function getMessages($type, $placement = null)
-    {
-        // Trigger validation
-        $this->performValidation();
-        $type = ($type == 'danger') ? 'errors' : $type;
-        $messages = [];
-        $search = $this->message->get($type);
-
-        if ($search !== null) {
-            foreach ($search as $message) {
-                if ($placement === null) {
-                    $messages[] = $message;
-                }
-            }
-        }
-        return $messages;
-    }
-
-    protected function performValidation()
-    {
-        return $this->message;
-    }
-
-    public function hasMessages($type, $placement = null)
-    {
-        return (bool)count($this->getMessages($type, $placement));
-    }
-
-    protected function setMessage($message, $type, $placement = null, $index = null)
-    {
-        $msg = new FormMessage();
-        $msg->setMessage($message);
-        $msg->setPlacement(($placement === null) ? $this->defaultMessagePlacement : $placement);
-        $msg->setIndex($index);
-        $this->messages->set($msg, $type);
-    }
-    // auto validation ends
 
     /**
      * Get the site instance as use it
@@ -150,6 +154,64 @@ class BaseView
         }
         $this->session->delete('old-data');
         return $validation->getValidated();
+    }
+
+    protected function getValidation($name)
+    {
+        if ($this->errors->has($name)) {
+            return $this->errors->first($name);
+        }
+
+        return null;
+    }
+
+    public function setModel(Model ...$models)
+    {
+        if (count($models) == 1) {
+            $this->model = $this['model'] = $models[0];
+        } else {
+            $this->models = $this['models'] = $models;
+        }
+        
+        return $this;
+    }
+
+    public function setTable($table = null)
+    {
+        $this->table = $table;
+        return $this;
+    }
+
+    public function bindViewToModel()
+    {
+        $fields = $this->request->getInput()->all();
+        if ($this->model == null) {
+            $this->model = new ElegantModel;
+            if (!is_null($this->table)) {
+                $this->model->setTable($this->table);
+            }
+        }
+        if (request()->getMethod() === 'post') {
+            unset($fields['_token']); 
+        } 
+        if (count($this->ignoreFields) > 0) {
+            foreach ($this->ignoreFields as $unset)
+                unset($fields[$unset]);
+        }
+        
+        $this->model->setRawAttributes($fields);
+        $this['form'] = $fields;
+        return $this;
+    }
+
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    public function save()
+    {
+        return $this->getModel()->save();
     }
 
 }

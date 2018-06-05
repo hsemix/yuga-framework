@@ -1,11 +1,9 @@
 <?php
-/**
- * @author Mahad Tech Solutions
- */
 namespace Yuga\Route\Router;
 
 use Yuga\Http\Request;
 use Yuga\Route\Support\IControllerRoute;
+
 class RouteResource extends LoadableRoute implements IControllerRoute
 {
     protected $urls = [

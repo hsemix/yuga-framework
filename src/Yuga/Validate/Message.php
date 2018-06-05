@@ -3,12 +3,15 @@
  * @author Mahad Tech Solutions
  */
 namespace Yuga\Validate;
+
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
+
 class Message
 {
-    protected $messages = [];
     protected $fields = [];
+    protected $messages = [];
+    
     public function addMessage($error, $key = null)
     {
         if ($key) {

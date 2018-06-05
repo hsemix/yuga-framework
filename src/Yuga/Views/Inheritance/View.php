@@ -208,16 +208,13 @@ class View
         $trace = $this->callingTrace();
         $this->init($trace);
         $stack =& $GLOBALS['_smx_stack'];
-        if ($stack) 
-        {
+        if ($stack) {
             $section = array_pop($stack);
-            if($name && $name != $section['name']) 
-            {
+            if($name && $name != $section['name']) {
                 $this->warning("section('{$section['name']}') does not match endSection('$name')", $trace);
             }
             $this->insertSection($section);
-        }else
-        {
+        } else {
             $this->warning(
                 $name ? "orphan endSection('$name')" : "orphan endSection()",
                 $trace
@@ -287,14 +284,11 @@ class View
         // is trace1 a subtrace of trace2
         $len1 = count($trace1);
         $len2 = count($trace2);
-        if ($len1 > $len2) 
-        {
+        if ($len1 > $len2) {
             return false;
         }
-        for ($i=0; $i<$len1; $i++) 
-        {
-            if ($trace1[$len1-1-$i] !== $trace2[$len2-1-$i]) 
-            {
+        for ($i=0; $i<$len1; $i++) {
+            if ($trace1[$len1-1-$i] !== $trace2[$len2-1-$i]) {
                 return false;
             }
         }

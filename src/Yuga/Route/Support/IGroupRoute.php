@@ -2,8 +2,8 @@
 
 namespace Yuga\Route\Support;
 
-use Yuga\Handlers\IExceptionHandler;
 use Yuga\Http\Request;
+use Yuga\Handlers\IExceptionHandler;
 
 interface IGroupRoute extends IRoute
 {

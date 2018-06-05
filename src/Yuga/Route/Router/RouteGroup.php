@@ -1,8 +1,6 @@
 <?php
-/**
- * @author Mahad Tech Solutions
- */
 namespace Yuga\Route\Router;
+
 use Yuga\Http\Request;
 use Yuga\Route\Support\IGroupRoute;
 use Yuga\Handlers\IExceptionHandler;

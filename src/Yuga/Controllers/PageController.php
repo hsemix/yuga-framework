@@ -1,10 +1,12 @@
 <?php
 namespace Yuga\Controllers;
-use Yuga\Widgets\NotFound;
+
+use Yuga\Http\Request;
+
 class PageController extends Controller
 {
-    public function notFound()
+    public function notFound(Request $request)
     {
-        echo new NotFound;
+        include_once 'not-found.php';
     }
 }

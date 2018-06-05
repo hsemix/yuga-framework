@@ -15,6 +15,5 @@ class Mergeable extends BelongsTo
         $this->mergeType = $type;
         parent::__construct($query, $parent, $foreignKey, $otherKey, $relation); 
     }
-
     
 }

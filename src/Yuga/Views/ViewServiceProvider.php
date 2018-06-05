@@ -5,8 +5,8 @@
 namespace Yuga\Views;
 
 use Yuga\Http\Request;
-use Yuga\Application;
 use Yuga\Providers\ServiceProvider;
+use Yuga\Interfaces\Application\Application;
 
 class ViewServiceProvider extends ServiceProvider
 {
@@ -17,7 +17,7 @@ class ViewServiceProvider extends ServiceProvider
             $template = $app->resolve('view', [
                 './resources/views/'
             ]);
-            $template->resource = ((!is_null(env('APP_FOLDER'))) ? env('APP_FOLDER') . DIRECTORY_SEPARATOR : '').'resources/assets/';
+            $template->resource = 'resources/assets/';
             $template->host = (new Request)->getHost();
             
             return $template;

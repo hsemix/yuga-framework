@@ -4,8 +4,8 @@
  */
 namespace Yuga\Session;
 
-use Yuga\Application;
 use Yuga\Providers\ServiceProvider;
+use Yuga\Interfaces\Application\Application;
 
 class SessionServiceProvider extends ServiceProvider
 {

@@ -199,7 +199,7 @@ class Uri
      */
     public function setPath($path)
     {
-        $this->path = str_replace('/'.env('APP_FOLDER'), '', rtrim($path, '/') . '/');
+        $this->path = rtrim($path, '/') . '/';
 
         return $this;
     }

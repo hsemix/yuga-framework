@@ -23,8 +23,19 @@ class PDO
     public static function getInstance()
     {
         if (self::$instance === null) {
-            self::$instance = new static(env('DATABASE_DRIVER', 'mysql') . ':host=' . env('DATABASE_HOST') . ';dbname=' . env('DATABASE_NAME') . ';charset=' . env('DATABASE_CHARSET', 'utf8'),
-                env('DATABASE_USERNAME'), env('DATABASE_PASSWORD'));
+            $driver = env('DATABASE_DRIVER', 'mysql');
+            if ($driver == 'sqlite') {
+                $path = storage("database");
+                $config = \App::make('config')->load('config.Config');
+                $settings = $config->get('db.'.$config->get('db.defaultDriver'));
+                $connectionString = "sqlite:".$path.DIRECTORY_SEPARATOR.$settings['database'];
+            } else if ($driver == 'mysql') {
+                $connectionString = env('DATABASE_DRIVER', 'mysql') . ':host=' . env('DATABASE_HOST') . ';dbname=' . env('DATABASE_NAME') . ';charset=' . env('DATABASE_CHARSET', 'utf8');
+                
+            } else if ($driver == 'pgsql') {
+
+            }
+            self::$instance = new static($connectionString, env('DATABASE_USERNAME'), env('DATABASE_PASSWORD'));
         }
 
         return self::$instance;
@@ -55,28 +66,36 @@ class PDO
      */
     public function query($query, array $parameters = null)
     {
-        $query = $this->connection->prepare($query);
-        $inputParameters = null;
+        $last_query = $query;
+        try {
+            $query = $this->connection->prepare($query);
+            $inputParameters = null;
 
-        if (is_array($parameters)) {
-            $keyTest = array_keys($parameters)[0];
+            if (is_array($parameters)) {
+                $keyTest = array_keys($parameters)[0];
 
-            if (!is_int($keyTest)) {
-                foreach ($parameters as $key => $value) {
-                    $query->bindParam($key, $value);
+                if (!is_int($keyTest)) {
+                    foreach ($parameters as $key => $value) {
+                        $query->bindParam($key, $value);
+                    }
+                } else {
+                    $inputParameters = $parameters;
                 }
-            } else {
-                $inputParameters = $parameters;
             }
-        }
 
-        $this->query = $query->queryString;
-        //debug('START DB QUERY:' . $this->query);
-        if ($query->execute($inputParameters)) {
-            //debug('END DB QUERY');
+            $this->query = $query->queryString;
+            //debug('START DB QUERY:' . $this->query);
+            if ($query->execute($inputParameters)) {
+                //debug('END DB QUERY');
 
-            return $query;
+                return $query;
+            }
+        } catch (\PDOException $ex) {
+            $output = "Database query failed: " .$ex->getMessage() ."<br /><br />";
+			$output .= "Last SQL query: ".$last_query;
+			die($output);
         }
+        
 
         return null;
     }
@@ -140,15 +159,24 @@ class PDO
      */
     public function executeSql($file)
     {
-        $fp = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $query = '';
-        foreach ($fp as $line) {
-            if ($line != '' && strpos($line, '--') === false) {
-                $query .= $line;
-                if (substr($query, -1) == ';') {
-                    $this->nonQuery($query);
-                    $query = '';
+        if (file_exists($file)) {
+            $fp = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $query = '';
+            foreach ($fp as $line) {
+                if ($line != '' && strpos($line, '--') === false) {
+                    $query .= $line;
+                    if (substr($query, -1) == ';') {
+                        $this->nonQuery($query);
+                        $query = '';
+                    }
                 }
+            }
+        } else {
+            $queries = explode(";", $file);
+            foreach ($queries as $query){
+                $query = trim($query);
+                if(!$query) continue;
+                $this->nonQuery($query);
             }
         }
     }
@@ -171,7 +199,13 @@ class PDO
 
     public function doQuery($query)
     {
-        return $this->connection->query($query);
+        try {
+            return $this->connection->query($query);
+        } catch (\PDOException $ex) {
+            $output = "Database query failed: " .$ex->getMessage() ."<br /><br />";
+			$output .= "Last SQL query: ".$query;
+			die($output);
+        }
     }
 
 }

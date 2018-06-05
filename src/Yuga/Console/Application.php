@@ -5,14 +5,14 @@ use Closure;
 use Exception;
 use Throwable;
 use Yuga\Container\Container;
-use Yuga\Agree\Events\Dispatcher;
-use Yuga\Application as YugaApplication;
+use Yuga\Interfaces\Events\Dispatcher;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Yuga\Application\Application as YugaApplication;
 use Symfony\Component\Console\Application as Console;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
@@ -23,7 +23,7 @@ class Application extends Console
     /**
      * The Event Dispatcher.
      *
-     * @var \Yuga\Agree\Events\Dispatcher
+     * @var \Yuga\Interfaces\Events\Dispatcher
      */
     protected $events;
     protected static $app;
@@ -42,7 +42,7 @@ class Application extends Console
     /**
      * Create and boot a new Console application.
      *
-     * @param  \Yuga\Application  $app
+     * @param  \Yuga\Interfaces\Application\Application  $app
      * @return \Yuga\Console\Application
      */
     public static function start($app)
@@ -58,7 +58,7 @@ class Application extends Console
     /**
      * Create a new Console application.
      *
-     * @param  \Yuga\Application  $app
+     * @param  \Yuga\Interfaces\Application\Application  $app
      * @return \Yuga\Console\Application
      */
     public static function make($app)

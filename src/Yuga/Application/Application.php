@@ -1,6 +1,8 @@
 <?php
-namespace Yuga;
+namespace Yuga\Application;
 
+use Yuga\Debug;
+use Yuga\Boolean;
 use Yuga\Http\Request;
 use Yuga\Http\Redirect;
 use Yuga\Http\Response;
@@ -8,7 +10,6 @@ use Yuga\Support\Config;
 use Whoops\Run as WhoopsRun;
 use Yuga\Container\Container;
 use Yuga\Views\UI\Site as UI;
-use Yuga\Support\IServiceProvider;
 use Yuga\Logger\LogServiceProvider;
 use Yuga\Route\RouteServiceProvider;
 use Yuga\Events\EventServiceProvider;
@@ -17,18 +18,57 @@ use Yuga\Invocation\CallableResolver;
 use Yuga\Providers\YugaServiceProvider;
 use Yuga\Database\ElegantServiceProvider;
 use Yuga\Providers\ClassAliasServiceProvider;
+use Yuga\Interfaces\Providers\IServiceProvider;
 use Whoops\Handler\PrettyPageHandler as PrettyPage;
+use Yuga\Interfaces\Application\Application as IApplication;
 
-class Application extends Container
+class Application extends Container implements IApplication
 {
     const VERSION = '3.0.0';
     const CHARSET_UTF8 = 'UTF-8';
 
+     /**
+     * Start the mvvm application by defaut
+     * <code>$this->getSite()</code> from a ViewModel returns $this->site
+     */
     public $site;
+    /**
+     * Store the configuration instance in this variable so we can use it as
+     * <code>$this->app->config->get('db.default.settings')</code> from a controller
+     *
+     * @var \Yuga\Support\Config
+     */
     public $config;
+
+    /**
+     * The base file path of the application so we can install the framework 
+     * in a different directory and access it entiry
+     *
+     * @var string
+     */
     protected $basePath;
+
+    /**
+     * The application instance is to be stored in this variable
+     *
+     * @var \Yuga\Application\Application
+     */
     protected static $app;
+
+    /**
+     * The Default Application language we shall use
+     * can be changed
+     *
+     * @var string
+     */
     protected $locale = 'en';
+
+    /**
+     * The Application debug mode default is false 
+     * can be changed in the .env file
+     *
+     * @var boolean
+     */
     protected $debugEnabled = false;
     
     /**
@@ -37,6 +77,13 @@ class Application extends Container
      * @var array
      */
     protected $loadedProviders = [];
+
+    /**
+     * The encryption method we shall use throught the entire application
+     * can be changed later
+     *
+     * @var string
+     */
     protected $encryptionMethod = 'AES-256-CBC';
     
     public function __construct($root = null)
@@ -73,6 +120,11 @@ class Application extends Container
         return php_sapi_name() == 'cli';
     }
 
+    /**
+     * Register the Service providers
+     *
+     * @return void
+     */
     protected function registerConfig()
     {
         if (!static::$app) {
@@ -89,6 +141,13 @@ class Application extends Container
         }
     }
 
+    /**
+     * Return a static instance of the Application instance throught the entire application
+     * 
+     * @param null
+     * 
+     * @return \Yuga\Application\Application
+     */
     public static function getInstance()
     {
         return static::$app;
@@ -113,7 +172,7 @@ class Application extends Container
      * 
      * @param \boolean $bool
      * 
-     * @return \Yuga\Application $this
+     * @return \Yuga\Appplication\Application $this
      */
 
     public function setDebugEnabled($bool)
@@ -125,11 +184,25 @@ class Application extends Container
         return $this;
     }
 
+    /**
+     * Get the debug mode if set
+     * 
+     * @param null
+     * 
+     * @return bool
+     */
     public function getDebugEnabled()
     {
         return $this->debugEnabled;
     }
 
+    /**
+     * Set the default application's encryption methode
+     * 
+     * @param string $method
+     * 
+     * @return \Yuga\Application\Application $this
+     */
     public function setEncryptionMethod($method)
     {
         $this->encryptionMethod = $method;
@@ -156,13 +229,13 @@ class Application extends Container
      */
     protected function registerDefaultProviders()
     {
+        $this->registerProvider(new ElegantServiceProvider($this));
+
         $this->registerProvider(new EventServiceProvider($this));
 
         $this->registerProvider(new LogServiceProvider($this));
 
         $this->registerProvider(new RouteServiceProvider($this));
-
-        $this->registerProvider(new ElegantServiceProvider($this));
         
         if ($this->runningInConsole()) {
             $this->registerProvider(new YugaServiceProvider($this));
@@ -201,14 +274,15 @@ class Application extends Container
      * @param  array  $parameters
      * @return mixed
      */
-    public static function onRequest($method, $parameters = array())
+    public static function onRequest($method, $parameters = [])
     {
         return forward_static_call_array([new Request, $method], $parameters);
     }
 
     /**
-     * @param \Yuga\Support\IServiceProvider $provider
-     * @return \Yuga\Application $this
+     * @param \Yuga\Interfaces\Providers\IServiceProvider $provider
+     * 
+     * @return \Yuga\Application\Application $this
      */
     public function registerProvider(IServiceProvider $provider)
     {

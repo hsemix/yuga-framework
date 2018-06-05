@@ -34,7 +34,7 @@ class Authenticate extends BaseController implements IMiddleware
      */
     public function except(array $routes = [])
     {
-        return in_array(ltrim(request()->getUrl(), '/'), $routes);
+        return in_array(ltrim(request()->getUri(), '/'), $routes);
     }
 
     public function user()
@@ -87,7 +87,7 @@ class Authenticate extends BaseController implements IMiddleware
     public function run(Request $request, Closure $next)
     {
         if ($this->guest()) {
-            return (\Auth::authRoutesExist()) ? $this->response->redirect->to('/login') :$this->response->redirect->route('yuga.auth.signin');
+            return (\Auth::authRoutesExist()) ? $this->response->redirect->to('/login') : $this->response->redirect->route('yuga.auth.signin');
             die();
         }
 

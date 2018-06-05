@@ -1,5 +1,6 @@
 <?php
 namespace Yuga\Database\Query;
+
 class DB
 {
   /**

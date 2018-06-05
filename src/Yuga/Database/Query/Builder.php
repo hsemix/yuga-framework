@@ -208,7 +208,7 @@ class Builder
         return $this->statements;
     }
 
-    protected function whereHandler($column, $operator = null, $value = null, $type = 'and')
+    protected function whereHandler($column, $operator = null, $value = null, $type = 'AND')
     {
         $key = $this->addTablePrefix($column);
         $this->statements['wheres'][] = compact('column', 'operator', 'value', 'type');
@@ -246,7 +246,7 @@ class Builder
         $queryArr = $this->grammarInstance->$type($this->statements, $dataToBePassed);
         return $this->container->resolve(
             QueryObject::class,
-            [$queryArr['sql'], $queryArr['bindings'], $this->pdo]
+            [$queryArr['sql'], $queryArr['bindings'], $this->getConnection()]
         );
     }
 
@@ -306,7 +306,7 @@ class Builder
         return $this->{$operator . 'Where'}($this->raw("{$key} IS {$prefix} NULL"));
     }
 
-    public function having($column, $operator, $value, $joiner = 'and')
+    public function having($column, $operator, $value, $type = 'and')
     {
         $column = $this->addTablePrefix($column);
         $this->statements['havings'][] = compact('column', 'operator', 'value', 'type');
@@ -345,6 +345,8 @@ class Builder
 
     public function query($sql, array $bindings = [])
     {
+        $queryObject = new QueryObject($sql, $bindings, $this->getConnection());
+        $this->connection->setLastQuery($queryObject);
         list($this->pdoStatement) = $this->statement($sql, $bindings);
         return $this;
     }
@@ -365,7 +367,6 @@ class Builder
         // Build a new JoinBuilder class, keep it by reference so any changes made
         // in the closure should reflect here
         $joinBuilder = $this->container->resolve(JoinBuilder::class, [$this->connection]);
-        //$joinBuilder = &$joinBuilder;
 
         // Call the closure with our new joinBuilder object
         $column($joinBuilder);
@@ -391,17 +392,6 @@ class Builder
     }
 
     /**
-     * @param      $event
-     * @return mixed
-     */
-    public function fireEvents($event)
-    {
-        $params = func_get_args();
-        array_unshift($params, $this);
-        return call_user_func_array([$this->connection->getEventHandler(), 'fireEvents'], $params);
-    }
-
-    /**
      * @param       $sql
      * @param array $bindings
      *
@@ -421,43 +411,18 @@ class Builder
             $pdoStatement->execute();
             return [$pdoStatement];
         } catch (\PDOException $ex) {
-            $output = "Database query failed: " . $ex->getMessage().PHP_EOL;
-            $output .= "Last SQL query: " . $sql;
-            throw new DatabaseQueryException($output);
+            throw DatabaseQueryException::create($ex, $this->getConnection()->getAdapterInstance()->getQueryAdapterClass(), $this->getLastQuery());
         }
     }
 
     /**
-     * @param string $event
-     * @param string|null $table
+     * Get query-object from last executed query.
      *
-     * @return \Closure|null
+     * @return QueryObject|null
      */
-    public function getEvent($event, $table = null)
+    public function getLastQuery()
     {
-        return $this->connection->getEventHandler()->getEvent($event, $table);
-    }
-    /**
-     * @param string $event
-     * @param string|null $table
-     * @param \Closure $action
-     *
-     * @return void
-     */
-    public function registerEvent($event, $table = null, \Closure $action)
-    {
-        $this->connection->getEventHandler()->registerEvent($event, $table, $action);
-    }
-
-    /**
-     * @param string $event
-     * @param string|null $table
-     *
-     * @return void
-     */
-    public function removeEvent($event, $table = null)
-    {
-        $this->connection->getEventHandler()->removeEvent($event, $table);
+        return $this->connection->getLastQuery();
     }
 
     /**
@@ -471,10 +436,8 @@ class Builder
             if($columns)
                 $this->select($columns);
             $queryObject = $this->getQuery('select');
-            list($this->pdoStatement) = $this->statement(
-                $queryObject->getSql(),
-                $queryObject->getBindings()
-            );
+            $this->connection->setLastQuery($queryObject);
+            list($this->pdoStatement) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
         }
         $result = call_user_func_array([$this->pdoStatement, 'fetchAll'], $this->fetchParameters);
         $this->pdoStatement = null;
@@ -531,6 +494,13 @@ class Builder
         $count = $this->aggregate('count');
         $this->statements = $originalStatements;
         return $count;
+    }
+
+    public function getSelects()
+    {
+        if (isset($this->statements['selects']))
+            return $this->statements['selects'];
+        return null;
     }
 
     /**
@@ -595,16 +565,13 @@ class Builder
      */
     public function update($data)
     {
-        $eventResult = $this->fireEvents('updating');
-        if ($eventResult !== null) {
-            return $eventResult;
-        }
 
         $queryObject = $this->getQuery('update', $data);
 
-        list($response) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
-        $this->fireEvents('updated', $queryObject);
+        $this->connection->setLastQuery($queryObject);
 
+        list($response) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
+        
         return $response;
     }
 
@@ -639,6 +606,7 @@ class Builder
     public function delete()
     {
         $queryObject = $this->getQuery('delete');
+        $this->connection->setLastQuery($queryObject);
         list($response) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
 
         return $response;
@@ -656,6 +624,8 @@ class Builder
         // Its not a batch insert
         if (!is_array(current($data))) {
             $queryObject = $this->getQuery($type, $data);
+
+            $this->connection->setLastQuery($queryObject);
 
             list($result) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
 
@@ -675,9 +645,5 @@ class Builder
         }
 
         return $return;
-    }
-
-    
-
-    
+    }  
 }

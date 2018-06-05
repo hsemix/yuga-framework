@@ -4,8 +4,9 @@
  */
 namespace Yuga\Validate;
 
-use Yuga\Application;
 use Yuga\Providers\ServiceProvider;
+use Yuga\Interfaces\Application\Application;
+
 class ValidateServiceProvider extends ServiceProvider
 {
     public function load(Application $app)

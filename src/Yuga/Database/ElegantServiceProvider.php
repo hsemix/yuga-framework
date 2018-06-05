@@ -1,10 +1,10 @@
 <?php
 namespace Yuga\Database;
 
-use Yuga\Application;
 use Yuga\Providers\ServiceProvider;
 use Yuga\Database\Connection\Connection;
 use Yuga\Database\ElegantManager\Manager;
+use Yuga\Interfaces\Application\Application;
 
 class ElegantServiceProvider extends ServiceProvider
 {

@@ -15,7 +15,6 @@ class ElegantModel extends Model
      */
     public function __construct(array $options = [])
     {
-        //$this->init();
         parent::__construct($options);
     }    
 }

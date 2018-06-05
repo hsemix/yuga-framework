@@ -1,14 +1,13 @@
 <?php
-/**
- * @author Mahad Tech Solutions
- */
 namespace Yuga\Validate;
+
 use App;
 use Closure;
 use Exception;
 use Yuga\Http\Request;
 use Yuga\Http\Response;
 use Yuga\Session\Session;
+
 class Validate
 {
     protected $app;
@@ -29,7 +28,7 @@ class Validate
     ];
 
     public $messages = [
-        'required' => '{field} field is required!',
+        'required' => '{field} is required!',
         'min' => '{field} must be a minimum of {satisfy} characters',
         'max' => '{field} must be a maximum of {satisfy} characters',
         'email' => '{field} {value} is not a valid email address',
@@ -47,6 +46,7 @@ class Validate
     protected $response;
     protected $session;
     protected $fields = [];
+    protected $fieldRules = [];
     public function __construct(Message $message, Response $response, Session $session, App $app, Request $request)
     {
         $this->app = $app;
@@ -56,21 +56,49 @@ class Validate
         $this->request = $request;
     }
 
-    public function check($items, $rules)
+    public function check(array $items, $rules)
     {
+        $this->fieldRules = $rules;
         $this->items = $items;
         foreach ($items as $item => $value) {
-            if (in_array($item, array_keys($rules))) {
+            //if (in_array(is_array($item)? $item[0] : $item, array_keys($rules))) {
+            $processedRules = $this->processRules($rules);
+            if (in_array(is_array($item)? $item[0] : $item, $processedRules['fields'])) {
                 $this->fields[$item] = $value;
                 $this->validate([
                     'field' => $item,
                     'value' => $value,
-                    'rules' => $this->makeRule($rules[$item])
+                    'rules' => $this->makeRule($processedRules['rules'][$item])
                 ]);
             }
         }
         return $this;
         //return $this->fields;
+    }
+
+    protected function processRules(array $rules = [])
+    {
+        //$fields = array_keys($rules);
+        $fieldArray = [];
+        $rulesArray = [];
+        $labelsArrary = [];
+        foreach ($rules as $field => $rules) {
+            if (($pipe = strpos($field, '|')) !== false) {
+                $labels = explode("|", $field);
+                $fieldArray[] = $labels[0];
+                $rulesArray[$labels[0]] = $rules;
+                $labelsArrary[$labels[0]] = $labels[1];
+            } else {
+                $fieldArray[] = $field;
+                $rulesArray[$field] = $rules;
+                //$labelsArrary[$field] = $field;
+            }
+        }
+        return [
+            'fields' => $fieldArray,
+            'rules' => $rulesArray,
+            'labels' => $labelsArrary
+        ];
     }
 
     public function getSession()
@@ -210,13 +238,19 @@ class Validate
 
     protected function message($field, $satisfy, $rule)
     {
-        
-        if (is_array($satisfy))
+        $rules = $this->processRules($this->fieldRules);
+        if (is_array($satisfy)) {
             $satisfy = implode(', ', $satisfy);
-        if (strpos($field, '_') !== false)
-            $label = ucwords(str_replace('_', ' ', $field));
-        else
-            $label = ucfirst($field);
+        }
+        if (in_array($field, array_keys($rules['labels']))) {
+            $label = $rules['labels'][$field];
+        } else {
+            if (strpos($field, '_') !== false)
+                $label = ucwords(str_replace('_', ' ', $field));
+            else
+                $label = ucfirst($field);
+        }
+        
         $message = str_replace(['{field}', '{satisfy}', '{value}'], [$label, $satisfy, $this->items[$field]], $this->messages[$rule]);
         if (isset($this->fieldMessages[$field])) {
             if (strstr($message, $field) && isset($this->fieldMessages[$field][$rule])) {
@@ -251,6 +285,12 @@ class Validate
 
     protected function validate_required($field, $value, $satisfy)
     {
+        if ($satisfy == 'exists') {
+            if ($this->request->exists($field)) {
+                return !empty(trim($value));
+            }
+            return;
+        }
         return !empty(trim($value));
     }
 

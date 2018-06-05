@@ -15,10 +15,12 @@ use Yuga\Pagination\Pagination;
 
 class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 {
-    protected $items = [];
-    protected static $instances = [];
-    protected $pagination;
+    
     protected $query;
+    protected $items = [];
+    protected $pagination;
+    protected static $instances = [];
+        
     public function __construct($items = [], $query = null)
     {
         $this->items = $items;
@@ -169,8 +171,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     public function where($key, $value, $strict = true)
     {
         return $this->filter(function ($item) use ($key, $value, $strict) {
-            return $strict ? data_get($item, $key) === $value
-                           : data_get($item, $key) == $value;
+            return $strict ? data_get($item, $key) === $value : data_get($item, $key) == $value;
         });
     }
 
@@ -263,6 +264,46 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     public function pages(array $options = null)
     {
         return $this->pagination($options);
+    }
+
+    public function orderBy($key, $asc = 'ASC')
+    {
+        $order = strtolower($asc);
+        if ($this->count() > 0) {
+            if ($order == 'asc') 
+                $order = true;
+            elseif ($order == 'desc')
+                $order = false;
+
+            $this->sksort($this->items, $key, $order); 
+        }
+         
+        return $this;       
+    }
+
+    protected function sksort(&$array, $subkey = "id", $sort_ascending = false) 
+    {
+        $temp_array = [];
+        if (count($array))
+            $temp_array[key($array)] = array_shift($array);
+        foreach ($array as $key => $val) {
+            $offset = 0;
+            $found = false;
+            foreach ($temp_array as $tmp_key => $tmp_val) {
+                if (!$found and strtolower($val[$subkey]) > strtolower($tmp_val[$subkey])) {
+                    $temp_array = array_merge((array)array_slice($temp_array, 0, $offset), [$key => $val], array_slice($temp_array,$offset));
+                    $found = true;
+                }
+                $offset++;
+            }
+            if(!$found) 
+                $temp_array = array_merge($temp_array, [$key => $val]);
+        }
+    
+        if ($sort_ascending) 
+            $array = array_reverse($temp_array);
+        else 
+            $array = $temp_array;
     }
 
 }

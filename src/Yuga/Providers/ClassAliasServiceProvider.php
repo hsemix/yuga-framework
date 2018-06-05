@@ -4,7 +4,7 @@
  */
 namespace Yuga\Providers;
 
-use Yuga\Application;
+use Yuga\Interfaces\Application\Application;
 
 class ClassAliasServiceProvider extends ServiceProvider
 {

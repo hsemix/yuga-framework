@@ -7,11 +7,13 @@ use Yuga\Database\Elegant\Collection;
 
 class HasMany extends Association
 {
-    private $otherKey;
+    
     private $child;
-    private $foreignKey;
-    private $parent;
     private $query;
+    private $parent;
+    private $otherKey;
+    private $foreignKey;
+    
     public function __construct(Builder $query, Model $parent, $foreignKey, $otherKey)
     {
         $this->otherKey = $otherKey;

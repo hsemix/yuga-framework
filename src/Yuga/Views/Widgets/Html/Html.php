@@ -11,6 +11,8 @@ class Html
     protected $closingType;
     protected $prepended = [];
     protected $attributes = [];
+    protected $afterHtml = [];
+    protected $beforeHtml = [];
     
 
     public function __construct($tag)
@@ -108,7 +110,12 @@ class Html
 
     protected function render()
     {
-        $output = '<' . $this->tag;
+        $output = '';
+        foreach ($this->beforeHtml as $before) {
+            $html = $before;
+            $output .= ($html instanceof static) ? $html->render() : $html;
+        }
+        $output .= '<' . $this->tag;
 
         foreach ($this->attributes as $key => $val) {
             $output .= ' ' . $key;
@@ -118,7 +125,7 @@ class Html
             }
         }
 
-        if($this->closingType === static::CLOSE_TYPE_SHORT) {
+        if ($this->closingType === static::CLOSE_TYPE_SHORT) {
             $output .= ' />';
         } else {
             $output .= '>';
@@ -139,9 +146,13 @@ class Html
         }
 
         if($this->closingType === static::CLOSE_TYPE_TAG) {
-            $output .= '</' . $this->tag . '>';
+            $output .= '</' . $this->tag . ">";
         }
 
+        foreach ($this->afterHtml as $after) {
+            $html = $after;
+            $output .= ($html instanceof static) ? $html->render() : $html;
+        }
         return $output;
     }
 
@@ -219,6 +230,20 @@ class Html
         if (isset($this->attributes[$name])) {
             unset($this->attributes[$name]);
         }
+
+        return $this;
+    }
+
+    public function after($html)
+    {
+        $this->afterHtml[] = $html;
+
+        return $this;
+    }
+
+    public function before($html)
+    {
+        $this->beforeHtml[] = $html;
 
         return $this;
     }

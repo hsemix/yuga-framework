@@ -5,7 +5,9 @@ use Closure;
 use Carbon\Carbon;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
+use Yuga\Support\Inflect;
 use Yuga\Pagination\Pagination;
+use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Collection;
 use Yuga\Database\Connection\Connection;
 use Yuga\Database\Migration\Schema\Table;
@@ -15,9 +17,7 @@ use Yuga\Database\Elegant\Exceptions\ModelException;
 use Yuga\Database\Elegant\Exceptions\ModelNotFoundException;
 
 class Builder
-{
-    protected static $instance;
-    
+{   
     /**
     * @var Model
     */
@@ -27,21 +27,20 @@ class Builder
     */
     protected $query;
     protected $results;
-    protected $pagination;
     protected $boot = [];
-
+    protected $pagination;
     protected $withTrashed = false;
     protected $onlyTrashed = false;
     protected $returnWithRelations = false;
+    protected $tempTable;
+    public $table;
+
 
     public function __construct(Connection $connection, Model $model)
     {
         $this->model = $model;
-        $this->query = (new QueryBuilder())->table($this->model->getTable());
-        $this->pagination = new Pagination;
-        //$this->query->asObject(get_class($this->getModel()));
+        $this->query = (new QueryBuilder())->table($this->table ?: $this->model->getTable());
     }
-
 
     public function all($columns = null)
     {
@@ -63,21 +62,19 @@ class Builder
 
     public function getAll($columns = null)
     {
-        
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
             return false;
         }
         if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
-            if($this->withTrashed){
+            if ($this->withTrashed) {
 				
-			}elseif($this->onlyTrashed){
+			} elseif ($this->onlyTrashed) {
 				$this->query->whereNotNull($this->getModel()->getDeleteKey());
-			}else{
+			} else {
 				$this->query->whereNull($this->getModel()->getDeleteKey());
 			}
         }
         $models = $this->query->get($columns); 
-        
         $results = $this->getModel()->makeModels($models, $this->boot);
         
         if(count($this->getModel()->relations) > 0){
@@ -102,7 +99,6 @@ class Builder
 		$relation = $this->getRelation($name);
         $relation->addLazyConditions($models);
 
-		
         //call_user_func($constraints, $relation);
 		$models = $relation->bootRelation($models, $name);
 		$results = $relation->getLazy();
@@ -111,28 +107,9 @@ class Builder
     
     public function getRelation($name)
     {
-        
 		$relation = Association::noConditions(function () use ($name) {
             return $this->getModel()->$name();
         });
-
-        //print_r($name);
-        //die();
-        //$nested = $this->nestedRelations($name);
-        
-        
-        // If there are nested relationships set on the query, we will put those onto
-        // the query instances so that they can be handled after this relationship
-        // is loaded. In this way they will all trickle down as they are loaded.
-        // if (count($nested) > 0) {
-        //     foreach ($nested as $nest => $object) {
-                
-        //         $relation->with($nest);
-        //         //$relation->getChild()->$nest;
-        //     }
-            
-        // }
-
 		return $relation;
     }
     
@@ -203,15 +180,29 @@ class Builder
         return $this->skip($offset);
     }
 
+    public function setTable($table)
+    {
+        $this->tempTable = $table;
+        $this->model->setTable($table);
+        return $this;
+    }
+
     public function where($key, $operator = null, $value = null)
     {
         if (func_num_args() === 2) {
             if ($operator instanceof Closure) {
-                echo "Yes";
-                die();
+                $operator = $this->operatorClosure($operator, $key);
+                extract($this->processKey($key));
+                $key = $field;
             }
             $value = $operator;
             $operator = '=';
+        }
+
+        if ($value instanceof Closure) {
+            $value = $this->valueClosure($value, $key);
+            extract($this->processKey($key));
+            $key = $field;
         }
 
         $this->query->where($key, $operator, $value);
@@ -219,6 +210,49 @@ class Builder
         return $this;
     }
 
+    protected function processKey($column) 
+    {
+        $columnAndField = [];
+        $columnField = explode('.', $column);
+        if (count($columnField) > 1) {
+            $columnAndField['field'] = $columnField[1];
+            $columnAndField['table'] = $columnField[0];
+        } else {
+            $columnAndField['field'] = $columnField[0];
+            $columnAndField['table'] = null;
+        }
+        return $columnAndField;
+    }
+
+    protected function operatorClosure(Closure $closure, $column)
+    {
+        return $this->valueClosure($closure, $column);
+    }
+
+    protected function valueClosure(Closure $closure, $column)
+    {
+        extract($this->processKey($column));
+        $model = clone $this->getModel()->setTable($table);
+        $newQuery = $model->newElegantQuery();
+        call_user_func($closure, $model);
+        if (!$newQuery->query->getSelects()) {
+            if ($table) {
+                $field = strtolower(class_base($model)).'_'.$field;
+            }
+            $newQuery->select($field);
+        }
+        return $this->subQuery($model);
+    }
+
+    public function subQuery(Model $model, $alias = null)
+    {
+        return $this->query->subQuery($model->getQuery(), $alias);
+    }
+
+    public function getBindings()
+    {
+        return $this->query->getQuery()->getBindings();
+    }
     public function whereIn($key, $values)
     {
         $this->query->whereIn($key, $values);
@@ -372,7 +406,8 @@ class Builder
         }
         
         if ($item !== null) {
-            $model = $this->model->newFromQuery($item);
+            $model = $this->getModel()->newFromQuery($item, $this->boot);
+            $model->setQuery($this);
             $model->dispatchModelEvent('selected', [$this->query, $model]);
             return $model;
         }
@@ -402,9 +437,9 @@ class Builder
         return $item;
     }
 
-    public function count()
+    public function count($field = '*')
     {
-        return $this->query->count();
+        return $this->query->count($field);
     }
 
     public function max($field)
@@ -443,7 +478,6 @@ class Builder
 
     public function create(array $data = [])
     {
-        //$data = array_merge($this->model->getRows(), $this->getValidData($data));
 
         if (count($data) === 0) {
             throw new ModelException('There are no valid columns found to update.');
@@ -453,7 +487,6 @@ class Builder
 
         if ($id) {
 
-            //$this->model->mergeRows($data);
             $this->model->{$this->model->getPrimaryKey()} = $id;
 
             return $this->model;
@@ -514,6 +547,12 @@ class Builder
         return $this;
     }
 
+    public function onTable($table)
+    {
+        $this->table = $table;
+        return $this;
+    }
+
     public function groupBy($field)
     {
         $this->query->groupBy($field);
@@ -528,9 +567,91 @@ class Builder
         return $this;
     }
 
+    /**
+     * Adds HAVING statement to the current query.
+     *
+     * @param string|Raw|\Closure $key
+     * @param string|mixed $operator
+     * @param string|mixed $value
+     * @param string $type
+     *
+     * @return static
+     */
+    public function having($column, $operator = null, $value = null, $type = 'and')
+    {
+        if (func_num_args() == 2) {
+			$valueTaken = $operator;
+			$operatorSymbol = "=";
+		} else {
+			$valueTaken = $value;
+			$operatorSymbol = $operator;
+		}
+        $this->query->having($column, $operatorSymbol, $valueTaken, $type);
+
+        return $this;
+    }
+
+    /**
+     * Adds OR HAVING statement to the current query.
+     *
+     * @param string|Raw|\Closure $key
+     * @param string|mixed $operator
+     * @param string|mixed $value
+     * @param string $type
+     *
+     * @return static
+     */
+    public function orHaving($column, $operator = null, $value = null)
+    {
+		if (func_num_args() == 2) {
+			$valueTaken = $operator;
+			$operatorSymbol = "=";
+		} else {
+			$valueTaken = $value;
+			$operatorSymbol = $operator;
+		}
+		return $this->having($column, $operatorSymbol, $valueTaken, 'or');
+	}
+
     public function join($table, $key, $operator = null, $value = null, $type = 'inner')
     {
         $this->query->join($table, $key, $operator, $value, $type);
+
+        return $this;
+    }
+
+    /**
+     * Adds new LEFT JOIN statement to the current query.
+     *
+     * @param string|Raw|\Closure|array $table
+     * @param string|Raw|\Closure $key
+     * @param string|null $operator
+     * @param string|Raw|\Closure|null $value
+     *
+     * @return static
+     * @throws Exception
+     */
+    public function leftJoin($table, $key, $operator = null, $value = null)
+    {
+        $this->query->leftJoin($table, $key, $operator, $value);
+
+        return $this;
+    }
+
+    /**
+     * Adds new RIGHT JOIN statement to the current query.
+     *
+     * @param string|Raw|\Closure|array $table
+     * @param string|Raw|\Closure $key
+     * @param string|null $operator
+     * @param string|Raw|\Closure|null $value
+     *
+     * @return static
+     * @throws Exception
+     */
+    public function rightJoin($table, $key, $operator = null, $value = null)
+    {
+        $this->query->rightJoin($table, $key, $operator, $value);
 
         return $this;
     }
@@ -544,11 +665,6 @@ class Builder
     {
         $this->query->query($sql, $bindings);
         return $this;
-    }
-
-    public function subQuery(Model $model, $alias = null)
-    {
-        return $this->query->subQuery($model->getQuery(), $alias);
     }
 
     /**
@@ -565,6 +681,7 @@ class Builder
     public function setModel(Model $model)
     {
         $this->model = $model;
+        return $this;
     }
 
     /**
@@ -578,8 +695,8 @@ class Builder
     public function toSql($raw = null)
     {
         if($raw == 'raw')
-            return $this->query->getQuery()->getRawSql();
-        return $this->query->getQuery()->getSql();
+            return $this->getQuery()->getQuery()->getRawSql();
+        return $this->getQuery()->getQuery()->getSql();
     }
 
     public function dates($updated_at, $created_at)
@@ -594,12 +711,14 @@ class Builder
     
     public function checkTableField($table, $field)
     {
-        return (new Table($table))->columnExists($field);
+        $tableApi = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
+        return (new $tableApi($table))->columnExists($field);
     }
 
     public function createTableField($table, $field)
     {
-        $table = new Table($table);
+        $tableApi = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
+        $table = new $tableApi($table);
         $table->column($field)->nullable()->datetime();
         $table->addColumns();
     }
@@ -697,19 +816,15 @@ class Builder
                 $results[$last] = function () {
                     //
                 };
-            }
-
-            
+            }   
         }
-        //$this->model->relations = $results;
-		//$this->model->returnWithRelations = true;
         return $results;
     }
 
     public function paginate($limit = 10, array $options = null)
     {
         $request = new Request;
-        $url = explode('?', $request->getUrl());
+        $url = explode('?', $request->getUri());
         $page = 1;
         if (count($url) > 1) {
             $page = (int) $request->get('page') ? : 1;
@@ -719,11 +834,6 @@ class Builder
                 }
             }
         }
-        // $this->pagination->setPerPage($limit);
-        // $this->pagination->setCurrentPage($page);
-        // $this->pagination->setTotalCount($this->count());
-        // $this->getModel()->pagination = $this->pagination;
-        // return $this->limit($limit)->offset($this->pagination->offset())->get();
         if($this->checkTableField($this->model->getTable(), 'deleted_at')){
             $this->whereNull('deleted_at');
         }
@@ -739,15 +849,35 @@ class Builder
 
     public function getWith(array $instances = [])
     {
-        $this->boot = $instances;
+        $this->boot = array_merge($this->boot, $instances);
         return $this;
     }
 
+    /**
+     * Get unique identifier for current query
+     * @return string
+     * @throws Exception
+     */
+    public function getQueryIdentifier()
+    {
+        return md5(static::class . $this->getSql(true));
+    }
 
-    // public function __call($method, $parameters)
-    // {
-    //     return call_user_func_array([new Collection([], $this), $method], $parameters);
-    // }
+    public function __sleep()
+    {
+        return ['model'];
+    }
 
+    /**
+     * @throws Exception
+     */
+    public function __wakeup()
+    {
+        $this->query = (new QueryBuilder())->table($this->model->getTable());
+    }
 
+    public function __destruct()
+    {
+        $this->query = null;
+    }
 }

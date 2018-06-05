@@ -1,5 +1,6 @@
 <?php
 namespace Yuga\Database\Migration;
+
 use Yuga\Support\Integer;
 
 class PdoHelper

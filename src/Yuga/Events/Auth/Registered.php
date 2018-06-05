@@ -9,7 +9,6 @@ class Registered extends Event
     public $user; 
     public function __construct(User $user)
     {
-        parent::__construct();
         $this->user = $user;
     }
 }

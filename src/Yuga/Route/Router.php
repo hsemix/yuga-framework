@@ -3,6 +3,7 @@
  * @author Mahad Tech Solutions
  */
 namespace Yuga\Route;
+
 use Exception;
 use Yuga\Http\Request;
 use Yuga\Exceptions\IException;
@@ -289,13 +290,8 @@ class Router
         if ($this->request->getLoadedRoute() === null) {
 
             $rewriteUrl = $this->request->getRewriteUrl();
-            if (!is_null(env('APP_FOLDER'))) {
-                $uri = str_replace('/'.env('APP_FOLDER'), '', $this->request->getUri()); 
-
-                $rewritten = str_replace('/'.env('APP_FOLDER'), '', $rewriteUrl); 
-            } else {
-                $uri = $this->request->getUri();
-            }
+            
+            $uri = $this->request->getUri();
             if ($rewriteUrl !== null) {
                 
                 $message = sprintf('Route not found: "%s" (rewrite from: "%s")', $rewritten, $uri);

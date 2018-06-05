@@ -1,10 +1,7 @@
 <?php
-/**
- * @author Mahad Tech Solutions
- */
-namespace Yuga\Support;
+namespace Yuga\Interfaces\Providers;
 
-use Yuga\Application;
+use Yuga\Interfaces\Application\Application;
 
 interface IServiceProvider
 {

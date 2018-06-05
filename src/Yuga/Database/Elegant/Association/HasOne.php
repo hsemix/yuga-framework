@@ -6,11 +6,13 @@ use Yuga\Database\Elegant\Builder;
 
 class HasOne extends Association
 {
-    private $otherKey;
+    
     private $child;
-    private $foreignKey;
-    private $parent;
     private $query;
+    private $parent;
+    private $otherKey;
+    private $foreignKey;
+    
     public function __construct(Builder $query, Model $parent, $foreignKey, $otherKey)
     {
         $this->otherKey = $otherKey;
@@ -20,10 +22,12 @@ class HasOne extends Association
         $this->parent = $parent;
         parent::__construct($query, $parent);
     }
+    
     public function addConditions()
     {
         $this->query->where($this->foreignKey, '=', $this->getParentIdValue())->limit(1);
     }
+
     public function getParentIdValue()
     {
         return $this->parent->getAttribute($this->otherKey);
@@ -41,6 +45,7 @@ class HasOne extends Association
         $foreign = explode(".", $this->foreignKey);
         return end($foreign);
     }
+    
     public function saveMany($models)
     {
         foreach ($models as $model) {

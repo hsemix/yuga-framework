@@ -174,7 +174,7 @@ class Pagination
 	 */
 	public function render(array $options = null, $controlButtons = [])
 	{
-		$url = explode('?', (new Request)->getUrl());
+		$url = explode('?', (new Request)->getUri());
 		$pageUrl = $url[0].'?page=';
 		
 		$parentElement = null;

@@ -8,7 +8,7 @@ use Yuga\Http\Redirect;
 class {class} extends Controller
 {
     /**
-     * Create a new controller instance.
+     * Create a new {class} instance.
      *
      * @return void
      */

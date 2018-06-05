@@ -2,7 +2,7 @@
 namespace Yuga\Mailables;
 
 use Yuga\App;
-use Yuga\Application;
+use Yuga\Application\Application;
 
 class Email 
 {

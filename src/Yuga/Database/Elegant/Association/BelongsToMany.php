@@ -8,16 +8,13 @@ use Yuga\Database\Elegant\Collection;
 class BelongsToMany extends Association
 {
     protected $table;
-    protected $foreignKey;
-
     protected $otherKey;
-    protected $pivotColumns = [];
+    protected $foreignKey;
+    protected $pivotCreatedAt;
     protected $pivotWheres = [];
-
+    protected $pivotColumns = [];
     protected $pivotWhereIns = [];
 
-    protected $pivotCreatedAt;
-    
     public function __construct(Builder $query, Model $parent, $table, $foreignKey, $otherKey)
     {
         $this->table = $table;
@@ -25,8 +22,6 @@ class BelongsToMany extends Association
         $this->foreignKey = $foreignKey;
         $this->parent = $parent;
         $this->query = $query;
-
-        
         parent::__construct($query, $parent);
     }
 
@@ -35,8 +30,9 @@ class BelongsToMany extends Association
         $this->setJoins();
         $this->setWhereClause();
     }
-     protected function setWhereClause()
-     {
+
+    protected function setWhereClause()
+    {
         $foreign = $this->getForeignKey();
         $this->query->where($foreign, '=', $this->getParentIdValue());//->select($this->query->from.'.*');
         return $this;
@@ -63,6 +59,7 @@ class BelongsToMany extends Association
         
         return $this;
     }
+    
     protected function getOtherKey()
     {
         return $this->table.'.'.$this->otherKey;

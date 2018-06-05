@@ -16,6 +16,7 @@ use Yuga\Database\Elegant\Association\BelongsTo;
 use Yuga\Database\Elegant\Association\Mergeable;
 use Yuga\Database\Elegant\Association\BelongsToMany;
 use Yuga\Database\Elegant\Association\MergeableMany;
+use Yuga\Database\Elegant\Exceptions\ModelException;
 
 abstract class Model implements ArrayAccess, JsonSerializable
 {
@@ -40,6 +41,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     public $returnWithRelations = false;
     protected $bootable = [];
     protected $pagination;
+    protected $queryable;
     public function __construct(array $options = [])
     {
         $this->events();
@@ -50,7 +52,6 @@ abstract class Model implements ArrayAccess, JsonSerializable
     public function events()
     {
         // start all events;
-        $this->setEventDispatcher(new Event);
     }
     public function setEventDispatcher(Event $event)
     {
@@ -75,13 +76,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     public function fillModelWith(array $attributes)
     {
-        // foreach($attributes as $key => $value){
-        //     $this->setAttribute($key, $value);
-        // }  
-        
         $this->fillModelWithSingle($attributes);
-
-       return $this;
+        return $this;
     }
 
     protected function fillModelWithSingle(array $attributes)
@@ -158,20 +154,25 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     public function __call($method, $parameters)
     {
-        $query = $this->newElegantQuery(); 
+        $query = $this->newElegantQuery();
         if (preg_match('/^findBy(.+)$/', $method, $matches)) {
 			return $this->where(strtolower($matches[1]), $parameters[0]);
-		}
-        return call_user_func_array([$query, $method], $parameters);
+        }
+        if (method_exists($query, $method))
+            return call_user_func_array([$query, $method], $parameters);
+        return null;
     }
 
     public static function __callStatic($method, $args) 
     {
-		$instance = new static;
+        $instance = new static;
+        $query = $instance->newElegantQuery();
 		if (preg_match('/^findBy(.+)$/', $method, $matches)) {
-			return static::where(strtolower($matches[1]), $args[0]);
-		}
-		return call_user_func_array([$instance, $method], $args);
+			return $instance->where(strtolower($matches[1]), $args[0]);
+        }
+        if (method_exists($query, $method))
+            return call_user_func_array([$instance, $method], $args);
+        return null;
     }
     
     public function getPagination()
@@ -334,7 +335,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     
     protected function newElegantMainQueryBuilder(Model $model = null)
     {
-        return new Builder($this->getConnection(), $model);
+        return $this->queryable?:new Builder($this->getConnection(), $model);
     }
 
     public function newCollection(array $models = [])
@@ -368,7 +369,6 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     public function newFromQuery($attributes = [], array $bootable = null)
     {
-        //$attributes = $this->removeHiddenFields((array) $attributes);
         $model = $this->newInstance([], true);
         $model->setRawAttributes((array) $attributes, true);
         $model->attributes = (array)$attributes;
@@ -379,6 +379,11 @@ abstract class Model implements ArrayAccess, JsonSerializable
             }
         }
         return $model;
+    }
+
+    public function setQuery(Builder $query)
+    {
+        $this->queryable = $query;
     }
 
     public function setRawAttributes(array $attributes, $sync = false)
@@ -654,6 +659,12 @@ abstract class Model implements ArrayAccess, JsonSerializable
         return $this;
     }
 
+    public function __clone()
+    {
+        $this->queryable = clone $this->newElegantQuery();
+        $this->queryable->setModel($this);
+    }
+
     /**
      * return the appropriate namespace of the model
      *
@@ -818,13 +829,12 @@ abstract class Model implements ArrayAccess, JsonSerializable
     
     protected function getMergeStrings($name, $type = null, $id = null)
     {
-		if(!$type){
+		if (!$type) {
 			$type = $name."_type";
 		}
-		if(!$id){
+		if (!$id) {
 			$id = $name."_id";
 		}
-
 		return [$type, $id];
     }
     
@@ -917,7 +927,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
      */
     public function dispatchModelEvent($event, $args = [])
     {
-        $this->events();
+        $this->setEventDispatcher(new Event);
         $eventMethod = $event;
 
         if (!isset(static::$dispatcher)) {

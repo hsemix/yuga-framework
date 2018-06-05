@@ -2,126 +2,163 @@
 namespace Yuga\Events;
 
 use Closure;
-use SPLSubject;
-use SPLObserver;
-use SplPriorityQueue;
-use Yuga\EventHandlers\Handler;
-use Yuga\Agree\Events\Dispatcher;
 use Yuga\EventHandlers\HandlerInterface;
-use Yuga\Shared\Controller as SharedController;
+use Yuga\Events\Exceptions\EventException;
+use Yuga\Events\Dispatcher\Event as Dispatcher;
+use Yuga\Interfaces\Events\Dispatcher as IDispatcher;
 
-class Event implements SPLObserver, Dispatcher
+class Event implements IDispatcher
 {
-    use SharedController;
-    
-    private $name;
-    private $params;
-    private $events;
-    protected $handlers = [];
+    /**
+     * @var array list of listeners
+     */
+    protected $listeners = [];
 
-    public function __construct()
-    {
-        $this->events = new SPLPriorityQueue;
-        if (method_exists($this, 'init')) {
-            $this->init();
-        }
-    }
+    /**
+     * @var string name of the default events
+     */
+    protected $name = 'yuga.auto.events';
 
-    public function attach()
+    /**
+     * Attach callback to event
+     *
+     * @param  string   $eventName
+     * @param  callable $callback|null
+     * @param  int  $priority
+     *
+     * @return void
+     */
+    public function attach($eventName, $callback = null, $priority = 1)
     {
         $args = func_get_args();
         if (count($args) == 1) {
-            $handlers = $args[0];
-            
-            if (is_array($handlers)) {
-                foreach ($handlers as $handler) {
-                    if (!$handler instanceof HandlerInterface) {
-                        continue;
-                    }
-                    $this->handlers[] = $handler;
-                }
-
-                return;
-            }
-
-            if (!$handlers instanceof HandlerInterface) {
-                return;
-            }
-
-            $this->handlers[] = $handlers;
+            $this->triggerObjectHandlers($eventName);
         } else {
-            if (count($args) == 2) {
-                $name = $args[0];
-                $callback = $args[1];
-                $priority = 1;
-            } elseif (count($args) == 3) {
-                $name = $args[0];
-                $callback = $args[1];
-                $priority = $args[2];
+            if (!isset($this->listeners[$eventName])) {
+                $this->listeners[$eventName] = [];
             }
-            $this->setName($name);
-            $this->events->insert([$name, $callback], $priority);
+            if (!isset($this->listeners[$eventName][$priority])) {
+                $this->listeners[$eventName][$priority] = [];
+            }
+            $this->listeners[$eventName][$priority][] = $callback;
         }
         return $this;
     }
-
-    public function setName($name)
+    /**
+     * Some times the name provided in the attach method might be an instance of the HandlerInterface
+     * When that happens, Make sure the $event has the handle method
+     * 
+     * @param array|string $handlers
+     * 
+     * @return void
+     */
+    protected function triggerObjectHandlers($handlers)
     {
-        $this->name = $name;
-    }
-
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    public function dispatch($args = null)
-    {
-        $args = func_get_args();
-        
-        if (count($args) == 0) {
-            foreach ($this->handlers as $handler) {
-                $handler->handle($this);
-            }
-        } else {
-            if (count($args) == 1) {
-                $name = $args[0];
-                $params = [];
-                $callback = null;
-            } elseif (count($args) == 2) {
-                $name = $args[0];
-                $params = $args[1];
-                $callback = null;
-            } elseif (count($args) == 3) {
-                $name = $args[0];
-                $params = $args[1];
-                $callback = $args[2];
-            }
-            $arguments = array_merge($params, [$this]);
-            
-            foreach ($this->events as $event) {
-                if ($event[0] == $name) {
-                    call_user_func_array($event[1], $arguments);
-                    if($callback instanceof Closure)
-                        $callback($this);
-                    
+        if (is_array($handlers)) {
+            foreach ($handlers as $handler) {
+                if (!$handler instanceof HandlerInterface) {
+                    throw new EventException(get_class($handler).' must implement the `'. HandlerInterface::class .'` interface');
                 }
+                $this->listeners[$this->name][1][] = [$handler, 'handle'];
             }
+            return;
         }
-        return $this;
+        if (!$handlers instanceof HandlerInterface) {
+            throw new EventException(get_class($handlers).' must implement the `'. HandlerInterface::class .'` interface');
+        }
+
+        $this->listeners[$this->name][1][] = [$handlers, 'handle'];
     }
 
     /**
-    * TO DO:...
-    */
-    public function update(SPLSubject $subject)
+     * Dispatch event
+     *
+     * @param  string|Event  $event
+     * @param  array  $parameters
+     *
+     * @return Event $event
+     */
+    public function dispatch($event = null, $parameters = null, $callback = null)
     {
+        if (count(func_get_args()) == 2) {
+            extract($this->getParameters($parameters));
+        } else {
+            $params = $parameters;
+        }
+        if (!$event)
+            $event = $this->name;
+        if (!$event instanceof Dispatcher) {
+            $event = new Dispatcher($event, $params);
+        }
 
+        $params = array_merge($params ?:[], [$event]);
+        if (false !== strpos($event->getName(), ':')) {
+            $namespace = substr($event->getName(), 0, strpos($event->getName(), ':'));
+            if (isset($this->listeners[$namespace])) {
+                $this->fire($this->listeners[$namespace], $event, $params, $callback);
+            }
+        }
+
+        if (isset($this->listeners[$event->getName()])) {
+            
+            $this->fire($this->listeners[$event->getName()], $event, $params, $callback);
+        }
+        return $event;
     }
 
-    public function fire($event, $options = [])
+    /**
+     * Alias for dispatch
+     * 
+     * @param  string|Event  $event
+     * @param  array  $parameters
+     *
+     * @return Event $event
+     */
+    public function trigger($event = null, $parameters = null, $callback = null)
     {
-        $this->dispatch($event, $options);
-        return $this;
+        return $this->dispatch($event, $parameters, $callback);
+    }
+
+    /**
+     * Organise parameters to suit both two and three arguments as a user dispatches or triggers the event
+     * 
+     * @param $parameters
+     * 
+     * @return array $items
+     */
+    protected function getparameters($parameters = null)
+    {
+        $items = [];
+        if ($parameters instanceof Closure) {
+            $items['params'] = [];
+            $items['callback'] = $parameters;
+        } else {
+            $items['params'] = $parameters;
+            $items['callback'] = null;
+        }
+
+        return $items;
+    }
+
+    /**
+     * Fire an Event
+     *
+     * @param  array $listeners
+     * @param  Dispatcher $event
+     * @param array $params
+     * @param callable|null $callback
+     *
+     * @return void
+     */
+    protected function fire($listeners, $event, array $params = [], $callback = null)
+    {
+        ksort($listeners);
+        foreach ($listeners as $list) {
+            foreach ($list as $listener) {
+                call_user_func_array($listener, $params);
+                if($callback instanceof Closure)
+                    $callback($event);
+            }
+        }
     }
 }

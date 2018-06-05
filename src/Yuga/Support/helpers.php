@@ -6,7 +6,17 @@
 if (! function_exists('view')) {
     function view($args = null, $data = null)
     {
+        if ($args instanceof \Yuga\View\ViewModel)
+            return viewModel($args);
+
         return new \Yuga\Views\View($args, $data);
+    }
+}
+
+if (! function_exists('viewModel')) {
+    function viewModel(\Yuga\View\ViewModel $viewModel)
+    {
+        echo($viewModel);
     }
 }
 
@@ -120,10 +130,6 @@ if (!function_exists('resources')) {
 if(!function_exists('host')) {
     function host($value ="")
     {
-        if (!is_null(env('APP_FOLDER'))) {
-            return scheme(response()->getOrSetVars()->host.'/'.env('APP_FOLDER').$value);
-            //path(env('APP_FOLDER').'/storage/'.$path);
-        }
         return scheme(response()->getOrSetVars()->host.$value);
     }
 }
@@ -145,12 +151,19 @@ if(!function_exists('env')) {
 if (!function_exists('app')) {
     function app()
     {
-        return \Yuga\Application::getInstance();
+        return \Yuga\Application\Application::getInstance();
     }
 }
 if(!function_exists('route')) {
     function route($name = null, $parameters = null, $getParams = null)
     {
+        if (!is_null(request()->processHost())) {
+            if (strpos(request()->getHost(), ':') !== false) {
+                return Route::getUrl($name, $parameters, $getParams);
+            } else {
+                return rtrim(request()->processHost().Route::getUrl($name, $parameters, $getParams), '/');
+            }
+        }
         return Route::getUrl($name, $parameters, $getParams);
     }
 }
@@ -215,14 +228,21 @@ if(!function_exists('scheme')) {
 if(!function_exists('assets')) {
     function assets($value = "")
     {
-        return scheme($_SERVER['HTTP_HOST'].resource($value));
+        if (!is_null(request()->processHost())) {
+            if (strpos(request()->getHost(), ':') !== false) {
+                return '/'.$value;
+            } else {
+                return scheme(request()->getHost().request()->processHost().'/'.$value);
+            }
+        }
+        return scheme(request()->getHost().'/'.$value);
     }
 }
 
 if(!function_exists('asset')) {
     function asset($value = "")
     {
-        return scheme($_SERVER['HTTP_HOST'].'/'.$value);
+        return scheme(request()->getHost().'/'.$value);
     }
 }
 
@@ -261,9 +281,6 @@ if (!function_exists('path')) {
 if (!function_exists('storage')) {
     function storage($path = null) 
     {
-        if (!is_null(env('APP_FOLDER'))) {
-            return path(env('APP_FOLDER').'/storage/'.$path);
-        }
         return path('storage/' . $path);
     }
 }

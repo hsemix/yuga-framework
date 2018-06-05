@@ -3,6 +3,7 @@ namespace Yuga\Database\Connection;
 
 use PDO;
 use Yuga\Container\Container;
+use Yuga\Database\Query\QueryObject;
 
 class Connection
 {
@@ -11,7 +12,12 @@ class Connection
     protected $pdoInstance;
     protected $eventHandler;
     protected $adapterConfig;
+    protected $adapterInstance;
     protected static $connection;
+    /**
+     * @var QueryObject|null
+     */
+    protected $lastQuery;
     public function __construct(array $adapterConfig, Container $container = null)
     {
         $this->adapterConfig = $adapterConfig;
@@ -19,6 +25,12 @@ class Connection
         $this->setAdapter($adapterConfig['driver'])->setAdapterConfig($adapterConfig)->connect();
         $this->eventHandler = $this->container->resolve(EventHandler::class);
     }
+    
+    public function getAdapterInstance()
+    {
+        return $this->adapterInstance;
+    }
+
     public function setAdapter($adapter)
     {
         $this->adapter = $adapter;
@@ -39,6 +51,7 @@ class Connection
             $adapterInstance = $this->container->resolve($adapter, [$this->container]);
             $pdo = $adapterInstance->connect($this->adapterConfig);
             $this->setPdoInstance($pdo);
+            $this->adapterInstance = $adapterInstance;
         } catch(PDOException $ex) {
             die("Database selection failed: ". $ex->getMessage());
         }
@@ -86,5 +99,28 @@ class Connection
     public function getEventHandler()
     {
         return $this->eventHandler;
+    }
+
+    /**
+     * Set query-object for last executed query.
+     *
+     * @param QueryObject $query
+     * @return static
+     */
+    public function setLastQuery(QueryObject $query)
+    {
+        $this->lastQuery = $query;
+
+        return $this;
+    }
+
+    /**
+     * Get query-object from last executed query.
+     *
+     * @return QueryObject|null
+     */
+    public function getLastQuery()
+    {
+        return $this->lastQuery?:null;
     }
 }
