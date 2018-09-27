@@ -73,6 +73,21 @@ abstract class Model implements ArrayAccess, JsonSerializable
         return static::$connection;
     }
 
+    /**
+     * Begin querying the model on a given connection.
+     *
+     * @param  Connection  $connection
+     * @return \Yuga\Database\Elegant\Builder
+     */
+    public static function on(Connection $connection = null)
+    {
+        $instance = new static;
+
+        $instance->setConnection($connection);
+
+        return $instance->newElegantQuery();
+    }
+
 
     public function fillModelWith(array $attributes)
     {

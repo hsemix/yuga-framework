@@ -65,7 +65,15 @@ class Redirect
 
     public function route($name = null, $parameters = null, $getParams = null)
     {
-        $route = Route::getUrl($name, $parameters, $getParams);
+        if (!is_null(request()->processHost())) {
+            if (strpos(request()->getHost(), ':') !== false) {
+                $route = Route::getUrl($name, $parameters, $getParams);
+            } else {
+                $route = rtrim(request()->processHost().Route::getUrl($name, $parameters, $getParams), '/');
+            }
+        }
+        // return Route::getUrl($name, $parameters, $getParams);
+        // $route = Route::getUrl($name, $parameters, $getParams);
         $this->to($route);
     }
 

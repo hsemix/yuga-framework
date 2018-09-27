@@ -4,12 +4,15 @@
  */
 namespace Yuga\View;
 
+use Exception;
 use ArrayAccess;
 use Yuga\Session\Session;
+use Yuga\Support\Inflect;
 use Yuga\Validate\Message;
 use Yuga\Models\ElegantModel;
 use Yuga\Http\Input\InputItem;
 use Yuga\Database\Elegant\Model;
+use Yuga\Database\Elegant\Collection;
 use Yuga\Views\Widgets\Form\FormMessage;
 use Yuga\Shared\Controller as SharedController;
 
@@ -165,15 +168,49 @@ class BaseView implements ArrayAccess
         return null;
     }
 
-    public function setModel(Model ...$models)
+    public function setModel($models)
     {
-        if (count($models) == 1) {
-            $this->model = $this['model'] = $models[0];
-        } else {
-            $this->models = $this['models'] = $models;
+        if ($models instanceof Model) {
+            $this->model = $this['model'] = $models;
+        }
+
+        if ($models instanceof Collection) {
+            $this->models = $this['models'] = $this->processCollectionModels($models);
+        }
+
+        if (is_array($models)) {
+            $this->models = $this['models'] = $this->processArrayModels($models);
         }
         
         return $this;
+    }
+
+    protected function processCollectionModels(Collection $models)
+    {
+        $key = Inflect::pluralize(strtolower(class_base($models[0])));
+        $this->models[$key] = $models;
+        return $this->models;
+    }
+
+    protected function processArrayModels(array $models)
+    {
+        foreach ($models as $key => $model) {
+            if (!is_string($key)) {
+                if ($model instanceof Collection) {
+                    $key = Inflect::pluralize(strtolower(class_base($model[0])));
+                } elseif ($model instanceof Model) {
+                    $key = strtolower(class_base($model));
+                } else {
+                    throw new Exception("Acceptable model types are instance of Yuga\Database\Elegant\Model and Yuga\Database\Elegant\Collection", 1);
+                }
+            }
+            $this->models[$key] = $model;
+        }
+        return $this->models;
+    }
+
+    protected function hasStringKeys(array $array) {
+        return count(array_filter(array_keys($array), 'is_string')) > 0;
     }
 
     public function setTable($table = null)
@@ -204,8 +241,13 @@ class BaseView implements ArrayAccess
         return $this;
     }
 
-    public function getModel()
+    public function getModel($name = null)
     {
+        if ($name) {
+            if (isset($this->models[$name])) {
+                return $this->models[$name];
+            }
+        }
         return $this->model;
     }
 

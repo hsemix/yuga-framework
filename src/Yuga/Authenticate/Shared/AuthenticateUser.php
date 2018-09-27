@@ -5,11 +5,13 @@ namespace Yuga\Authenticate\Shared;
 use Auth;
 use Yuga\Http\Request;
 use Yuga\Http\Response;
+use App\ViewModels\Login;
+use Yuga\Shared\Paradigm;
 use Yuga\Events\Auth\Registered;
 
 trait AuthenticateUser
 {
-    use RedirectUser;
+    use RedirectUser, Paradigm;
     /**
      * Show the application's login form.
      *
@@ -18,7 +20,21 @@ trait AuthenticateUser
     public function showLoginForm()
     {
         $this->middleware('remembered');
-        return view('auth.login');
+        return view($this->getView());
+    }
+
+    /**
+     * Return the appropriete view basing on the app settings in .env
+     * 
+     * @return string|ViewModel $view
+     */
+    public function getView()
+    {
+        $view = new Login;
+        if ($this->getStyle() == 'mvc') {
+            $view = 'auth.login';
+        }
+        return $view;
     }
 
     /**
@@ -31,7 +47,7 @@ trait AuthenticateUser
     public function login(Request $request, Response $response, Auth $auth)
     {
         $login = $auth->login($request->get($this->formFields['username']), $request->get($this->formFields['password']), $request->get($this->formFields['remember']));
-        return $this->loggedIn($request, $auth->user()) ?: redirect($this->redirectPath());
+        return $this->loggedIn($request, $auth->user()) ?: redirect(route($this->redirectPath()));
     }
     /**
      * The user has been logged in.
@@ -48,6 +64,6 @@ trait AuthenticateUser
     public function logout(Auth $auth)
     {
         $auth->logout();
-        return redirect('/login');
+        return redirect(route('login'));
     }
 }

@@ -2,16 +2,17 @@
 
 namespace Yuga\Authenticate\Shared;
 
+use Yuga\Events\Event;
 use Yuga\Http\Request;
 use Yuga\Session\Session;
-use App\Events\Registered;
+use Yuga\Shared\Paradigm;
+use App\ViewModels\Register;
 use App\Handlers\EmailConfirmation;
-use Yuga\EventHandlers\Auth\OtherwiseHandler;
-use Yuga\Events\Auth\EmailConfirmation as OtherwiseEvent;
+use Yuga\EventHandlers\Auth\EmailConfirmation as OtherwiseHandler;
 
 trait RegisterUser
 {
-    use RedirectUser;
+    use RedirectUser, Paradigm;
 
     /**
      * Show the application registration form.
@@ -20,7 +21,21 @@ trait RegisterUser
      */
     public function showRegistrationForm()
     {
-        return view('auth.register');
+        return view($this->getView());
+    }
+
+    /**
+     * Return the appropriete view basing on the app settings in .env
+     * 
+     * @return string|ViewModel $view
+     */
+    public function getView()
+    {
+        $view = new Register;
+        if ($this->getStyle() == 'mvc') {
+            $view = 'auth.register';
+        }
+        return $view;
     }
 
     /**
@@ -32,12 +47,10 @@ trait RegisterUser
     public function register(Request $request, Session $auth)
     {
         $this->validator($request);
-        $eventClass = OtherwiseEvent::class;
-        $handleClass = OtherwiseHandler::class;
 
-        if (class_exists(Registered::class)) {
-            $eventClass = Registered::class;
-        }
+        $eventClass = Event::class;
+       
+        $handleClass = OtherwiseHandler::class;
 
         if (class_exists(EmailConfirmation::class)) {
             $handleClass = EmailConfirmation::class;
@@ -46,7 +59,7 @@ trait RegisterUser
 
         $auth->login($user);
 
-        return $this->registered($request, $user) ?: redirect(host($this->redirectPath()));
+        return $this->registered($request, $user) ?: redirect(route($this->redirectPath()));
     }
 
     /**

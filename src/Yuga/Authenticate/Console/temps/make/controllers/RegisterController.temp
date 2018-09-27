@@ -2,8 +2,8 @@
 namespace {namespace}\Controllers\Auth;
 
 use Yuga\Hash\Hash;
-use {namespace}\Models\User;
 use Yuga\Http\Request;
+use {namespace}\Models\User;
 use {namespace}\Controllers\Controller;
 use Yuga\Authenticate\Shared\RegisterUser;
 
@@ -58,14 +58,14 @@ class RegisterController extends Controller
      * Create a new user instance after a valid registration.
      *
      * @param  array  $data
-     * @return \App\User
+     * @return \App\Models\User
      */
     protected function create(array $data)
     {
         $hash = new Hash;
         $user_code = $hash->code();
         return User::create([
-            'first_name' => $data['name'],
+            'name' => $data['name'],
             'email' => $data['email'],
             'user_code' => $user_code,
             'password' => $hash->password($data['password'], $user_code),

@@ -2,11 +2,12 @@
 namespace Yuga\Authenticate\Console;
 
 use Yuga\Console\Command;
+use Yuga\Shared\Paradigm;
 use Symfony\Component\Console\Input\InputOption;
 
 class MakeAuthCommand extends Command
 {
-    use MakeAuthControllers, MakeAuthMiddleware;
+    use MakeAuthControllers, MakeAuthMiddleware, MakeAuthViewModels, Paradigm;
     protected $name = 'make:auth';
     
     /**
@@ -21,7 +22,18 @@ class MakeAuthCommand extends Command
      *
      * @var array
      */
-    protected $views = [
+    protected $viewsMvvm = [
+        'login.temp'    => 'login.php',
+        'register.temp' => 'register.php',
+        'home.temp'     => 'home.php',
+    ];
+
+    /**
+     * The views that need to be exported.
+     *
+     * @var array
+     */
+    protected $viewsMvc = [
         'auth/login.temp'           => 'auth/login.hax.php',
         'auth/register.temp'        => 'auth/register.hax.php',
         'auth/passwords/email.temp' => 'auth/passwords/email.hax.php',
@@ -77,8 +89,29 @@ class MakeAuthCommand extends Command
      */
     protected function exportViews()
     {
-        foreach ($this->views as $key => $value) {
-            if (file_exists($view = path('resources/views/'.$value)) && !$this->option('force')) {
+        if ($this->getStyle() == 'mvc') {
+            $this->viewsMvc();
+        } else {
+            $this->createViewModels();
+            foreach ($this->viewsMvvm as $key => $value) {
+                if (file_exists($view = path('resources/views/templates/' . $value)) && !$this->option('force')) {
+                    if (!$this->confirm("The [{$value}] view already exists. Do you want to replace it?")) {
+                        continue;
+                    }
+                }
+
+                copy(
+                    __DIR__.'/temps/make/views/templates/'.$key,
+                    $view
+                );
+            }
+        }
+    }
+
+    protected function viewsMvc()
+    {
+        foreach ($this->viewsMvc as $key => $value) {
+            if (file_exists($view = path('resources/views/' . $value)) && !$this->option('force')) {
                 if (!$this->confirm("The [{$value}] view already exists. Do you want to replace it?")) {
                     continue;
                 }

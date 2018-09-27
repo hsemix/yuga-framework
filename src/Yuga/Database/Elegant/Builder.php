@@ -32,14 +32,13 @@ class Builder
     protected $withTrashed = false;
     protected $onlyTrashed = false;
     protected $returnWithRelations = false;
-    protected $tempTable;
     public $table;
 
 
     public function __construct(Connection $connection, Model $model)
     {
         $this->model = $model;
-        $this->query = (new QueryBuilder())->table($this->table ?: $this->model->getTable());
+        $this->query = (new QueryBuilder)->table($this->model->getTable());
     }
 
     public function all($columns = null)
@@ -182,9 +181,14 @@ class Builder
 
     public function setTable($table)
     {
-        $this->tempTable = $table;
-        $this->model->setTable($table);
+        $this->table = $table;
+        $this->query = $this->query->table($table);
         return $this;
+    }
+
+    public function getTable()
+    {
+        return $this->table;
     }
 
     public function where($key, $operator = null, $value = null)
@@ -234,10 +238,11 @@ class Builder
         extract($this->processKey($column));
         $model = clone $this->getModel()->setTable($table);
         $newQuery = $model->newElegantQuery();
-        call_user_func($closure, $model);
+        call_user_func($closure, $newQuery);
         if (!$newQuery->query->getSelects()) {
-            if ($table) {
-                $field = strtolower(class_base($model)).'_'.$field;
+            $classTable = strtolower(class_base($model));
+            if (($table || $newQuery->getTable()) && ($colon = strpos($field, $classTable.'_')) === false) {
+                $field = $classTable.'_'.$field;  
             }
             $newQuery->select($field);
         }
@@ -255,9 +260,7 @@ class Builder
     }
     public function whereIn($key, $values)
     {
-        $this->query->whereIn($key, $values);
-
-        return $this;
+       return $this->where($key, 'IN', $values);
     }
 
     public function whereNot($key, $operator = null, $value = null)
@@ -274,9 +277,7 @@ class Builder
 
     public function whereNotIn($key, $values)
     {
-        $this->query->whereNotIn($key, $values);
-
-        return $this;
+        return $this->where($key, 'NOT IN', $values);
     }
 
     public function whereNull($key)
@@ -303,8 +304,19 @@ class Builder
     public function orWhere($key, $operator = null, $value = null)
     {
         if (func_num_args() === 2) {
+            if ($operator instanceof Closure) {
+                $operator = $this->operatorClosure($operator, $key);
+                extract($this->processKey($key));
+                $key = $field;
+            }
             $value = $operator;
             $operator = '=';
+        }
+
+        if ($value instanceof Closure) {
+            $value = $this->valueClosure($value, $key);
+            extract($this->processKey($key));
+            $key = $field;
         }
 
         $this->query->orWhere($key, $operator, $value);
@@ -314,15 +326,13 @@ class Builder
 
     public function orWhereIn($key, $values)
     {
-        $this->query->orWhereIn($key, $values);
-
+        $this->orWhere($key, 'IN', $values);
         return $this;
     }
 
     public function orWhereNotIn($key, $values)
     {
-        $this->query->orWhereNotIn($key, $values);
-
+        $this->orWhere($key, 'NOT IN', $values);
         return $this;
     }
 
@@ -547,10 +557,16 @@ class Builder
         return $this;
     }
 
-    public function onTable($table)
+    /**
+     * An alias of setTable
+     * 
+     * @param string|array $table
+     * 
+     * @return QueryBuilder $query
+     */
+    public function from($table)
     {
-        $this->table = $table;
-        return $this;
+        return $this->setTable($table);
     }
 
     public function groupBy($field)
@@ -751,7 +767,8 @@ class Builder
 
     public function __clone()
     {
-        $this->query = clone $this->query;
+        // $this->query = $this->query;
+        // $this->query = clone $this->query;
     }
 
     public function with($relations)

@@ -4,6 +4,7 @@ namespace Yuga\Database\Query;
 use PDO;
 use Closure;
 use Exception;
+use Yuga\Database\Elegant\Collection;
 use Yuga\Database\Connection\Connection;
 use Yuga\Database\Query\Exceptions\DatabaseQueryException;
 
@@ -444,6 +445,18 @@ class Builder
         return $result;
     }
 
+    public function getAll($collumns = null)
+    {
+        return new Collection($this->get($column));
+    }
+    
+    /**
+     * Alias to get
+     */
+    public function all($columns = null)
+    {
+        return $this->get($collumns);
+    }
     public function first()
     {
         $this->take(1);

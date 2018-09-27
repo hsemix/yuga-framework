@@ -112,7 +112,8 @@ class Str
     
     public static function lower($value)
 	{
-		return (MB_STRING) ? mb_strtolower($value, static::encoding()) : strtolower($value);
+        // return (MB_STRING) ? mb_strtolower($value, static::encoding()) : strtolower($value);
+        return strtolower($value);
     }
     
     public static function upper($value)

@@ -1,0 +1,26 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">Register</div>
+                <div class="panel-body">
+                    <?=$this->form()->start('login', 'post'); ?>
+                        <?=$this->showSuccessMessage()?>
+                        <?=$this->validatedField('name')?>
+                        <?=$this->validatedField('email:email', ['label' => 'text:E-Mail Address'])?>
+                        <?=$this->validatedField('password:password')?>
+                        <?=$this->validatedField('password_confirmation:password', ['label' => 'text:Confirm Password'])?>
+                        <div class="form-group">
+                            <div class="col-md-8 col-md-offset-4">
+                                <?=$this->form()->button('Register', 'submit')->addClass('btn btn-primary'); ?>
+                                <a class="btn btn-link" href="<?=route('login')?>">Have an Account?</a>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div><br />
+                        <?=$this->showErrors()?>
+                    <?=$this->form()->end() ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

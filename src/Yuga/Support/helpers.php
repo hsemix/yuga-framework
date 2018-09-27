@@ -159,7 +159,7 @@ if(!function_exists('route')) {
     {
         if (!is_null(request()->processHost())) {
             if (strpos(request()->getHost(), ':') !== false) {
-                return Route::getUrl($name, $parameters, $getParams);
+                return rtrim(Route::getUrl($name, $parameters, $getParams), '/');
             } else {
                 return rtrim(request()->processHost().Route::getUrl($name, $parameters, $getParams), '/');
             }

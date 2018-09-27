@@ -3,9 +3,11 @@
 namespace {namespace}\Controllers;
 
 use Yuga\Http\Request;
+use Yuga\Shared\Paradigm;
 
 class HomeController extends Controller
 {
+    use Paradigm;
     /**
      * Create a new controller instance.
      *
@@ -23,6 +25,6 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        return view($this->getHome());
     }
 }

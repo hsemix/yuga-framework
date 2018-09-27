@@ -2,13 +2,13 @@
 namespace {namespace}\Middleware;
 
 use Closure;
-use Yuga\Application;
+use Yuga\Application\Application;
 use Yuga\Http\Middleware\IMiddleware;
 
 class {middleware} implements IMiddleware
 {
     /**
-     * @var \Yuga\Application | null
+     * @var \Yuga\Application\Application | null
      */
     protected $app;
     /**

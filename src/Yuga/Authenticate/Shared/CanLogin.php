@@ -42,7 +42,7 @@ trait CanLogin
         }
         if (!$this->userNotFound($model, $firstField, $fields, $loginFormUsernameField) instanceof Message) {
             if ($fetched = $login->first()) { 
-                if (!$this->verifyPassword($fetched, $passwordValue, $modelPasswordField, $loginFormPasswordField) instanceof Message) {
+                if (!$this->verifyPassword($fetched, $passwordValue, $modelPasswordField, $loginFormUsernameField) instanceof Message) {
                     $this->session->login($fetched);
 
                     $remember = ($remember === 'on') ? true: false;
@@ -53,7 +53,7 @@ trait CanLogin
                         return $this->validate->errors();
                     return true;
                 }  else {
-                    return $this->verifyPassword($fetched, $passwordValue, $modelPasswordField, $loginFormPasswordField);
+                    return $this->verifyPassword($fetched, $passwordValue, $modelPasswordField, $loginFormUsernameField);
                 }
             }
         } else {

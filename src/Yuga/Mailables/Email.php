@@ -618,7 +618,7 @@ class Email
 	public function attach($file, $disposition = '', $newname = NULL, $mime = '')
 	{
 		if ($mime === '') {
-			if (strpos($file, '://') === false &&!file_exists($file)) {
+			if (strpos($file, '://') === false && !file_exists($file)) {
 				$this->setErrorMessage('lang:email_attachment_missing', $file);
 				return false;
 			}
@@ -1628,8 +1628,7 @@ class Email
 			$from = '';
 		}
 
-		// is popen() enabled?
-		if (!function_usable('popen')	OR false === ($fp = @popen($this->mailPath.' -oi '.$from.' -t', 'w'))) {
+		if (false === ($fp = @popen($this->mailPath.' -oi '.$from.' -t', 'w'))) {
 			// server probably has popen disabled, so nothing we can do to get a verbose error.
 			return false;
 		}
@@ -1779,48 +1778,48 @@ class Email
 		switch ($cmd) {
 			case 'hello' :
 
-						if ($this->smtp_auth or $this->getEncoding() === '8bit') {
-							$this->sendData('EHLO '.$this->getHostName());
-						} else {
-							$this->sendData('HELO '.$this->getHostName());
-						}
+				if ($this->smtp_auth or $this->getEncoding() === '8bit') {
+					$this->sendData('EHLO '.$this->getHostName());
+				} else {
+					$this->sendData('HELO '.$this->getHostName());
+				}
 
 						$resp = 250;
 			break;
 			case 'starttls'	:
 
-						$this->sendData('STARTTLS');
-						$resp = 220;
+				$this->sendData('STARTTLS');
+				$resp = 220;
 			break;
 			case 'from' :
 
-						$this->sendData('MAIL FROM:<'.$data.'>');
-						$resp = 250;
+				$this->sendData('MAIL FROM:<'.$data.'>');
+				$resp = 250;
 			break;
 			case 'to' :
 
-						if ($this->dsn) {
-							$this->sendData('RCPT TO:<'.$data.'> NOTIFY=SUCCESS,DELAY,FAILURE ORCPT=rfc822;'.$data);
-						} else {
-							$this->sendData('RCPT TO:<'.$data.'>');
-						}
+				if ($this->dsn) {
+					$this->sendData('RCPT TO:<'.$data.'> NOTIFY=SUCCESS,DELAY,FAILURE ORCPT=rfc822;'.$data);
+				} else {
+					$this->sendData('RCPT TO:<'.$data.'>');
+				}
 
-						$resp = 250;
+				$resp = 250;
 			break;
 			case 'data'	:
 
-						$this->sendData('DATA');
-						$resp = 354;
+				$this->sendData('DATA');
+				$resp = 354;
 			break;
 			case 'reset':
 
-						$this->sendData('RSET');
-						$resp = 250;
+				$this->sendData('RSET');
+				$resp = 250;
 			break;
 			case 'quit'	:
 
-						$this->sendData('QUIT');
-						$resp = 221;
+				$this->sendData('QUIT');
+				$resp = 221;
 			break;
 		}
 
