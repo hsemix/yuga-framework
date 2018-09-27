@@ -12,9 +12,10 @@ trait Paradigm
 
     public function getHome()
     {
-        $home = new Home;
         if ($this->getStyle() == 'mvc') {
             $home = 'home';
+        } else {
+            $home = new Home;
         }
 
         return $home;

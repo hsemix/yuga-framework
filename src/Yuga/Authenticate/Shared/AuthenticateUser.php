@@ -30,9 +30,10 @@ trait AuthenticateUser
      */
     public function getView()
     {
-        $view = new Login;
         if ($this->getStyle() == 'mvc') {
             $view = 'auth.login';
+        } else {
+            $view = new Login;
         }
         return $view;
     }

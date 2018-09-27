@@ -31,9 +31,10 @@ trait RegisterUser
      */
     public function getView()
     {
-        $view = new Register;
         if ($this->getStyle() == 'mvc') {
             $view = 'auth.register';
+        } else {
+            $view = new Register;
         }
         return $view;
     }
