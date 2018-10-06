@@ -73,7 +73,7 @@ class Builder
 				$this->query->whereNull($this->getModel()->getDeleteKey());
 			}
         }
-        $models = $this->query->get($columns); 
+        $models = $this->query->getAll($columns); 
         $results = $this->getModel()->makeModels($models, $this->boot);
         
         if(count($this->getModel()->relations) > 0){
@@ -454,13 +454,13 @@ class Builder
 
     public function max($field)
     {
-        $result = $this->query->select($this->query->raw('MAX(' . $field . ') AS max'))->get();
+        $result = $this->query->select($this->query->raw('MAX(' . $field . ') AS max'))->getAll();
         return (int)$result[0]->max;
     }
 
     public function sum($field)
     {
-        $result = $this->query->select($this->query->raw('SUM(' . $field . ') AS sum'))->get();
+        $result = $this->query->select($this->query->raw('SUM(' . $field . ') AS sum'))->getAll();
         return (int)$result[0]->sum;
     }
 

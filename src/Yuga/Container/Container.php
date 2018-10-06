@@ -49,7 +49,7 @@ class Container implements ArrayAccess
         } else if($this->bindings[$key] instanceof Closure) {
             return $this->bindings[$key];
         } else {
-            return $this->bindings[$key];
+            return $this->bindings[$key]['value'];
         }
     }
 

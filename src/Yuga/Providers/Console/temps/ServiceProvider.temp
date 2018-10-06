@@ -1,15 +1,15 @@
 <?php
 namespace {namespace}\Providers;
 
-use Yuga\Application\Application;
 use Yuga\Providers\ServiceProvider;
+use Yuga\Interfaces\Application\Application;
 
 class {class} extends ServiceProvider
 {
     /**
      * Register a service to the application
      * 
-     * @param \Yuga\Application\Application $app
+     * @param \Yuga\Interfaces\Application\Application
      * 
      * @return mixed
      */

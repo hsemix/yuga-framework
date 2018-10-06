@@ -4,8 +4,11 @@
  */
 namespace Yuga\View;
 
+use Closure;
 use Exception;
+use ReflectionClass;
 use Yuga\Views\UI\Site;
+use Yuga\Models\ElegantModel;
 use Yuga\Views\Widgets\Form\Form;
 use Yuga\Views\Widgets\Html\Html;
 
@@ -37,10 +40,10 @@ class ViewModel extends BaseView
     /**
      * Create an OnPostBack event
      */
-    public function onPostBack()
-    {
+    // public function onPostBack()
+    // {
 
-    }
+    // }
 
     /**
      * Calculates template path from given Widget name.
@@ -334,8 +337,32 @@ class ViewModel extends BaseView
         $this->onLoad();
 
         // Trigger postback event
-        if(request()->getMethod() === 'post') {
-            $this->onPostBack();
+        if($this->request->getMethod() === 'post') {
+            if (method_exists($this, 'onPostBack')) {
+                $loaded = $this->loadDependencies(static::class);
+                
+                if ($formModel = $this->getModel('form')) {
+                    $model = $formModel;
+                } else {
+                    $model = new ElegantModel;
+                    if (!is_null($this->table)) {
+                        $model->setTable($this->table);
+                    }
+                }
+
+                $fields = $this->request->getInput()->all();
+                unset($fields['_token']); 
+
+                if (count($this->ignoreFields) > 0) {
+                    foreach ($this->ignoreFields as $unset)
+                        unset($fields[$unset]);
+                }
+                
+                $model = $this->validateModel($model->setRawAttributes($fields));
+                $loaded[] = $model;
+                call_user_func_array([$this, 'onPostBack'], $loaded);
+                // $this->onPostBack($model);
+            }
         }
 
         $this->renderContent();
@@ -343,6 +370,60 @@ class ViewModel extends BaseView
 
         return $this->contentHtml;
     }
+
+    protected function validateModel($model)
+    {
+        $validate = function ($viewmodel) {
+            $validateFields = [];
+            if (method_exists($this, 'validate')) {
+                $validateFields = $this->validate();
+            } else {
+                foreach ($this->getRawAttributes() as $field => $value) {
+                    $validateFields[$field] = 'required';
+                }
+            }
+            
+            if ($validateFields)
+                $viewmodel->validate($validateFields);
+        };
+
+        $validateModel = Closure::bind($validate, $model, $model);
+        $validateModel($this);
+        return $model;
+    }
+
+    protected function loadDependencies($class)
+    {
+        $reflection = new ReflectionClass($class);
+
+        $reflectionMethod = $reflection->getMethod('onPostBack');
+        $reflectionParameters = $reflectionMethod->getParameters();
+
+        $dependecies = [];
+        foreach ($reflectionParameters as $parameter) {
+            if (!is_null($parameter->getClass())) {
+                $dependency = $parameter->getClass()->name;
+                if($binding = $this->isSingleton($dependency)) {
+                    $dependecies[] = $binding;
+                } else {
+                    $dependecies[] = $this->app->resolve($dependency);
+                }
+            } 
+        }
+        
+        return $dependecies;
+    }
+
+    protected function isSingleton($class)
+    {
+        foreach(array_values($this->app->getSingletons()) as $instance){
+            if(get_class($instance) == $class){
+                return $instance;
+            }
+        }
+        return false;
+    }
+
 
     protected function renderContent()
     {
@@ -381,7 +462,7 @@ class ViewModel extends BaseView
         if ($this->session->exists('success')) {
             $success = new Html($elem);
             $success->addClass($class);
-            $success->append($this->session->get('success'));
+            $success->append($this->session->flash('success'));
             return $success;
         }
         return ''; 

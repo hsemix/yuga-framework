@@ -39,6 +39,11 @@ class BaseView implements ArrayAccess
         $this->message = $this->errors;
     }
 
+    // public function getInstance()
+    // {
+
+    // }
+
     public function offsetSet($offset, $value) 
     {
         if (is_null($offset)) {
@@ -141,7 +146,7 @@ class BaseView implements ArrayAccess
         return (bool)(request()->getMethod() !== 'get');
     }
 
-    protected function validate($rules = [])
+    public function validate($rules = [])
     {
         $fields = $this->request->getInput()->all();
         unset($fields['_token']);
@@ -246,9 +251,11 @@ class BaseView implements ArrayAccess
         if ($name) {
             if (isset($this->models[$name])) {
                 return $this->models[$name];
+            } else {
+                return null;
             }
         }
-        return $this->model;
+        return isset($this->models['model']) ? $this->models['model'] : $this->model;
     }
 
     public function save()

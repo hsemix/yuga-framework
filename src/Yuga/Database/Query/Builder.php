@@ -433,6 +433,11 @@ class Builder
      */
     public function get($columns = null)
     {
+        return new Collection($this->getAll($columns));
+    }
+
+    public function getAll($columns = null)
+    {
         if ($this->pdoStatement === null) {
             if($columns)
                 $this->select($columns);
@@ -443,11 +448,6 @@ class Builder
         $result = call_user_func_array([$this->pdoStatement, 'fetchAll'], $this->fetchParameters);
         $this->pdoStatement = null;
         return $result;
-    }
-
-    public function getAll($collumns = null)
-    {
-        return new Collection($this->get($column));
     }
     
     /**
@@ -460,13 +460,13 @@ class Builder
     public function first()
     {
         $this->take(1);
-        $result = $this->get();
+        $result = $this->getAll();
         return empty($result) ? null : $result[0];
     }
 
     public function last()
     {
-        $result = $this->get();
+        $result = $this->getAll();
         return empty($result) ? null : array_pop($result);
     }
 

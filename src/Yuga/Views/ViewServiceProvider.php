@@ -19,6 +19,7 @@ class ViewServiceProvider extends ServiceProvider
             ]);
             $template->resource = 'resources/assets/';
             $template->host = (new Request)->getHost();
+            $template->app = $app;
             
             return $template;
         }
