@@ -8,6 +8,7 @@ use Closure;
 use Exception;
 use ReflectionClass;
 use Yuga\Views\UI\Site;
+use Yuga\Validate\Message;
 use Yuga\Models\ElegantModel;
 use Yuga\Views\Widgets\Form\Form;
 use Yuga\Views\Widgets\Html\Html;
@@ -18,6 +19,8 @@ class ViewModel extends BaseView
     
     protected $template;
     protected $contentHtml;
+    public $fieldClasses = [];
+    public $handleAjax = true;
     protected $contentTemplate;
     protected $templatePath = null;
     protected $defaultLayout = 'default';
@@ -30,20 +33,12 @@ class ViewModel extends BaseView
     }
 
     /**
-     * Create an Onload Event
+     * Create an onLoad Event
      */
     public function onLoad()
     {
 
     }
-
-    /**
-     * Create an OnPostBack event
-     */
-    // public function onPostBack()
-    // {
-
-    // }
 
     /**
      * Calculates template path from given Widget name.
@@ -52,11 +47,12 @@ class ViewModel extends BaseView
     protected function getTemplatePath()
     {
         $path = array_slice(explode('\\', static::class), 2);
-        return ($this->templatePath) ?: path('resources'. DIRECTORY_SEPARATOR .'views'. DIRECTORY_SEPARATOR .'templates'. DIRECTORY_SEPARATOR . join(DIRECTORY_SEPARATOR, $path) . '.php');
+        return ($this->templatePath) ?: path('resources'. DIRECTORY_SEPARATOR .'views'. DIRECTORY_SEPARATOR .'templates'. DIRECTORY_SEPARATOR . str_replace('ViewModel', '', join(DIRECTORY_SEPARATOR, $path)) . '.php');
     }
 
     public function validationFor($name, $class = 'help-block')
     {
+        $this->fieldClasses[$name]['error'] = $class;
         if ($validation = $this->getValidation($name)) {
             $span = new Html('span');
             $span->addClass($class);
@@ -64,6 +60,7 @@ class ViewModel extends BaseView
 
             return $span;
         }
+
         return '<span class="'. $class .'"></span>';
     }
     public function validatedField($field_name, array $options = null, $placeholder = null)
@@ -82,6 +79,7 @@ class ViewModel extends BaseView
         $parentClass = 'form-group';
         $fieldParentElem = 'div';
         $fieldParentClass = 'col-md-6';
+        $parentErrorClass = 'has-error';
         if ($options) {
             if (isset($options['label'])) {
                 if ($options['label'] == false) {
@@ -110,6 +108,10 @@ class ViewModel extends BaseView
                     if (isset($parentOptions['tag'])) {
                         $parentElem = $parentOptions['tag'];
                     }
+
+                    if (isset($parentOptions['error-class'])) {
+                        $parentErrorClass = $parentOptions['error-class'];
+                    }
                 } 
             }
 
@@ -137,12 +139,13 @@ class ViewModel extends BaseView
                 } 
             }
         }
+
         $container = new Html($parentElem);
         if ($parentClass != "false" && $parentClass != "null") {
             $container->addClass($parentClass);
         }
         if ($this->getValidation($name)) {
-            $container->addClass('has-error');
+            $container->addClass($parentErrorClass);
         }
 
         if ($showLabel) {
@@ -164,18 +167,35 @@ class ViewModel extends BaseView
             $input->attr('placeholder', $placeholder);
         }
 
-        
-
         // create the field container
-        $fieldContainer = new Html($fieldParentElem);
-        if ($fieldParentClass != "false" && $fieldParentClass != 'null') {
-            $fieldContainer->addClass($fieldParentClass);
+        if (isset($options['field-parent'])) {
+            if ($options['field-parent'] !== false && $options['field-parent'] !== null) {
+                $fieldContainer = new Html($fieldParentElem);
+                if ($fieldParentClass != "false" && $fieldParentClass != 'null') {
+                    $fieldContainer->addClass($fieldParentClass);
+                }
+                $fieldContainer->append($input);
+                $fieldContainer->append($this->validationFor($name));
+
+                $container->append($fieldContainer);
+            } else {
+                $container->append($input); 
+                $container->append($this->validationFor($name)); 
+            }
+        } else {
+            $fieldContainer = new Html($fieldParentElem);
+            if ($fieldParentClass != "false" && $fieldParentClass != 'null') {
+                $fieldContainer->addClass($fieldParentClass);
+            }
+            $fieldContainer->append($input);
+            $fieldContainer->append($this->validationFor($name));
+
+            $container->append($fieldContainer);
         }
-        $fieldContainer->append($input);
-        $fieldContainer->append($this->validationFor($name));
-
-        $container->append($fieldContainer);
-
+        $this->fieldClasses[$name]['input'] = $input->getClass();
+        $this->fieldClasses[$name]['parent'] = $container->getClass();
+        $this->fieldClasses[$name]['parent_error'] = $parentErrorClass;
+        
         return $container;
     }
 
@@ -276,6 +296,11 @@ class ViewModel extends BaseView
 
     /**
      * Creates form element
+     * 
+     * @author Hamidouh Semix <semix.hamidouh@gmail.com>
+     * 
+     * @param null
+     * 
      * @return Form
      */
     public function form()
@@ -287,7 +312,11 @@ class ViewModel extends BaseView
      * Include snippet from the content/snippet directory
      * by filling the path to the desired snippet.
      *
+     * @author Hamidouh Semix <semix.hamidouh@gmail.com>
+     * 
      * @param string $file
+     * 
+     * @return null
      */
     public function display($file, array $data = null)
     {
@@ -300,7 +329,12 @@ class ViewModel extends BaseView
 
     /**
      * Include viewmodel on page.
+     * 
+     * @author Hamidouh Semix <semix.hamidouh@gmail.com>
+     * 
      * @param \Yuga\View\ViewModel $viewmodel
+     * 
+     * @return ViewModel $viewmodel
      */
     public function viewModel(ViewModel $viewmodel)
     {
@@ -328,49 +362,97 @@ class ViewModel extends BaseView
     }
 
     /**
+     * Render the view to the user so they can interact with the app
+     * 
+     * @author Hamidouh Semix <semix.hamidouh@gmail.com>
+     * 
+     * @param null
+     * 
      * @return string
      */
     public function render()
     {
         $this->bindViewToModel();
+
         // Trigger onLoad event
         $this->onLoad();
 
-        // Trigger postback event
-        if($this->request->getMethod() === 'post') {
-            if (method_exists($this, 'onPostBack')) {
-                $loaded = $this->loadDependencies(static::class);
-                
-                if ($formModel = $this->getModel('form')) {
-                    $model = $formModel;
-                } else {
-                    $model = new ElegantModel;
-                    if (!is_null($this->table)) {
-                        $model->setTable($this->table);
-                    }
-                }
-
-                $fields = $this->request->getInput()->all();
-                unset($fields['_token']); 
-
-                if (count($this->ignoreFields) > 0) {
-                    foreach ($this->ignoreFields as $unset)
-                        unset($fields[$unset]);
-                }
-                
-                $model = $this->validateModel($model->setRawAttributes($fields));
-                $loaded[] = $model;
-                call_user_func_array([$this, 'onPostBack'], $loaded);
-                // $this->onPostBack($model);
-            }
+        // Trigger events
+        if (in_array($this->request->getMethod(), ['post', 'get'])) {
+            $event = ucfirst($this->request->getMethod());
+        } else {
+            $event = 'Post'.ucfirst($this->request->getMethod());
         }
+        $this->handlePostRequest($event);
 
+        // Render html
         $this->renderContent();
+
         $this->renderTemplate();
+        $this->session->put('field-classes', $this->fieldClasses);
 
         return $this->contentHtml;
     }
 
+    /**
+     * Emulate all methods passed by the form but through the post and create appropriate onPost[method] events 
+     * e.g. onPostSave
+     * 
+     * @author Hamidouh Semix <semix.hamidouh@gmail.com>
+     * 
+     * @param string $event
+     * 
+     * @return null
+     */
+    protected function handlePostRequest($event)
+    {
+        if (method_exists($this, 'on' . $event)) {
+            $loaded = $this->loadDependencies(static::class, 'on' . $event);
+            
+            if ($formModel = $this->getModel('form')) {
+                $model = $formModel;
+            } else {
+                $model = new ElegantModel;
+                if (!is_null($this->table)) {
+                    $model->setTable($this->table);
+                }
+            }
+
+            $fields = $this->request->getInput()->all();
+            unset($fields['_token']); 
+            if (isset($fields['_method'])) {
+                unset($fields['_method']);
+            }
+
+            if (count($this->ignoreFields) > 0) {
+                foreach ($this->ignoreFields as $unset)
+                    unset($fields[$unset]);
+            }
+            
+            $model = $this->validateModel($model->setRawAttributes($fields));
+
+            if (count($this->modelFields) > 0) {
+                foreach ($model->getRawAttributes() as $field => $value) {
+                    if (in_array($field, array_keys($this->modelFields))) {
+                        unset($model->$field);
+                        $model->{$this->modelFields[$field]} = $value;
+                    }
+                }
+            }
+            $loaded[] = $model;
+            call_user_func_array([$this, 'on' . $event], $loaded);
+        }
+    }
+
+    /**
+     * Provide Automatic validation for the model that is bound to the form
+     * 
+     * @author Hamidouh Semix <semix.hamidouh@gmail.com>
+     * 
+     * @param Model $model
+     * 
+     * @return Model $model
+     */
     protected function validateModel($model)
     {
         $validate = function ($viewmodel) {
@@ -383,8 +465,39 @@ class ViewModel extends BaseView
                 }
             }
             
-            if ($validateFields)
-                $viewmodel->validate($validateFields);
+            if ($validateFields) {
+                if ($viewmodel->request->isAjax()) {
+                    $validation = $viewmodel->validate($validateFields);
+                    if ($validation instanceof Message) {
+                        if ($viewmodel->handleAjax) {
+                            $classes = $viewmodel->session->get('field-classes');
+                            foreach ($validation->getMessages() as $field => $messages) {
+                                if (isset($classes[$field])) {
+                                    $input = jq('[name=' . $field . ']');
+                                    if (isset($classes[$field]['parent'])) {
+                                        $parentClass = $classes[$field]['parent'][0];
+                                        $parentError = $classes[$field]['parent_error'];
+                                    } else {
+                                        $parentError = 'has-error';
+                                        $parentClass = 'form-group';
+                                    }
+                                    $parent = $input->parents('.'.$parentClass);
+                                    $parent->addClass($parentError);
+                                    $parent->find('.'.$classes[$field]['error'])->text($messages[0]);  
+                                }
+                            }
+                            jq('.error-container')->addClass($classes['error_summary'])->html(implode('<br />', $validation->getFirst()))->run();
+                        } else {
+                            return $viewmodel->response->json([
+                                'errors' => implode('<br />', $validation->getFirst()),
+                                'app_status' => false
+                            ]);
+                        }
+                    }
+                } else {
+                    $viewmodel->validate($validateFields);
+                }
+            }
         };
 
         $validateModel = Closure::bind($validate, $model, $model);
@@ -392,11 +505,22 @@ class ViewModel extends BaseView
         return $model;
     }
 
-    protected function loadDependencies($class)
+    /**
+     * Load All dependencies by their type and instanciate each of them
+     * 
+     * @author Hamidouh Semix <semix.hamidouh@gmail.com>
+     * 
+     * @param string $class
+     * 
+     * @param string $method
+     * 
+     * @return array $dependecies
+     */
+    protected function loadDependencies($class, $method = 'onPost')
     {
         $reflection = new ReflectionClass($class);
 
-        $reflectionMethod = $reflection->getMethod('onPostBack');
+        $reflectionMethod = $reflection->getMethod($method);
         $reflectionParameters = $reflectionMethod->getParameters();
 
         $dependecies = [];
@@ -414,6 +538,13 @@ class ViewModel extends BaseView
         return $dependecies;
     }
 
+    /**
+     * Check if a class has been registered as singleton by the container
+     * 
+     * @param string $class
+     * 
+     * @return boolean
+     */
     protected function isSingleton($class)
     {
         foreach(array_values($this->app->getSingletons()) as $instance){
@@ -448,13 +579,14 @@ class ViewModel extends BaseView
 
     public function showErrors($elem = 'div', $class = 'alert alert-danger')
     {
+        $this->fieldClasses['error_summary'] = $class;
         if ($this->session->exists('errors')) {
             $error = new Html($elem);
             $error->addClass($class);
             $error->append(implode('<br />', $this->errors->getFirst()));
             return $error;
         }
-        return ''; 
+        return '<div class="error-container"></div>'; 
     }
 
     public function showSuccessMessage($elem = 'div', $class = 'alert alert-success')
@@ -466,5 +598,10 @@ class ViewModel extends BaseView
             return $success;
         }
         return ''; 
+    }
+
+    public function showValidationSummary($element = 'div', $class = 'alert alert-danger')
+    {
+        return $this->showErrors($element, $class);
     }
 }

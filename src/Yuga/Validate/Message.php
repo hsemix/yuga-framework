@@ -24,6 +24,11 @@ class Message
         return $this;
     }
 
+    public function getMessages()
+    {
+        return $this->messages;
+    }
+
     public function addField($field)
     {
         if (!in_array($field, $this->fields))

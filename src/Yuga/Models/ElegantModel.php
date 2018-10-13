@@ -5,7 +5,6 @@
 namespace Yuga\Models;
 
 use Yuga\Database\Elegant\Model;
-use Yuga\Shared\Controller as Universal;
 
 class ElegantModel extends Model
 {

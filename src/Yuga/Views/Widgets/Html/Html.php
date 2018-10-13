@@ -208,6 +208,11 @@ class Html
         return isset($this->attributes[$name]) ? $this->attributes[$name] : null;
     }
 
+    public function getClass()
+    {
+        return $this->getAttribute('class');
+    }
+
     public function getAttributes()
     {
         return $this->attributes;

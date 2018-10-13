@@ -8,6 +8,7 @@ use Yuga\Http\Redirect;
 use Yuga\Http\Response;
 use Yuga\Support\Config;
 use Whoops\Run as WhoopsRun;
+use Yuga\View\Client\Jquery;
 use Yuga\Container\Container;
 use Yuga\Views\UI\Site as UI;
 use Yuga\Logger\LogServiceProvider;

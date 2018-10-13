@@ -349,3 +349,17 @@ if (!function_exists('old')) {
         return request()->old($key);
     }
 }
+
+/**
+ * jQuery
+ *
+ * alias for Jquery::jQuery
+ *
+ * @access  public
+ * @param   string   $selector
+ * @return  Element
+ */
+function jq($selector) 
+{
+    return Yuga\View\Client\Jquery::addQuery($selector);
+}

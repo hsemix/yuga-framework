@@ -26,8 +26,9 @@ class BaseView implements ArrayAccess
     protected $models = [];
     protected $model = null;
     protected $table = null;
+    protected $modelFields = [];
     protected $ignoreFields = [];
-
+    
     public function __construct()
     {
         $this->init();
@@ -38,11 +39,6 @@ class BaseView implements ArrayAccess
         }
         $this->message = $this->errors;
     }
-
-    // public function getInstance()
-    // {
-
-    // }
 
     public function offsetSet($offset, $value) 
     {
@@ -79,13 +75,8 @@ class BaseView implements ArrayAccess
     }
 
     /**
-    * TO DO: handle automatic validation later
-    */
-
-    /**
      * Get the site instance as use it
      */
-
     public function getSite()
     {
         return app()->site;
@@ -98,7 +89,6 @@ class BaseView implements ArrayAccess
      * 
      * @return \boolean
      */
-
     public function isAjaxRequest()
     {
         return (request()->getHeader('http-x-requested-with') !== null && strtolower(request()->getHeader('http-x-requested-with')) === 'xmlhttprequest');
@@ -112,7 +102,6 @@ class BaseView implements ArrayAccess
      * 
      * @return null
      */
-
     protected function appendSiteTitle($title, $separator = '-')
     {
         $separator = ($separator === null) ? '' : ' ' . $separator . ' ';
@@ -128,7 +117,6 @@ class BaseView implements ArrayAccess
      * 
      * @return null
      */
-
     protected function prependSiteTitle($title, $separator = ' - ')
     {
         app()->site->setTitle($title . $separator . app()->site->getTitle());
@@ -233,8 +221,13 @@ class BaseView implements ArrayAccess
                 $this->model->setTable($this->table);
             }
         }
-        if (request()->getMethod() === 'post') {
-            unset($fields['_token']); 
+        if (request()->getMethod() !== 'get') {
+            if (isset($fields['_token'])) {
+                unset($fields['_token']); 
+            }
+            if (isset($fields['_method'])) {
+                unset($fields['_method']);
+            }
         } 
         if (count($this->ignoreFields) > 0) {
             foreach ($this->ignoreFields as $unset)
