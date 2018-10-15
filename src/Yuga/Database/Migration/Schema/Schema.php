@@ -39,4 +39,12 @@ class Schema
         $table->dropIfExists();
     }
 
+    public function addColumns($name, $callback)
+    {
+        $sqlTable = $this->sqlTable;
+        $table = new $sqlTable($name);
+        $callback($table);
+        $table->addColumns();
+    }
+
 }

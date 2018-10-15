@@ -3,6 +3,7 @@ namespace Yuga\Database\Console;
 
 use Yuga\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
+use Yuga\Database\Migration\MigrationServiceProvider;
 
 class MakeMigrationDownCommand extends Command
 {
@@ -22,7 +23,9 @@ class MakeMigrationDownCommand extends Command
      */
     public function handle()
     {
-        
+        $migration = new MigrationServiceProvider();
+        $migration->rollBack($this->getYuga());
+        $this->info('Migration was successful, check your database for confirmation.');
     }
 
     

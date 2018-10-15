@@ -182,20 +182,20 @@ class Pagination
 		$parentClass = 'pagination';
 		$child = 'li';
 		if ($options) {
-			if (array_key_exists('parent_element', $options)) {
-				if (array_key_exists('name', $options['parent_element'])) {
-					$parent = $options['parent_element']['name'];
+			if (array_key_exists('parent-element', $options)) {
+				if (array_key_exists('name', $options['parent-element'])) {
+					$parent = $options['parent-element']['name'];
 				} 
-				if (array_key_exists('classes', $options['parent_element'])) {
-					$parentClass = $options['parent_element']['classes'];
+				if (array_key_exists('classes', $options['parent-element'])) {
+					$parentClass = $options['parent-element']['classes'];
 				}
 			}
 			if (array_key_exists('url', $options)) {
 				$pageUrl = $url[0].'?'.$options['url'].'=';
 			}
 
-			if (array_key_exists('inner_element', $options)) {
-				$child = $options['inner_element'];
+			if (array_key_exists('inner-element', $options)) {
+				$child = $options['inner-element'];
 			}
 
 			if (array_key_exists('route', $options)) {

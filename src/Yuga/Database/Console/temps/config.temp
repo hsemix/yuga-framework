@@ -1,0 +1,8 @@
+<?php
+/**
+ * Register here your migration classes that create the tables in the database
+ */
+return [
+    'migrate'   => {migrations},
+    'seed'      => {seeds},
+];

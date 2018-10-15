@@ -244,7 +244,7 @@ class Table extends SqlTable
     {
         if ($this->exists()) {
             foreach ($this->columns as $column) {
-                if(!PDO::getInstance()->nonQuery(sprintf("SHOW COLUMNS FROM `%s` LIKE '%s'", $this->name, $column->getName()))){
+                if (!$this->columnExists($column->getName())) {
                     PDO::getInstance()->nonQuery(sprintf('ALTER TABLE `%s` ADD %s', $this->name, $column->getQuery()));
                 }
             }

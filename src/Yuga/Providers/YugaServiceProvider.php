@@ -30,7 +30,7 @@ class YugaServiceProvider extends ServiceProvider
         'MakeModel'             => 'yuga.command.model',
         'MakeController'        => 'yuga.command.controller',
         'MakeViewModel'         => 'yuga.command.viewmodel',
-        'MakeDatabaseBackup'    => 'yuga.command.backup',
+        // 'MakeDatabaseBackup'    => 'yuga.command.backup',
         'MigrationUp'           => 'yuga.command.up',
         'MigrationMake'         => 'yuga.command.make',
         'MakeServiceProvider'   => 'yuga.command.provider.make',

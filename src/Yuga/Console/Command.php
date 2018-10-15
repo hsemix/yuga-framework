@@ -14,9 +14,9 @@ use Symfony\Component\Console\Command\Command as ConsoleCommand;
 class Command extends ConsoleCommand
 {
     /**
-     * The Nova application instance.
+     * The Yuga application instance.
      *
-     * @var \Nova\Foundation\Application
+     * @var \Yuga\Application\Application
      */
     protected $container;
 
