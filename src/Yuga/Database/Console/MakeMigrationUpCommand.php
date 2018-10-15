@@ -24,7 +24,7 @@ class MakeMigrationUpCommand extends Command
     public function handle()
     {
         $migration = new MigrationServiceProvider();
-        $migration->load($this->getYuga());
+        $migration->runUp($this->getYuga());
         $this->info('Migration was successful, check your database for confirmation.');
     }
 
