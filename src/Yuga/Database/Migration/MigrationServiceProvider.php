@@ -10,7 +10,7 @@ class MigrationServiceProvider extends ServiceProvider
     {
         $config = $app->config->load('config.migrations');
 
-        if ((env('APP_RUN_MIGRATIONS', false) && !is_null(env('DATABASE_NAME')))) {
+        if (env('APP_RUN_MIGRATIONS', false) && !is_null(env('DATABASE_NAME')) && !$app->runningInConsole()) {
             if (count($config->get('migrate')) > 0) {
                 foreach (glob($this->getMigrationPath()."*.php") as $migration) {
                     require_once $migration;
@@ -48,7 +48,7 @@ class MigrationServiceProvider extends ServiceProvider
     {
         $config = $app->config->load('config.migrations');
 
-        if ((env('APP_RUN_MIGRATIONS', false) && !is_null(env('DATABASE_NAME'))) || $app->runningInConsole()) {
+        if ($app->runningInConsole()) {
             if (count($config->get('migrate')) > 0) {
                 foreach (glob($this->getMigrationPath()."*.php") as $migration) {
                     require_once $migration;
