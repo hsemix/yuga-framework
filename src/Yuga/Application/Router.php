@@ -7,6 +7,8 @@ namespace Yuga\Application;
 use Exception;
 use Yuga\Route\Route;
 use Yuga\Http\Request;
+use Yuga\Route\Router as AppRouter;
+use Yuga\Route\Support\IRouterBootManager;
 use Yuga\Http\Middleware\BaseCsrfVerifier as Token;
 use Yuga\Route\Exceptions\NotFoundHttpExceptionHandler;
 

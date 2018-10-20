@@ -2,6 +2,7 @@
 namespace {namespace}\Middleware;
 
 use Closure;
+use Yuga\Http\Request;
 use Yuga\Application\Application;
 use Yuga\Http\Middleware\IMiddleware;
 

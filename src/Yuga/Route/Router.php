@@ -5,20 +5,24 @@
 namespace Yuga\Route;
 
 use Exception;
+use ReflectionClass;
+use Yuga\Support\Str;
 use Yuga\Http\Request;
-use Yuga\Exceptions\IException;
+use Yuga\Route\Shared\Shared;
 use Yuga\Route\Support\IRoute;
+use Yuga\Exceptions\IException;
+use Yuga\Application\Application;
 use Yuga\Route\Support\IGroupRoute;
 use Yuga\Handlers\IExceptionHandler;
 use Yuga\Route\Support\ILoadableRoute;
-use Yuga\Route\Support\IControllerRoute;
 use Yuga\Route\Exceptions\HttpException;
+use Yuga\Route\Support\IControllerRoute;
 use Yuga\Http\Middleware\BaseCsrfVerifier;
 use Yuga\Route\Exceptions\NotFoundHttpException;
 
 class Router
 {
-
+    use Shared;
     /**
     * The instance of this class
     * @var static
@@ -73,6 +77,17 @@ class Router
      * @var array
      */
     protected $exceptionHandlers;
+
+    /**
+     * Get default router
+     * 
+     * @var array
+     */
+    protected $defaultRouteCollection = [
+        'controller' => 'Home',
+        'method' => 'index',
+        'params' => [],
+    ];
 
     public function __construct()
     {
@@ -293,12 +308,49 @@ class Router
             
             $uri = $this->request->getUri();
             if ($rewriteUrl !== null) {
-                
-                $message = sprintf('Route not found: "%s" (rewrite from: "%s")', $rewritten, $uri);
+                $message = sprintf('Route not found: "%s" (rewrite from: "%s")', $rewriteUrl, $uri);
             } else {
                 $message = sprintf('Route not found: "%s"', $uri);
             }
 
+            if (env('MATCH_ROUTES_TO_CONTROLLERS', false)) {
+                $this->matchRoutesToControllers($this->request);
+            } else {
+                $this->handleException(new NotFoundHttpException($message, 404));
+            }
+        }
+    }
+
+    protected function matchRoutesToControllers(Request $request)
+    {
+        $url = explode('/', filter_var(trim($request->getUri(), '/'), FILTER_SANITIZE_URL));
+
+        if ($url[0] != '' && $url[0] != '/') {
+            $this->defaultRouteCollection['controller'] = ucfirst(Str::camelize(str_replace('-', '_', $url[0])));
+            unset($url[0]);
+        }
+
+        if (isset($url[1])) {
+            $this->defaultRouteCollection['method'] = Str::camelize(str_replace('-', '_', $url[1]));
+            unset($url[1]);
+        }
+
+        $this->defaultRouteCollection['params'] = $url ? array_values($url) : [];
+        $controller = '\\'.env('APP_NAMESPACE', 'App') . '\\Controllers\\' . str_ireplace('controller', '', $this->defaultRouteCollection['controller']) . 'Controller';
+
+        $method = $this->defaultRouteCollection['method'];
+        $params = $this->defaultRouteCollection['params'];
+        if (class_exists($controller)) {
+            $controller = Application::getInstance()->resolve($controller);
+
+            if (method_exists($controller, $method)) {
+                call_user_func_array([$controller, $method], $this->methodInjection($controller, $method, $params));
+            } else {
+                $message = sprintf('Method: "%s" not found', $method);
+                $this->handleException(new NotFoundHttpException($message, 404));
+            }
+        } else {
+            $message = sprintf('Controller: "%s" not found', $controller);
             $this->handleException(new NotFoundHttpException($message, 404));
         }
     }

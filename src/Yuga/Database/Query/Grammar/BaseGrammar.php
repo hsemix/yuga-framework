@@ -32,9 +32,9 @@ class BaseGrammar
             foreach ($statements['tables'] as $prefix => $table) {
 
                 if (is_numeric($prefix) === false) {
-                    $t =  $t = ($table instanceof Raw) ? $prefix : '`' . $prefix . '` AS ' . strtolower($table);
+                    $t =  $t = ($table instanceof Raw) ? $prefix : $this->wrapSanitizer($prefix) . ' AS ' . strtolower($table);
                 } else {
-                    $t = ($table instanceof Raw) ? $table : '`' . $table . '`';
+                    $t = ($table instanceof Raw) ? $table : $this->wrapSanitizer($table);
                 }
 
                 $tables[] = $t;

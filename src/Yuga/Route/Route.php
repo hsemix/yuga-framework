@@ -77,7 +77,7 @@ class Route
      * @param IRoute $route
      * @return IRoute
      */
-    protected static function addDefaultNamespace(IRoute $route)
+    public static function addDefaultNamespace(IRoute $route)
     {
         if (static::$defaultNamespace !== null) {
 

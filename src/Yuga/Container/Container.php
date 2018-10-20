@@ -4,6 +4,7 @@ namespace Yuga\Container;
 use Closure;
 use ArrayAccess;
 use ReflectionClass;
+use Yuga\Container\Support\ClassNotInstantiableException;
 
 class Container implements ArrayAccess
 {
