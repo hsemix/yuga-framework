@@ -6,7 +6,7 @@ use Yuga\Models\ElegantModel as Model;
 trait CanResetPassword
 {
     protected $model;
-    protected function verifyEmail(Model $model, $email, $fieldName = 'email')
+    public function verifyEmail(Model $model, $email, $fieldName = 'email')
     {
         $this->validate->addRuleMessage('findUser', 'Email Address Doesnot Exist!');
         $this->validate->addRule('findUser', function($field, $value, $args) use ($model, $fieldName) {

@@ -63,7 +63,7 @@ class ViewModel extends BaseView
 
         return '<span class="'. $class .'"></span>';
     }
-    public function validatedField($field_name, array $options = null, $placeholder = null)
+    public function validatedField($field_name, array $options = null, $placeholder = null, $value = null)
     {
         $showLabel = true;
         $fieldOptions = explode(':', $field_name);
@@ -157,7 +157,7 @@ class ViewModel extends BaseView
             $container->append($label);
         }
 
-        $input = $this->form()->input($inputType, $name, ($inputType != 'password') ? old($name) : null);
+        $input = $this->form()->input($inputType, $name, ($inputType != 'password') ? $value ?: old($name) : null);
         if ($fieldClass != "false" && $fieldClass != 'null') {
             $input->addClass($fieldClass);
         }
@@ -263,10 +263,21 @@ class ViewModel extends BaseView
         return $this->template;
     }
 
+    protected function setTemplatePath($path)
+    {
+        $this->templatePath = path($path);
+        return $this;
+    }  
+
     protected function setTemplate($path, $relative = true)
     {
         $path = str_replace('.', '/', $path);
         $this->template = (($relative === true && trim($path) !== '') ? path('resources'.DIRECTORY_SEPARATOR.'views' . DIRECTORY_SEPARATOR) . $path.self::EXT : '');
+    }
+
+    protected function setLayout($path, $relative = true)
+    {
+        return $this->setTemplate($path, $relative);
     }
 
     protected function setContentTemplate($template)
@@ -589,12 +600,12 @@ class ViewModel extends BaseView
         return '<div class="error-container"></div>'; 
     }
 
-    public function showSuccessMessage($elem = 'div', $class = 'alert alert-success')
+    public function showSuccessMessage($name = 'success', $elem = 'div', $class = 'alert alert-success')
     {
-        if ($this->session->exists('success')) {
+        if ($this->session->exists($name)) {
             $success = new Html($elem);
             $success->addClass($class);
-            $success->append($this->session->flash('success'));
+            $success->append($this->session->flash($name));
             return $success;
         }
         return ''; 

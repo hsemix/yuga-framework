@@ -106,7 +106,7 @@ trait CanLogin
         return ($validation->passed()) ? true : false;
     }
 
-    protected function getSalt(Model $model)
+    public function getSalt(Model $model)
     {
 
         $modelUserSalt = env('AUTH_MODEL_TOKEN_FIELD');

@@ -116,11 +116,15 @@ trait Controller
         return $this->view = App::make('view');
     }
 
+    /**
+     * Initialize all controller defaults
+     * 
+     * @param null
+     * 
+     * @return void
+     */
     protected function init()
     {
-        /**
-        *   Initialize all controller defaults
-        */
         $this->getApp();
         $this->getHash();
         $this->getView();

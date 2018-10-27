@@ -18,6 +18,9 @@ class View
     public function setTemplateDirectory($dir = 'resources/views')
     {
         $this->template_dir = $dir.'/';
+        if (!is_dir($directory = path($dir))) {
+            mkdir($directory, 0755, true);
+        }
         return $this;
     }
 
@@ -64,6 +67,7 @@ class View
             ob_end_clean();
             return $rendered;
         } elseif (file_exists($this->getTemplateDirectory().$evaluatedView.self::EXT)) {
+            ob_start();
             $this->renderView($view, $data);
             $rendered = ob_get_contents(); 
             ob_end_clean();

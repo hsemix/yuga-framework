@@ -24,21 +24,23 @@ class Validate
         'in',
         'file',
         'int',
-        'string'
+        'string',
+        'confirmed',
     ];
 
     public $messages = [
-        'required' => '{field} is required!',
-        'min' => '{field} must be a minimum of {satisfy} characters',
-        'max' => '{field} must be a maximum of {satisfy} characters',
-        'email' => '{field} {value} is not a valid email address',
-        'alnum' => '{field} must contain letters and numbers only',
-        'matches' => '{field} must match {satisfy}',
-        'unique' => '{field} already exists',
-        'in' => '{field} must be in {satisfy}',
-        'file' => '{field} must be an uploadable file',
-        'int' => '{field} must be an number',
-        'string' => '{field} must be a string'
+        'required'  => '{field} is required!',
+        'min'       => '{field} must be a minimum of {satisfy} characters',
+        'max'       => '{field} must be a maximum of {satisfy} characters',
+        'email'     => '{field} {value} is not a valid email address',
+        'alnum'     => '{field} must contain letters and numbers only',
+        'matches'   => '{field} must match {satisfy}',
+        'unique'    => '{field} already exists',
+        'in'        => '{field} must be in {satisfy}',
+        'file'      => '{field} must be an uploadable file',
+        'int'       => '{field} must be an number',
+        'string'    => '{field} must be a string',
+        'confirmed' => '{field} Confirmation does not match'
     ];
 
     public $fieldMessages = [];
@@ -341,6 +343,11 @@ class Validate
 
     protected function validate_file($field, $value, $satisfy)
     {
-        return $this->request->hasFile($field)?true : false;
+        return $this->request->hasFile($field) ? true : false;
+    }
+
+    protected function validate_confirmed($field, $value, $satisfy)
+    {
+        return $value === $this->items["{$field}_confirmation"];
     }
 }

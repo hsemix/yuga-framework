@@ -23,9 +23,11 @@ class MakeAuthCommand extends Command
      * @var array
      */
     protected $viewsMvvm = [
-        'login.temp'    => 'login.php',
-        'register.temp' => 'register.php',
-        'home.temp'     => 'home.php',
+        'login.temp'            => 'login.php',
+        'register.temp'         => 'register.php',
+        'home.temp'             => 'home.php',
+        'forgotpassword.temp'   => 'forgotpassword.php',
+        'resetpassword.temp'    => 'resetpassword.php',
     ];
 
     /**

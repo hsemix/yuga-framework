@@ -9,6 +9,9 @@ trait MakeAuthViewModels
         $this->createHomeViewModel();
         $this->createLoginViewModel();
         $this->createRegisterViewModel();
+        $this->createForgotPasswordViewModel();
+        $this->createForgotPasswordEmailViewModel();
+        $this->createResetPasswordViewModel();
     }
 
     protected function createViewModelFolders()
@@ -58,6 +61,45 @@ trait MakeAuthViewModels
     }
 
     /**
+     * Creates the ForgotPassword ViewModel temp.
+     *
+     * @return void
+     */
+    protected function createForgotPasswordViewModel()
+    {
+        file_put_contents(
+            path('app/ViewModels/ForgotPassword.php'),
+            $this->compileForgotPasswordViewModelTemp()
+        );
+    }
+
+    /**
+     * Creates the ForgotPasswordEmail ViewModel temp.
+     *
+     * @return void
+     */
+    protected function createForgotPasswordEmailViewModel()
+    {
+        file_put_contents(
+            path('app/ViewModels/ForgotPasswordEmail.php'),
+            $this->compileForgotPasswordEmailViewModelTemp()
+        );
+    }
+
+    /**
+     * Creates the ResetPassword ViewModel temp.
+     *
+     * @return void
+     */
+    protected function createResetPasswordViewModel()
+    {
+        file_put_contents(
+            path('app/ViewModels/ResetPassword.php'),
+            $this->compileResetPasswordViewModelTemp()
+        );
+    }
+
+    /**
      * Compiles the HomeViewModel temp.
      *
      * @return string
@@ -82,6 +124,48 @@ trait MakeAuthViewModels
             '{namespace}',
             env('APP_NAMESPACE', 'App'),
             file_get_contents(__DIR__.'/temps/make/viewModels/Register.temp')
+        );
+    }
+
+    /**
+     * Compiles the ForgotPasswordViewModel temp.
+     *
+     * @return string
+     */
+    protected function compileForgotPasswordViewModelTemp()
+    {
+        return str_replace(
+            '{namespace}',
+            env('APP_NAMESPACE', 'App'),
+            file_get_contents(__DIR__.'/temps/make/viewModels/ForgotPassword.temp')
+        );
+    }
+
+    /**
+     * Compiles the ForgotPasswordEmailViewModel temp.
+     *
+     * @return string
+     */
+    protected function compileForgotPasswordEmailViewModelTemp()
+    {
+        return str_replace(
+            '{namespace}',
+            env('APP_NAMESPACE', 'App'),
+            file_get_contents(__DIR__.'/temps/make/viewModels/ForgotPasswordEmail.temp')
+        );
+    }
+
+    /**
+     * Compiles the ResetPasswordViewModel temp.
+     *
+     * @return string
+     */
+    protected function compileResetPasswordViewModelTemp()
+    {
+        return str_replace(
+            '{namespace}',
+            env('APP_NAMESPACE', 'App'),
+            file_get_contents(__DIR__.'/temps/make/viewModels/ResetPassword.temp')
         );
     }
 

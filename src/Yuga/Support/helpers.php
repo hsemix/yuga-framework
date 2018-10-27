@@ -21,8 +21,10 @@ if (! function_exists('viewModel')) {
 }
 
 if (! function_exists('session')) {
-    function session()
+    function session($param = null)
     {
+        if ($param)
+            return app()->make('session')->exists($param);
         return app()->make('session');
     }
 }
@@ -362,4 +364,22 @@ if (!function_exists('old')) {
 function jq($selector) 
 {
     return Yuga\View\Client\Jquery::addQuery($selector);
+}
+
+if ( ! function_exists('get_mimes')) {
+	/**
+	 * Returns the MIME types array from config/mimes.php
+	 *
+	 * @return	array
+	 */
+	function &get_mimes()
+	{
+		static $mimes;
+
+		if (empty($mimes)) {
+			$mimes = file_exists('mimes.php') ? require 'mimes.php' : [];
+		}
+
+		return $mimes;
+	}
 }

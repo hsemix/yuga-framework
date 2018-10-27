@@ -412,6 +412,16 @@ class Request
     {
         return $this->getInput()->all();
     }
+
+    public function only(array $onlyFields = [])
+    {
+        $only = [];
+        foreach ($this->all() as $field => $value) {
+            if (in_array($field, $onlyFields))
+                $only[$field] = $value;
+        }
+       return $only;
+    }
     
     public function isAjax()
     {

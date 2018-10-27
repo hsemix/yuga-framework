@@ -34,7 +34,7 @@ class Mailer
      * @param \Closure $callback
      * @return null
      */
-    public function send($template, array $data, Closure $callback)
+    public function send($template, array $data = null, Closure $callback)
     {
         $message = new Message($this->mailer);
 

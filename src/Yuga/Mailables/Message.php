@@ -16,8 +16,9 @@ class Message
     }
 
     /**
-     * @param \string $address
-     * @param \string $name | null
+     * @param string $address
+     * @param string|null $name
+     * 
      * @return null
      */
 
@@ -27,7 +28,8 @@ class Message
     }
 
     /**
-     * @param \string $subject
+     * @param string $subject
+     * 
      * @return null
      */
 
@@ -37,7 +39,8 @@ class Message
     }
 
     /**
-     * @param \string $body
+     * @param string $body
+     * 
      * @return null
      */
 
@@ -48,8 +51,9 @@ class Message
 
 
     /**
-     * @param \string $email
-     * @param \string $name | null
+     * @param string $email
+     * @param string|null $name
+     * 
      * @return null
      */
     public function replyTo($email, $name = null)
@@ -58,8 +62,9 @@ class Message
     }
 
     /**
-     * @param \string $email
-     * @param \string $name | null
+     * @param string $email
+     * @param string|null $name
+     * 
      * @return null
      */
     public function from($email, $name = null)
@@ -68,8 +73,9 @@ class Message
     }
 
     /**
-     * @param \string $email
-     * @param \string $name | null
+     * @param string $email
+     * @param string|null $name
+     * 
      * @return null
      */
     public function reciever($email, $name = null)
@@ -78,8 +84,9 @@ class Message
     }
 
     /**
-     * @param \string $email
-     * @param \string $name | null
+     * @param string $email
+     * @param string|null $name
+     * 
      * @return null
      */
     public function cc($email, $name = null)
@@ -88,8 +95,9 @@ class Message
     }
 
     /**
-     * @param \string $email
-     * @param \string $name | null
+     * @param string $email
+     * @param string|null $name
+     * 
      * @return null
      */
     public function bcc($email, $name = null)
@@ -98,12 +106,13 @@ class Message
     }
 
     /**
-     * @param \string $location
-     * @param \string $filename | null
+     * @param string $location
+     * @param string|null $filename
+     * 
      * @return null
      */
     public function attach($location, $filename = null)
     {
-        $this->mailer->addAttachment(ltrim($location, '/'), $filename);
+        $this->mailer->addAttachment($location, '', $filename);
     }
 }

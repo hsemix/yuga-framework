@@ -5,14 +5,17 @@ use Yuga\Database\Elegant\Model;
 
 class Hash
 {
+    
     private $crypt;
     private $algorithm = 'sha256';
     protected static $instance;
-    public function __construct()
+
+    public function __construct($cryptType = null)
     {
-        $this->setCypt(env('AUTH_MODEL_CRYPT_TYPE', 'crypt'));
-        if (!static::$instance) {
-            static::$instance = $this;
+        if ($cryptType) {
+            $this->setCrypt($cryptType);
+        } else {
+            $this->setCrypt(env('AUTH_MODEL_CRYPT_TYPE', 'crypt'));
         }
     }
 
@@ -43,19 +46,14 @@ class Hash
         return substr(bin2hex($salt), 0, $length);
     }
 
-    public static function preservedInstance()
+    public function unique()
     {
-        return static::$instance;
+        return $this->make(uniqid());
     }
 
-    public static function unique()
+    public function code($length = 8)
     {
-        return self::preservedInstance()->make(uniqid());
-    }
-
-    public static function code($length = 8)
-    {
-        return "$1$".self::preservedInstance()->salt($length)."$";
+        return "$1$" . $this->salt($length) . "$";
     }
 
     public function password($string, $code = null)
@@ -68,7 +66,7 @@ class Hash
         return $this->crypt;
     }
 
-    public function setCypt($crypt = 'crypt')
+    public function setCrypt($crypt = 'crypt')
     {
         return $this->setAlgorithm($crypt);
     }

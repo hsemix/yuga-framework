@@ -242,7 +242,7 @@ class Inflect
 	   
 		if (null !== $fraction && is_numeric($fraction)) {
 			$string .= $decimal;
-			$words = array();
+			$words = [];
 			foreach (str_split((string) $fraction) as $number) {
 				$words[] = $dictionary[$number];
 			}
