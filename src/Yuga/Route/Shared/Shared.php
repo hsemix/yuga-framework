@@ -38,8 +38,8 @@ trait Shared
                     }
                 }
             }
-            foreach ($params as $paramKey => $paramVal) {
-                $dependecies[$paramKey] = $paramVal;
+            foreach ($params as $paramVal) {
+                $dependecies[] = $paramVal;
             }
             $dependecies[] = $app;
             
