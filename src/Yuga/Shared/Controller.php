@@ -98,14 +98,18 @@ trait Controller
                 }
             }
         } else {
-            $routeMiddleWare = App::resolve($wares[$ware]);
-            $request = request();
-            if (($routeMiddleWare instanceof IMiddleware) === false) {
-                throw new HttpException($ware . ' must inherit the IMiddleware interface');
+            if (isset($wares[$ware])) {
+                $routeMiddleWare = App::resolve($wares[$ware]);
+                $request = request();
+                if (($routeMiddleWare instanceof IMiddleware) === false) {
+                    throw new HttpException($ware . ' must inherit the IMiddleware interface');
+                }
+                $results = $routeMiddleWare->run($request, function($request) {
+                    return $request;
+                }, $middleWare->except);
+            } else {
+                throw new HttpException($ware . ' Middleware is not yet defined');
             }
-            $results = $routeMiddleWare->run($request, function($request) {
-                return $request;
-            }, $middleWare->except);
         }
 		
         return $middleWare;
