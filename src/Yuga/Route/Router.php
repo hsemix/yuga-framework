@@ -6,8 +6,10 @@ namespace Yuga\Route;
 
 use Exception;
 use ReflectionClass;
+use Yuga\Views\View;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
+use Yuga\View\ViewModel;
 use Yuga\Route\Shared\Shared;
 use Yuga\Route\Support\IRoute;
 use Yuga\Exceptions\IException;
@@ -348,7 +350,11 @@ class Router
             $controller = Application::getInstance()->resolve($controller);
 
             if (method_exists($controller, $method)) {
-                call_user_func_array([$controller, $method], $this->methodInjection($controller, $method, $params));
+                $result = call_user_func_array([$controller, $method], $this->methodInjection($controller, $method, $params));
+                if ($result instanceof ViewModel || is_string($result) /*|| $result instanceof View */) {
+                    echo $result;
+                }
+                return;
             } else {
                 $message = sprintf('Method: "%s" not found', $method);
                 $this->handleException(new NotFoundHttpException($message, 404));

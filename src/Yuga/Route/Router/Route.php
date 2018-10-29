@@ -2,8 +2,10 @@
 namespace Yuga\Route\Router;
 
 use ReflectionClass;
+use Yuga\Views\View;
 use Yuga\Http\Request;
 use ReflectionFunction;
+use Yuga\View\ViewModel;
 use Yuga\Container\Container;
 use Yuga\Route\Support\IRoute;
 use Yuga\Application\Application;
@@ -149,8 +151,11 @@ abstract class Route implements IRoute
         if (is_callable($callback) === true) {
 
             /* When the callback is a function */
-            call_user_func_array($callback, $this->instantiated($callback));
+            $result = call_user_func_array($callback, $this->instantiated($callback));
 
+            if ($result instanceof ViewModel || is_string($result) || $result instanceof View) {
+                echo $result;
+            }
             return;
 
         }
