@@ -153,7 +153,7 @@ abstract class Route implements IRoute
             /* When the callback is a function */
             $result = call_user_func_array($callback, $this->instantiated($callback));
 
-            if ($result instanceof ViewModel || is_string($result) || $result instanceof View) {
+            if ($result instanceof ViewModel || is_string($result)/* || $result instanceof View*/) {
                 echo $result;
             }
             return;
@@ -188,7 +188,10 @@ abstract class Route implements IRoute
             });
         }
         
-        call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters));
+        $result = call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters));
+        if ($result instanceof ViewModel || is_string($result) /*|| $result instanceof View */) {
+            echo $result;
+        }
     }
 
     protected function methodInjection($class, $method, $params)
