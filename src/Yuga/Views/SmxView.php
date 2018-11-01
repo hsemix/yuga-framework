@@ -44,7 +44,7 @@ class SmxView extends View
     }
     
     
-    public function display($temp, $data = false)
+    public function displayOld($temp, $data = false)
     {
         $temp = str_replace('.', '/', $temp);
         if (file_exists($this->getTemplateDirectory().$temp.$this->hax)) {
@@ -54,6 +54,20 @@ class SmxView extends View
                 echo $this->renderView($temp, $data);
             } else {
                 echo $this->renderView($temp);
+            }
+        }
+    }
+
+    public function display($temp, $data = false)
+    {
+        $temp = str_replace('.', '/', $temp);
+        if (file_exists($this->getTemplateDirectory().$temp.$this->hax)) {
+           return (string)$this->renderHaxTemplate($temp, $data);
+        } else {
+            if ($data) {
+                return (string)$this->renderView($temp, $data);
+            } else {
+                return(string)$this->renderView($temp);
             }
         }
     }

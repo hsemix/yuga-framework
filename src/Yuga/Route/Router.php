@@ -351,7 +351,7 @@ class Router
 
             if (method_exists($controller, $method)) {
                 $result = call_user_func_array([$controller, $method], $this->methodInjection($controller, $method, $params));
-                if ($result instanceof ViewModel || is_string($result) /*|| $result instanceof View */) {
+                if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
                     echo $result;
                 }
                 return;

@@ -189,7 +189,7 @@ abstract class Route implements IRoute
         }
         
         $result = call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters));
-        if ($result instanceof ViewModel || is_string($result) /*|| $result instanceof View */) {
+        if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
             echo $result;
         }
     }
