@@ -40,7 +40,7 @@ class Redirect
             return $this->httpUrl($url);
         }
 
-        $this->header('location: ' . $url);
+        $this->header('location: ' . route($url));
         die();
     }
 
@@ -72,9 +72,8 @@ class Redirect
                 $route = rtrim(request()->processHost().Route::getUrl($name, $parameters, $getParams), '/');
             }
         }
-        // return Route::getUrl($name, $parameters, $getParams);
-        // $route = Route::getUrl($name, $parameters, $getParams);
-        $this->to($route);
+        $this->header('location: ' . $route);
+        die();
     }
 
     protected function isValidUri($uri)

@@ -440,7 +440,16 @@ class ViewModel extends BaseView
                     unset($fields[$unset]);
             }
             
-            $model = $this->validateModel($model->setRawAttributes($fields));
+            
+            if (!$model->exists) {
+                $model->setRawAttributes($fields);
+            } else {
+                foreach ($fields as $key => $value) {
+                    $model->{$key} = $value;
+                }
+            }
+
+            $model = $this->validateModel($model);
 
             if (count($this->modelFields) > 0) {
                 foreach ($model->getRawAttributes() as $field => $value) {
@@ -471,7 +480,7 @@ class ViewModel extends BaseView
             if (method_exists($this, 'validate')) {
                 $validateFields = $this->validate();
             } else {
-                foreach ($this->getRawAttributes() as $field => $value) {
+                foreach ($this->exists ? $this->getDirty() : $this->getRawAttributes() as $field => $value) {
                     $validateFields[$field] = 'required';
                 }
             }

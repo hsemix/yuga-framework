@@ -132,7 +132,7 @@ if (!function_exists('resources')) {
 if(!function_exists('host')) {
     function host($value ="")
     {
-        return scheme(response()->getOrSetVars()->host.$value);
+        return scheme(response()->getOrSetVars()->host . '/' . ltrim($value, '/'));
     }
 }
 

@@ -145,7 +145,7 @@ class BaseView implements ArrayAccess
             } else {
                 $this->session->put('errors', $validation->errors());
                 $this->request->addOld();
-                return $this->response->refresh();
+                return $this->response->redirect->back();
             } 
         }
         $this->session->delete('old-data');

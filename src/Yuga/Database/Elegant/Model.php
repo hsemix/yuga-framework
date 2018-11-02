@@ -428,7 +428,6 @@ abstract class Model implements ArrayAccess, JsonSerializable
      * @param array $options 
      * @return Model $saved
 	 */
-
     public function save(array $options = [])
     {
         $query = $this->newElegantQuery();

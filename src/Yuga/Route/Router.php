@@ -329,8 +329,7 @@ class Router
 
     protected function matchRoutesToControllers(Request $request)
     {
-        $url = explode('/', filter_var(trim($request->getUri(), '/'), FILTER_SANITIZE_URL));
-
+        $url = explode('/', filter_var(trim((strpos($request->getHost(), ':') !== false) ? $request->getUri(true) : $request->getUri(), '/'), FILTER_SANITIZE_URL));
         if ($url[0] != '' && $url[0] != '/') {
             $this->defaultRouteCollection['controller'] = ucfirst(Str::camelize(str_replace('-', '_', $url[0])));
             unset($url[0]);
