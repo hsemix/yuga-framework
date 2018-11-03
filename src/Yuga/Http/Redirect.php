@@ -40,7 +40,8 @@ class Redirect
             return $this->httpUrl($url);
         }
 
-        $this->header('location: ' . route($url));
+        $url = (route($url) == '') ? $url : route($url);
+        $this->header('location: ' . $url);
         die();
     }
 

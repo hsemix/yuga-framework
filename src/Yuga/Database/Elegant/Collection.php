@@ -234,12 +234,15 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return $newArray;
     }
 
-    public function chunk($count = 2)
+    public function chunk($count = 2, $callback = null)
     {
-        $chunk = $count;
+        $items = array_map(function($item) {
+            return new static($item);
+        }, array_chunk($this->items, $count));
         
-        $items = array_chunk($this->items, $chunk);
-
+        if ($callback) {
+            return $callback(new static($items));
+        }
         return new static($items);
     }
 

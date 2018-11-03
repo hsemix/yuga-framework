@@ -552,6 +552,9 @@ class Builder
 
     public function select($fields)
     {
+        if (is_array($fields) === false) {
+            $fields = func_get_args();
+        }
         $this->query->select($fields);
 
         return $this;
