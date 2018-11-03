@@ -343,7 +343,7 @@ class Router
         $this->defaultRouteCollection['params'] = $url ? array_values($url) : [];
         $controller = '\\'.env('APP_NAMESPACE', 'App') . '\\Controllers\\' . str_ireplace('controller', '', $this->defaultRouteCollection['controller']) . 'Controller';
 
-        $method = $this->defaultRouteCollection['method'];
+        $method = explode('?', $this->defaultRouteCollection['method'])[0];
         $params = $this->defaultRouteCollection['params'];
         if (class_exists($controller)) {
             $controller = Application::getInstance()->resolve($controller);
