@@ -1,9 +1,12 @@
 <?php
 namespace Yuga\Database\Elegant\Association;
+
 use Closure;
 use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Builder;
-abstract class Association
+use Yuga\Interfaces\Database\Elegant\Association\Association as Relation;
+
+abstract class Association implements Relation
 {
     private $query;
     private $parent;

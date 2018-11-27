@@ -10,6 +10,11 @@ use Yuga\Interfaces\Events\Dispatcher as IDispatcher;
 class Event implements IDispatcher
 {
     /**
+     * @var array list of attributes
+     */
+    private $attributes = [];
+
+    /**
      * @var array list of listeners
      */
     protected $listeners = [];
@@ -18,6 +23,36 @@ class Event implements IDispatcher
      * @var string name of the default events
      */
     protected $name = 'yuga.auto.events';
+
+    public function __get($key)
+    {
+        return $this->getAttribute($key);
+    }
+	/**
+	* Set a variable and make an object point to it
+	*/
+    public function __set($key, $value)
+    {
+        $this->setAttribute($key, $value);
+    }
+
+    public function setAttribute($key, $value)
+    {
+        $this->attributes[$key] = $value;
+        
+        return $this;
+    }
+
+    /**
+     * Get an attribute from the event.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function getAttribute($name)
+    {
+        return $this->attributes[$name];
+    }
 
     /**
      * Attach callback to event
@@ -91,6 +126,9 @@ class Event implements IDispatcher
             $event = new Dispatcher($event, $params);
         }
 
+        $event->setAttributes($this->attributes);
+        $event->setAttribute('dispatcher', $this);
+        
         $params = array_merge($params ?:[], [$event]);
         if (false !== strpos($event->getName(), ':')) {
             $namespace = substr($event->getName(), 0, strpos($event->getName(), ':'));

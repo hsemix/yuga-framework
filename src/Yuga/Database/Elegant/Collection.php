@@ -141,6 +141,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
      * Run a filter over each of the items.
      *
      * @param  callable|null  $callback
+     * 
      * @return static
      */
     public function filter(callable $callback = null)
@@ -166,6 +167,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
      * @param  string  $key
      * @param  mixed  $value
      * @param  bool  $strict
+     * 
      * @return static
      */
     public function where($key, $value, $strict = true)

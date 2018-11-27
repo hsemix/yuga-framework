@@ -47,7 +47,17 @@ class ViewModel extends BaseView
     protected function getTemplatePath()
     {
         $path = array_slice(explode('\\', static::class), 2);
-        return ($this->templatePath) ?: path('resources'. DIRECTORY_SEPARATOR .'views'. DIRECTORY_SEPARATOR .'templates'. DIRECTORY_SEPARATOR . str_replace('ViewModel', '', join(DIRECTORY_SEPARATOR, $path)) . '.php');
+        if ($this->templatePath) {
+            return $this->templatePath;
+        } else {
+            $unAltered = str_replace('ViewModel', '', join(DIRECTORY_SEPARATOR, $path));
+            $lower = strtolower($unAltered);
+            if (file_exists(path('resources'. DIRECTORY_SEPARATOR .'views'. DIRECTORY_SEPARATOR .'templates'. DIRECTORY_SEPARATOR . $unAltered . '.php'))) {
+                return path('resources'. DIRECTORY_SEPARATOR .'views'. DIRECTORY_SEPARATOR .'templates'. DIRECTORY_SEPARATOR . $unAltered . '.php');
+            } else {
+                return path('resources'. DIRECTORY_SEPARATOR .'views'. DIRECTORY_SEPARATOR .'templates'. DIRECTORY_SEPARATOR . $lower . '.php');
+            }
+        }
     }
 
     public function validationFor($name, $class = 'help-block')
@@ -223,12 +233,12 @@ class ViewModel extends BaseView
         }
 
         if (count($this->getSite()->getKeywords()) > 0) {
-            $this->getSite()->addMeta(['content' => join(', ', $this->getSite()->getKeywords()), 'name' => 'keywords']);
+            $this->getSite()->addMeta(['content' => implode(', ', $this->getSite()->getKeywords()), 'name' => 'keywords']);
         }
 
         if (count($this->getSite()->getHeader()) > 0) {
             $header = $this->getSite()->getHeader();
-            $output .= join('', $header);
+            $output .= implode('', $header);
         }
 
         return $output;
@@ -360,7 +370,12 @@ class ViewModel extends BaseView
         try {
             return $this->render();
          } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+            try {
+                throw new Exception($e->getMessage());
+            } catch (Exception $e) {
+                echo $e->getMessage();
+            }
+            
             //$this->setError($e->getMessage());
          }
 

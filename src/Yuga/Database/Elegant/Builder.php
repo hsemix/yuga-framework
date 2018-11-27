@@ -3,6 +3,7 @@ namespace Yuga\Database\Elegant;
 
 use Closure;
 use Carbon\Carbon;
+use ReflectionClass;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
 use Yuga\Support\Inflect;
@@ -34,31 +35,66 @@ class Builder
     protected $returnWithRelations = false;
     public $table;
 
-
-    public function __construct(Connection $connection, Model $model)
+    /**
+     * Make Builder instance
+     * 
+     * @param Connection|null $connection
+     * @param Model $model
+     * 
+     * @return void
+     */
+    public function __construct(Connection $connection = null, Model $model)
     {
         $this->model = $model;
         $this->query = (new QueryBuilder)->table($this->model->getTable());
     }
 
+    /**
+     * Return all results or the queried ones
+     * 
+     * @param array|null $columns
+     * 
+     * @return Collection
+     */
     public function all($columns = null)
     {
         $models = $this->getAll($columns);
         return $models;
     }
 
+    /**
+     * Return all results including trashed ones
+     * 
+     * @param null
+     * 
+     * @return static
+     */
     public function withTrashed()
     {
 		$this->withTrashed = true;
 		return $this;
 	}
 
+    /**
+     * Return only Trashaed records i.e with deleted_at not null
+     * 
+     * @param null
+     * 
+     * @return static
+     */
     public function onlyTrashed()
     {
 		$this->onlyTrashed = true;
 		return $this;
 	}
 
+    /**
+     * Query the database and return the results as model instances
+     * 
+     * @param array|null $columns
+     * 
+     * @return Collection
+     */
     public function getAll($columns = null)
     {
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
@@ -74,78 +110,24 @@ class Builder
 			}
         }
         $models = $this->query->getAll($columns); 
+        $models = array_map(function ($model) {
+            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
+                if ($model->{$this->getModel()->getCreatedAtColumn()}) {
+                    $model->{$this->getModel()->getCreatedAtColumn()} = new Carbon($model->{$this->getModel()->getCreatedAtColumn()}); 
+                }
+            }
+            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
+                if ($model->{$this->getModel()->getUpdatedAtColumn()}) {
+                    $model->{$this->getModel()->getUpdatedAtColumn()} = new Carbon($model->{$this->getModel()->getUpdatedAtColumn()}); 
+                }
+            }
+            return $model;
+        }, $models);
         $results = $this->getModel()->makeModels($models, $this->boot);
         
-        if(count($this->getModel()->relations) > 0){
-			$models = $this->lazyLoadRelations($results->getItems());
-		}
         $this->getModel()->dispatchModelEvent('selected', [$this->query, $results]);
 
         return $results;
-    }
-
-    public function lazyLoadRelations(array $models)
-    {
-		foreach ($this->getModel()->relations as $name => $constraints) {
-            if (strpos($name, '.') === false) {
-                $models = $this->loadRelation($models, $name, $constraints);
-            }
-        }
-        return $models;
-	}
-    protected function loadRelation(array $models, $name, Closure $constraints)
-    {
-		$relation = $this->getRelation($name);
-        $relation->addLazyConditions($models);
-
-        //call_user_func($constraints, $relation);
-		$models = $relation->bootRelation($models, $name);
-		$results = $relation->getLazy();
-		return $relation->match($models, $results, $name);
-    }
-    
-    public function getRelation($name)
-    {
-		$relation = Association::noConditions(function () use ($name) {
-            return $this->getModel()->$name();
-        });
-		return $relation;
-    }
-    
-    /**
-     * Get the deeply nested relations for a given top-level relation.
-     *
-     * @param  string  $relation
-     * @return array
-     */
-    protected function nestedRelations($relation)
-    {
-        $nested = [];
-
-        // We are basically looking for any relationships that are nested deeper than
-        // the given top-level relationship. We will just check for any relations
-        // that start with the given top relations and adds them to our arrays.
-        foreach ($this->getModel()->relations as $name => $constraints) {
-            if ($this->isNested($name, $relation)) {
-                $nested[substr($name, strlen($relation.'.'))] = $constraints;
-            }
-        }
-
-        return $nested;
-    }
-
-    /**
-     * Determine if the relationship is nested.
-     *
-     * @param  string  $name
-     * @param  string  $relation
-     * @return bool
-     */
-    protected function isNested($name, $relation)
-    {
-        $dots = Str::contains($name, '.');
-
-        return $dots && Str::startsWith($name, $relation.'.');
     }
 
     public function prefix($prefix)
@@ -416,8 +398,19 @@ class Builder
         }
         
         if ($item !== null) {
+            
+            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
+                if ($item->{$this->getModel()->getCreatedAtColumn()}) {
+                    $item->{$this->getModel()->getCreatedAtColumn()} = new Carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
+                }
+            }
+            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
+                if ($item->{$this->getModel()->getUpdatedAtColumn()}) {
+                    $item->{$this->getModel()->getUpdatedAtColumn()} = new Carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
+                }
+            }
             $model = $this->getModel()->newFromQuery($item, $this->boot);
-            $model->setQuery($this);
+            // $model->setQuery($this);
             $model->dispatchModelEvent('selected', [$this->query, $model]);
             return $model;
         }
@@ -432,7 +425,17 @@ class Builder
             $item = $this->query->last();
         }
         if ($item !== null) {
-            return $this->model->newFromQuery($item);
+            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
+                if ($item->{$this->getModel()->getCreatedAtColumn()}) {
+                    $item->{$this->getModel()->getCreatedAtColumn()} = new Carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
+                }
+            }
+            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
+                if ($item->{$this->getModel()->getUpdatedAtColumn()}) {
+                    $item->{$this->getModel()->getUpdatedAtColumn()} = new Carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
+                }
+            }
+            return $this->getModel()->newFromQuery($item, $this->boot);
         }
         return null;
     }
@@ -711,6 +714,13 @@ class Builder
         return $this->query;
     }
 
+    /**
+     * Return a printable representation of the Builder object
+     * 
+     * @param string|null $raw
+     * 
+     * @return string
+     */
     public function toSql($raw = null)
     {
         if($raw == 'raw')
@@ -718,6 +728,14 @@ class Builder
         return $this->getQuery()->getQuery()->getSql();
     }
 
+    /**
+     * Create dates for a created_at and updated_at
+     * 
+     * @param string $updated_at
+     * @param string $created_at
+     * 
+     * @return void
+     */
     public function dates($updated_at, $created_at)
     {
 		if(!$this->checkTableField($this->model->getTable(), $created_at)){
@@ -728,12 +746,28 @@ class Builder
 		}
     }
     
+    /**
+     * Check a database table for a given field
+     * 
+     * @param string $table
+     * @param string $field
+     * 
+     * @return boolean
+     */
     public function checkTableField($table, $field)
     {
         $tableApi = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
         return (new $tableApi($table))->columnExists($field);
     }
 
+    /**
+     * Create a new field in a database table i.e. columns for managing dates
+     * 
+     * @param string $table
+     * @param string $field
+     * 
+     * @return void
+     */
     public function createTableField($table, $field)
     {
         $tableApi = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
@@ -742,6 +776,13 @@ class Builder
         $table->addColumns();
     }
 
+    /**
+     * Perform a delete on a record i.e. either permanent or soft
+     * 
+     * @param boolean|false $permanent
+     * 
+     * @return mixed
+     */
     public function delete($permanent = false)
     {
 		if($permanent == true){
@@ -750,11 +791,25 @@ class Builder
 		return $this->softDelete();
 	}
 
+    /**
+     * Permanently Delete a record from a table
+     * 
+     * @param null
+     * 
+     * @return mixed
+     */
     private function forceDelete()
     {
 		return $this->query->delete();
 	}
 
+    /**
+     * Soft delete a record i.e. create a deleted_at key and populate it with date
+     * 
+     * @param null
+     * 
+     * @return Model
+     */
     private function softDelete()
     {
 		$time = Carbon::now()->toDateTimeString();
@@ -773,74 +828,58 @@ class Builder
         // $this->query = $this->query;
         // $this->query = clone $this->query;
     }
-
+    
+    /**
+     * Format results and include whatever the user whats to be included in the results before being returned
+     * 
+     * @param array ...$relations
+     * 
+     * @return static
+     */
     public function with($relations)
     {
+        $bootable = [];
         if (is_string($relations)) {
             $relations = func_get_args();
         }
-
-        
-        $relations = $this->createWithRelations($relations);
-        
-        $this->getModel()->relations = array_merge($this->getModel()->relations, $relations);
+        foreach ($relations as $key => $value) {
+            if (is_string($value) === true && is_numeric($key) === true) {
+                $bootable[$value] = $value;
+            } else {
+                $bootable[$key] = $value;
+            }
+        }
+        $this->boot = $this->getModel()->bootable = $bootable;
 
         return $this;
     }
 
-    protected function scanModelForFunctions(Model $model, array $functions = [])
+    /**
+     * Scan a model for valid methods
+     * 
+     * @param Model $model
+     * @param array|[] $methods
+     */
+    protected function scanModelForMethods(Model $model, array $methods = [])
     {
         $class = get_class($model);
-        $scan = new \ReflectionClass($class);
+        $scan = new ReflectionClass($class);
 
         $modelMethods = $scan->getMethods();
 
-        $validMethods = array_filter($modelMethods, function ($item) use ($functions) {
-            return in_array($item->name, $functions);
+        $validMethods = array_filter($modelMethods, function ($item) use ($methods) {
+            return in_array($item->name, $methods);
         });
     }
 
-    protected function createWithRelations($relations)
-    {
-    	$results = [];
-        
-        foreach ($relations as $name => $constraints) {
-            if (is_numeric($name)) {
-                $f = function () {
-                    //
-                };
-
-                list($name, $constraints) = [$constraints, $f];
-            }
-            $results = $this->parseNestedWith($name, $results);
-            $results[$name] = $constraints;
-        }
-        
-        return $results;
-    }
-
     /**
-     * Parse the nested relationships in a relation.
-     *
-     * @param  string  $name
-     * @param  array   $results
-     * @return array
+     * Paginate All results as they are returned
+     * 
+     * @param int $limit
+     * @param array|null $options
+     * 
+     * @return Collection $results
      */
-    protected function parseNestedWith($name, $results)
-    {
-        $progress = [];
-        
-        foreach (explode('.', $name) as $segment) {
-            $progress[] = $segment;
-            if (!isset($results[$last = implode('.', $progress)])) {
-                $results[$last] = function () {
-                    //
-                };
-            }   
-        }
-        return $results;
-    }
-
     public function paginate($limit = 10, array $options = null)
     {
         $request = new Request;
@@ -862,11 +901,25 @@ class Builder
         return $results;
     }
 
+    /**
+     * Get the Pagination instance
+     * 
+     * @param null
+     * 
+     * @return Pagination
+     */
     public function getPagination()
     {
         return $this->pagination;
     }
 
+    /**
+     * Get results with some constraints added
+     * 
+     * @param array|[] $instances
+     * 
+     * @return static
+     */
     public function getWith(array $instances = [])
     {
         $this->boot = array_merge($this->boot, $instances);

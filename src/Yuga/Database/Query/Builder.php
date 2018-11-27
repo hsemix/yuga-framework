@@ -455,7 +455,7 @@ class Builder
      */
     public function all($columns = null)
     {
-        return $this->get($collumns);
+        return $this->get($columns);
     }
     public function first()
     {

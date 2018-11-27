@@ -16,6 +16,11 @@ class Event
      */
     protected $params = [];
 
+    /**
+     * @var array list of attributes
+     */
+    private $attributes = [];
+
     public function __construct($name = null, $params = null)
     {   
         if ($name) {
@@ -52,9 +57,7 @@ class Event
     public function setParams($params)
     {
         if (!is_array($params)) {
-            throw new \Exception(
-                'Event parameters must be an array; received `' . gettype($params) . '`'
-            );
+            throw new Exception('Event parameters must be an array; received `' . gettype($params) . '`');
         }
         $this->params = $params;
     }
@@ -114,5 +117,48 @@ class Event
             // Arrays or objects implementing array access
             $this->params[$name] = $value;
         }
+    }
+
+    public function __get($key)
+    {
+        return $this->getAttribute($key);
+    }
+	/**
+	* Set a variable and make an object point to it
+	*/
+    public function __set($key, $value)
+    {
+        $this->setAttribute($key, $value);
+    }
+
+    public function setAttribute($key, $value)
+    {
+        $this->attributes[$key] = $value;
+        
+        return $this;
+    }
+
+    /**
+     * Get an attribute from the event.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function getAttribute($name)
+    {
+        return $this->attributes[$name];
+    }
+
+    public function setAttributes(array $attributes = [])
+    {
+        foreach ($attributes as $key => $value)
+            $this->attributes[$key] = $value;
+        
+        return $this;
+    }
+
+    public function __call($method, $parameters)
+    {
+        return call_user_func_array([$this->getAttribute('dispatcher'), $method], $parameters);
     }
 }

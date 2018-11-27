@@ -19,7 +19,7 @@ class Session implements ISession
 	public function __construct(Application $app)
 	{
 		if (session_status() == PHP_SESSION_NONE) {
-			session_start();
+			@session_start();
 		}
 		$this->app = $app;
 		$config = $this->app->config->load('config.Settings');
