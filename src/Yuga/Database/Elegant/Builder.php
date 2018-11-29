@@ -404,14 +404,14 @@ class Builder
         if ($item !== null) {
             
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
-                if (property_exists($model, $this->getModel()->getCreatedAtColumn())) {
+                if (property_exists($item, $this->getModel()->getCreatedAtColumn())) {
                     if ($item->{$this->getModel()->getCreatedAtColumn()}) {
                         $item->{$this->getModel()->getCreatedAtColumn()} = new Carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
                     }
                 }
             }
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
-                if (property_exists($model, $this->getModel()->getUpdatedAtColumn())) {
+                if (property_exists($item, $this->getModel()->getUpdatedAtColumn())) {
                     if ($item->{$this->getModel()->getUpdatedAtColumn()}) {
                         $item->{$this->getModel()->getUpdatedAtColumn()} = new Carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
                     }
@@ -434,14 +434,14 @@ class Builder
         }
         if ($item !== null) {
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
-                if (property_exists($model, $this->getModel()->getCreatedAtColumn())) {
+                if (property_exists($item, $this->getModel()->getCreatedAtColumn())) {
                     if ($item->{$this->getModel()->getCreatedAtColumn()}) {
                         $item->{$this->getModel()->getCreatedAtColumn()} = new Carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
                     }
                 }
             }
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
-                if (property_exists($model, $this->getModel()->getUpdatedAtColumn())) {
+                if (property_exists($item, $this->getModel()->getUpdatedAtColumn())) {
                     if ($item->{$this->getModel()->getUpdatedAtColumn()}) {
                         $item->{$this->getModel()->getUpdatedAtColumn()} = new Carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
                     }
