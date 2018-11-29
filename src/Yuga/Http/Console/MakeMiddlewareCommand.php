@@ -32,7 +32,7 @@ class MakeMiddlewareCommand extends Command
             $alias = strtolower(trim($this->argument('name')));
         }
         file_put_contents(
-            path('config/AppMiddleWare.php'),
+            path('config/AppMiddleware.php'),
             $this->compileYugaMiddlewareTemp(trim($this->argument('name')), $alias)
         );
 
@@ -54,7 +54,7 @@ class MakeMiddlewareCommand extends Command
      */
     protected function compileMiddlewareTemp($name)
     {
-        $middleware = str_replace('{namespace}', env('APP_NAMESPACE', 'App'), file_get_contents(__DIR__.'/temps/MiddleWare.temp'));
+        $middleware = str_replace('{namespace}', env('APP_NAMESPACE', 'App'), file_get_contents(__DIR__.'/temps/Middleware.temp'));
         return str_replace('{middleware}', $name, $middleware);
     }
 
@@ -90,7 +90,7 @@ class MakeMiddlewareCommand extends Command
         return str_replace(
             '{middleware}',
             $generatedMiddleware.';',
-            file_get_contents(__DIR__.'/temps/AppMiddleWare.temp')
+            file_get_contents(__DIR__.'/temps/AppMiddleware.temp')
         );
     }
 
