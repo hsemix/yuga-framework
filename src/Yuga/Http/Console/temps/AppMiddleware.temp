@@ -1,5 +1,0 @@
-<?php
-/**
- * Register all your app's middleware here
- */
-return {middleware}
