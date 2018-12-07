@@ -509,29 +509,6 @@ abstract class Model implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * Query from a view instead of a table
-     * 
-     * @param string $view
-     * 
-     * @return static
-     */
-    public function getFromView($view = null)
-    {
-        $objectCalling = get_called_class();
-        if ($view) {
-            $objectCallingView = $view;
-        } else {
-            if (isset($this->view_name)) {
-                $objectCallingView = $this->view_name;
-            } else {
-                $objectCallingView = strtolower(Str::deCamelize(class_base($objectCalling)))."_view";
-            }
-        }
-        $this->setTable($objectCallingView);
-        return $this;
-    }
-
-    /**
      * Set a table correponding to this model for database queries
      * 
      * @param string $table

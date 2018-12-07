@@ -948,6 +948,28 @@ class Builder
         return md5(static::class . $this->getSql(true));
     }
 
+    /**
+     * Query from a view instead of a table
+     * 
+     * @param string $view
+     * 
+     * @return static
+     */
+    public function getFromView($view = null)
+    {
+        if ($view) {
+            $objectCallingView = $view;
+        } else {
+            if (isset($this->getModel()->view_name)) {
+                $objectCallingView = $this->getModel()->view_name;
+            } else {
+                $objectCallingView = strtolower(Str::deCamelize(class_base($this->getModel())))."_view";
+            }
+        }
+        $this->getModel()->setTable($objectCallingView);
+        return $this->getModel();
+    }
+
     public function __sleep()
     {
         return ['model'];
