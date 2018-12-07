@@ -75,7 +75,7 @@ class SmxView extends View
     protected function createStorageDirectories()
     {
         if (!is_dir($directory = path('storage/hax'))) {
-            mkdir($directory, 0755, true);
+            mkdir($directory, 0777, true);
         }
     }
     
