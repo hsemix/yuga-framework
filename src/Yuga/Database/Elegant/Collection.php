@@ -226,7 +226,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     {
         foreach ($array as $key => $child) {
             if(is_array($child)) {
-                $newArray =& $this->arrayFlatten($child, $preserve_keys, $newArray);
+                $newArray = $this->arrayFlatten($child, $preserve_keys, $newArray);
             } elseif ($preserve_keys + is_string($key) > 1) {
                 $newArray[$key] = $child;
             } else {
