@@ -55,7 +55,7 @@ trait RegisterUser
         if (class_exists(EmailConfirmation::class)) {
             $handleClass = EmailConfirmation::class;
         }
-        (new $eventClass($user = $this->create($request->all())))->attach(new $handleClass)->dispatch();
+        (new $eventClass($user = $this->create($request->all())))->attach(new $handleClass($user))->dispatch();
 
         $auth->login($user);
 
