@@ -120,6 +120,11 @@ class Validate
         return $this->message->hasMessages();
     }
 
+    public function hasErrors()
+    {
+        return $this->failed();
+    }
+
     public function passed()
     {
         return !$this->failed();
@@ -333,6 +338,11 @@ class Validate
 
     protected function validate_unique($field, $value, $satisfy)
     {
+        $satisfies = explode('(', $satisfy);
+        $satisfy = $satisfies[0];
+        if (count($satisfies) > 1) {
+            $field = str_replace(')', '', $satisfies[1]);
+        }
         return !\DB::table($satisfy)->where($field, $value)->first();
     }
 

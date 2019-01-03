@@ -43,7 +43,7 @@ trait MakeAuthMiddleware
      */
     protected function compileAuthYugaMiddlewareTemp()
     {
-        $middleware = require path('config/AppMiddleware.php');
+        $middleware = require path('config/AppMiddleWare.php');
         $middleware[str_ireplace('middleware', '', 'guest')] = env('APP_NAMESPACE', 'App').'\\Middleware\\RedirectIfAuthenticated';
 
         $generatedMiddleware = '[';
