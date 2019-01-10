@@ -33,7 +33,7 @@ class PDO
                 $connectionString = env('DATABASE_DRIVER', 'mysql') . ':host=' . env('DATABASE_HOST') . ';dbname=' . env('DATABASE_NAME') . ';charset=' . env('DATABASE_CHARSET', 'utf8');
                 
             } else if ($driver == 'pgsql') {
-
+                $connectionString = env('DATABASE_DRIVER', 'mysql') . ':host=' . env('DATABASE_HOST') . ';dbname=' . env('DATABASE_NAME');
             }
             self::$instance = new static($connectionString, env('DATABASE_USERNAME'), env('DATABASE_PASSWORD'));
         }

@@ -271,11 +271,11 @@ class Column
     {
 
         if (!in_array($delete, self::$RELATION_TYPES)) {
-            throw new \InvalidArgumentException('Unknown relation type for delete. Valid types are: ' . join(', ', self::$RELATION_TYPES));
+            throw new \InvalidArgumentException('Unknown relation type for delete. Valid types are: ' . implode(', ', self::$RELATION_TYPES));
         }
 
         if (!in_array($update, self::$RELATION_TYPES)) {
-            throw new \InvalidArgumentException('Unknown relation type for delete. Valid types are: ' . join(', ', self::$RELATION_TYPES));
+            throw new \InvalidArgumentException('Unknown relation type for delete. Valid types are: ' . implode(', ', self::$RELATION_TYPES));
         }
 
         $this->relationTable = $table;
