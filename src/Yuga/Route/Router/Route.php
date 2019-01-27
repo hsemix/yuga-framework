@@ -106,7 +106,7 @@ abstract class Route implements IRoute
     { 
         if (is_object($middleware) === false) {
             $routeMiddleware = $this->loadClass(RouteMiddleware::class);
-            $wares = array_merge($routeMiddleware->routerMiddleWare, require path('config/AppMiddleware.php'));
+            $wares = array_merge($routeMiddleware->routerMiddleWare, require path('config/AppMiddleWare.php'));
             $routeMiddlewares = [];
             $middlewares = $middleware;
             if (is_string($middleware) === true) {

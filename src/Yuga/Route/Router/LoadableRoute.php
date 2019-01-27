@@ -40,7 +40,7 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
 
                 if (is_object($middleware) === false) {
                     $routeMiddleware = $this->loadClass(RouteMiddleware::class);
-                    $wares = array_merge($routeMiddleware->routerMiddleWare, require path('config/AppMiddleware.php'));
+                    $wares = array_merge($routeMiddleware->routerMiddleWare, require path('config/AppMiddleWare.php'));
                     if (isset($wares[$middleware])) {
                         $middleware = $this->loadClass($wares[$middleware]);
                     } else {

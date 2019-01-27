@@ -98,10 +98,11 @@ class Application extends Container implements IApplication
         
         if (!$this->runningInConsole()) {
             $this->setDebugEnabled(env('DEBUG_MODE', true)); 
-            if ($this->getDebugEnabled()) 
+            if ($this->getDebugEnabled()) {
                 $this->initWhoops();
-            else
+            } else {
                 error_reporting(0);
+            }   
         }
         $this->registerConfig();
         $this->registerBaseBindings($this);

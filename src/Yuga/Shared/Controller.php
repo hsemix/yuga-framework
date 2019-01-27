@@ -78,7 +78,7 @@ trait Controller
     {
         $middleWare = new MiddleWare();
         $wares = $middleWare->routerMiddleWare;
-        $wares = array_merge($wares, require path('config/AppMiddleware.php'));
+        $wares = array_merge($wares, require path('config/AppMiddleWare.php'));
         if ($except) {
             $middleWare->except = $except;
         }
