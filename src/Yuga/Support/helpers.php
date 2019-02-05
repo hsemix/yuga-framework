@@ -159,14 +159,19 @@ if (!function_exists('app')) {
 if(!function_exists('route')) {
     function route($name = null, $parameters = null, $getParams = null)
     {
+        $route = Route::getUrl($name, $parameters, $getParams);
         if (!is_null(request()->processHost())) {
             if (strpos(request()->getHost(), ':') !== false) {
-                return rtrim(Route::getUrl($name, $parameters, $getParams), '/');
+                $route = rtrim(Route::getUrl($name, $parameters, $getParams), '/');
             } else {
-                return rtrim(request()->processHost().Route::getUrl($name, $parameters, $getParams), '/');
+                if(strpos(request()->processHost(), '/public') !== false) {
+                    $route = rtrim(request()->processHost().ltrim(Route::getUrl($name, $parameters, $getParams), '/'), '/');
+                } else {
+                    $route = rtrim(Route::getUrl($name, $parameters, $getParams), '/');
+                }
             }
         }
-        return Route::getUrl($name, $parameters, $getParams);
+        return $route;
     }
 }
 
@@ -231,13 +236,16 @@ if(!function_exists('assets')) {
     function assets($value = "")
     {
         if (!is_null(request()->processHost())) {
-            if (strpos(request()->getHost(), ':') !== false) {
-                return '/'.$value;
+            if (request()->getServer() != request()->gethost()) {
+                return '/'.ltrim($value, '/');
+            } else if(strpos(request()->processHost(), '/public') !== false) {
+                return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim($value, '/'));
             } else {
-                return scheme(request()->getHost().request()->processHost().'/'.$value);
-            }
+                return scheme(request()->getServer(). '/' . ltrim($value, '/'));
+            } 
+        } else {
+            return scheme(request()->getHost() . '/' . ltrim($value, '/'));
         }
-        return scheme(request()->getHost().'/'.$value);
     }
 }
 

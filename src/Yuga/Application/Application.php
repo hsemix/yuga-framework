@@ -99,10 +99,14 @@ class Application extends Container implements IApplication
         if (!$this->runningInConsole()) {
             $this->setDebugEnabled(env('DEBUG_MODE', true)); 
             if ($this->getDebugEnabled()) {
+                error_log("You messed up!", null, "my-errors.log");
                 $this->initWhoops();
             } else {
-                error_reporting(0);
-            }   
+                error_log("You messed up!", 3, "my-errors.log");
+                error_reporting(1);
+                
+            }
+                
         }
         $this->registerConfig();
         $this->registerBaseBindings($this);
@@ -110,6 +114,7 @@ class Application extends Container implements IApplication
         if (!$this->runningInConsole()) {
             $this->make('session')->delete('errors');
         }
+        
     }
 
     /**

@@ -18,7 +18,7 @@ class Auth
   /**
    * Return all routes responsible for the authentication
    */
-  public function routes()
+  public static function routes()
 	{
     static::$authRoutes = true;
     Route::get('/login', 'Auth\LoginController@showLoginForm')->name('login');

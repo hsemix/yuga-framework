@@ -78,25 +78,26 @@ class Request
         if ($trim) {
             return $this->uri;
         }
-        return str_replace($this->processHost(), '', $this->uri);
+        return '/' . ltrim(str_replace($this->processHost(), '', $this->uri), '/');
     }
 
 
     public function processHost()
     {
-        $scriptName = substr($this->getHeader('php-self'),0,strlen($this->getHeader('php-self'))  - strlen('index.php'));;
+        // $scriptName = substr($this->getHeader('php-self'),0,strlen($this->getHeader('php-self'))  - strlen('index.php'));;
+        $scriptName = str_replace('/index.php', '', $this->getHeader('php-self'));
         $segs = explode('/', trim($scriptName, '/'));
         $segs = array_reverse($segs);
-
         $index = 0;
         $last = count($segs);
         $baseUrl = '';
         do {
             $seg = $segs[$index];
-            $baseUrl = '/'.$seg.$baseUrl;
+            $baseUrl = '/'.$seg.rtrim($baseUrl, '/') ;
             ++$index;
         } while ($last > $index && (false !== $pos = strpos($scriptName, $baseUrl)) && 0 != $pos);
-        return $baseUrl;
+
+        return $baseUrl . '/';
     }
 
     /**
@@ -105,6 +106,11 @@ class Request
     public function getHost()
     {
         return $this->host;
+    }
+
+    public function getServer()
+    {
+        return $this->getHeader('server-name');
     }
 
     /**

@@ -910,9 +910,9 @@ class YugaMailer extends Mailable
 	 */
 	public function valid_email($email)
 	{
-		if (function_exists('idn_to_ascii') && $atpos = strpos($email, '@')) {
-			$email = static::substr($email, 0, ++$atpos).idn_to_ascii(static::substr($email, $atpos));
-		}
+// 		if (function_exists('idn_to_ascii') && $atpos = strpos($email, '@')) {
+// 			$email = static::substr($email, 0, ++$atpos).idn_to_ascii(static::substr($email, $atpos));
+// 		}
 
 		return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
 	}
@@ -1603,9 +1603,9 @@ class YugaMailer extends Mailable
 	 */
 	protected function validateEmailForShell(&$email)
 	{
-		if (function_exists('idn_to_ascii') && $atpos = strpos($email, '@')) {
-			$email = static::substr($email, 0, ++$atpos).idn_to_ascii(static::substr($email, $atpos));
-		}
+// 		if (function_exists('idn_to_ascii') && $atpos = strpos($email, '@')) {
+// 			$email = static::substr($email, 0, ++$atpos).idn_to_ascii(static::substr($email, $atpos));
+// 		}
 
 		return (filter_var($email, FILTER_VALIDATE_EMAIL) === $email && preg_match('#\A[a-z0-9._+-]+@[a-z0-9.-]{1,253}\z#i', $email));
 	}
