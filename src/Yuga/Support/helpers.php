@@ -130,9 +130,21 @@ if (!function_exists('resources')) {
 
 
 if(!function_exists('host')) {
-    function host($value ="")
+    function host($value = "")
     {
-        return scheme(response()->getOrSetVars()->host . '/' . ltrim($value, '/'));
+        $host = '';
+        if (!is_null(request()->processHost())) {
+            if (request()->getServer() != request()->gethost()) {
+                $host = '/'.ltrim($value, '/');
+            } else if(strpos(request()->processHost(), '/public') !== false) {
+                $host = scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim($value, '/'));
+            } else {
+                $host = scheme(request()->getServer(). '/' . ltrim($value, '/'));
+            } 
+        } else {
+            $host = scheme(request()->getHost() . '/' . ltrim($value, '/'));
+        }
+        return $host;
     }
 }
 

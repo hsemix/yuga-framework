@@ -99,12 +99,14 @@ class Application extends Container implements IApplication
         if (!$this->runningInConsole()) {
             $this->setDebugEnabled(env('DEBUG_MODE', true)); 
             if ($this->getDebugEnabled()) {
-                error_log("You messed up!", null, "my-errors.log");
                 $this->initWhoops();
             } else {
-                error_log("You messed up!", 3, "my-errors.log");
-                error_reporting(1);
-                
+                error_reporting(0);
+                // die();
+                // error_log(error_get_last()['message'], null, "my-errors.log");
+                set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+                    error_log($errstr . ' worked!', null, "my-errors.log");
+                });
             }
                 
         }
