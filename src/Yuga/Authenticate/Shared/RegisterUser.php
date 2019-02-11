@@ -59,7 +59,7 @@ trait RegisterUser
 
         $auth->login($user);
 
-        return $this->registered($request, $user) ?: redirect(route($this->redirectPath()));
+        return $this->registered($request, $user) ?: redirect($this->redirectPath());
     }
 
     /**

@@ -47,7 +47,7 @@ trait AuthenticateUser
     public function login(Request $request, Response $response, Auth $auth)
     {
         $login = $auth->login($request->get($this->formFields['username']), $request->get($this->formFields['password']), $request->get($this->formFields['remember']));
-        return $this->loggedIn($request, $auth->user()) ?: redirect(route($this->redirectPath()));
+        return $this->loggedIn($request, $auth->user()) ?: redirect($this->redirectPath());
     }
     /**
      * The user has been logged in.
@@ -64,6 +64,6 @@ trait AuthenticateUser
     public function logout(Auth $auth)
     {
         $auth->logout();
-        return redirect(route('login'));
+        return redirect('/login');
     }
 }

@@ -103,9 +103,9 @@ class Application extends Container implements IApplication
             } else {
                 error_reporting(0);
                 // die();
-                // error_log(error_get_last()['message'], null, "my-errors.log");
+                // error_log('eee', 3, "my-errors.log");
                 set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-                    error_log($errstr . ' worked!', null, "my-errors.log");
+                    error_log($errstr . ' worked!', 2, "/my-system-errors.log");
                 });
             }
                 

@@ -63,7 +63,7 @@ trait SendPasswordResetEmails
     protected function redirectUser(array $fields)
     {
         app()->make('session')->flash('email-sent', 'Details on how you can reset your password have been sent to <strong>' . $fields['email'] . '</strong>');
-        return redirect(route($this->redirectPath()));
+        return redirect($this->redirectPath());
     }
 
     /**
