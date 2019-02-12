@@ -120,7 +120,7 @@ trait ResetPasswords
      */
     protected function redirectUser(array $fields)
     {
-        return redirect(route($this->redirectPath()));
+        return redirect($this->redirectPath());
     }
 
     /**
