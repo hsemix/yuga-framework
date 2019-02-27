@@ -41,6 +41,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     protected static $connection;
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+    protected $virtualRelations = [];
     protected $deleteKey = 'deleted_at';
     protected static $primaryKey = 'id';
     public $returnWithRelations = false;
@@ -693,9 +694,10 @@ abstract class Model implements ArrayAccess, JsonSerializable
                 $result = $result['results'];
             }
         }
-        
-        
+    
         if ($result instanceof Collection) {
+            $model->relations[$name] = $result;
+        } elseif($result instanceof Model) {
             $model->relations[$name] = $result;
         } else {
             $model->{$name} = $result;
@@ -776,7 +778,17 @@ abstract class Model implements ArrayAccess, JsonSerializable
             if ($result instanceof Relation) {
                 unset($names[0]);
                 $result = $result->with(implode('.', $names))->get();
-            } 
+            } else {
+                if (in_array($method, $this->virtualRelations)) {
+                    if ($result instanceof Model) {
+                        unset($names[0]);
+                        $result = $result->with(implode('.', $names))->get();
+                    } else if ($result instanceof Collection) {
+                        unset($names[0]);
+                        $result = isset($result[0]) ? $result[0]->with(implode('.', $names))->get() : $result;
+                    }
+                }
+            }
             $result =  ['field' => $method, 'results' => $result];
         } else {
             $result = null;

@@ -22,10 +22,10 @@ abstract class Association implements Relation
     }
 
     abstract public function addConditions();
-    /**
-    *   Redirect all unknown methods to the query Builder, it could be aware of them
-    */
 
+    /**
+     * Redirect all unknown methods to the query Builder, it could be aware of them
+     */
     public function __call($method, $parameters)
     {
         $result = call_user_func_array([$this->query, $method], $parameters);
