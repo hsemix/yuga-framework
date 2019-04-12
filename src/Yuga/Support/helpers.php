@@ -163,7 +163,10 @@ if(!function_exists('resource')) {
 if(!function_exists('env')) {
     function env($key, $default = null)
     {
-        return isset($_ENV[$key]) ? $_ENV[$key] : $default;
+        if (isset($_ENV[$key])) {
+            return $_ENV[$key] == '' || is_null($_ENV[$key]) ? $default : $_ENV[$key];
+        }
+        return $default;
     }
 }
 

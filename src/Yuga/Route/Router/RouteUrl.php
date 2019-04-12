@@ -37,4 +37,8 @@ class RouteUrl extends LoadableRoute
         return true;
     }
 
+    public function getParams($key = null)
+    {
+        return ($key) ? $this->parameters[$key] : $this->parameters;
+    }
 }

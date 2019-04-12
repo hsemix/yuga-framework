@@ -106,7 +106,7 @@ class Router
         $this->processedRoutes = [];
         $this->exceptionHandlers = [];
         $defaultRoutes = env('ROUTE_DEFAULTS', json_encode(['controller' => 'Home', 'method' => 'index']));
-        $defaultRoutes = json_decode($defaultRoutes, true);
+        $defaultRoutes = is_array($defaultRoutes) ? $defaultRoutes : json_decode($defaultRoutes, true);
         $this->defaultRouteCollection['controller'] = $defaultRoutes['controller'];
         $this->defaultRouteCollection['method'] = $defaultRoutes['method'];
     }

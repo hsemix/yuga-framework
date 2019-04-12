@@ -463,7 +463,7 @@ class ViewModel extends BaseView
                     $model->{$key} = $value;
                 }
             }
-
+            
             $model = $this->validateModel($model);
 
             if (count($this->modelFields) > 0) {

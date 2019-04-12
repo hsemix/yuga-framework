@@ -173,7 +173,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
                 if (static::$massAssign) {
                     $this->setAttribute($key, $value);
                 } else {
-                    throw new Exception('Need to have fillables for mass assignment or set protected static $massAssign to true in your model');
+                    throw new Exception('Need to have fillables for mass assignment or set protected static $massAssign to true in your model (' . static::class . ')');
                 }
                 
             } 
@@ -1039,7 +1039,11 @@ abstract class Model implements ArrayAccess, JsonSerializable
      */
     protected function newTimestamp()
     {
-        return Carbon::now()->toDateTimeString();
+        $carbon = \Yuga\Carbon\Carbon::class;
+        if (class_exists(Carbon::class)) {
+            $carbon = Carbon::class;
+        }
+        return $carbon::now()->toDateTimeString();
     }
 
     /**

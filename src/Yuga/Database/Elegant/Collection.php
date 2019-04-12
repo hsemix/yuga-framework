@@ -43,7 +43,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
     public function first()
     {
-        return $this->items;
+        return $this->items[0];
     }
 
     public function last()

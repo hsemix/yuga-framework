@@ -253,16 +253,16 @@ class Route
     */
     public static function all($url, $callback, array $settings = null)
     {
-    $route = new RouteUrl($url, $callback);
-    $route = static::addDefaultNamespace($route);
+        $route = new RouteUrl($url, $callback);
+        $route = static::addDefaultNamespace($route);
 
-    if ($settings !== null) {
-        $route->setSettings($settings);
-    }
+        if ($settings !== null) {
+            $route->setSettings($settings);
+        }
 
-    static::router()->addRoute($route);
+        static::router()->addRoute($route);
 
-    return $route;
+        return $route;
     }
 
     /**
@@ -314,27 +314,27 @@ class Route
         return static::$defaultNamespace;
     }
  
-     /**
-      * This type will route all REST-supported requests to different methods in the provided controller.
-      *
-      * @param string $url
-      * @param string $controller
-      * @param array|null $settings
-      * @return RouteResource|IRoute
-      */
-     public static function resource($url, $controller, array $settings = null)
-     {
-         $route = new RouteResource($url, $controller);
-         $route = static::addDefaultNamespace($route);
- 
-         if ($settings !== null) {
-             $route->setSettings($settings);
-         }
- 
-         static::router()->addRoute($route);
- 
-         return $route;
-     }
+    /**
+     * This type will route all REST-supported requests to different methods in the provided controller.
+    *
+    * @param string $url
+    * @param string $controller
+    * @param array|null $settings
+    * @return RouteResource|IRoute
+    */
+    public static function resource($url, $controller, array $settings = null)
+    {
+        $route = new RouteResource($url, $controller);
+        $route = static::addDefaultNamespace($route);
+
+        if ($settings !== null) {
+            $route->setSettings($settings);
+        }
+
+        static::router()->addRoute($route);
+
+        return $route;
+    }
     /**
     * Returns the router instance
     *
@@ -376,7 +376,7 @@ class Route
     /**
     * Get the request
     *
-    * @return \Pecee\Http\Request
+    * @return \Yuga\Http\Request
     */
     public static function request()
     {

@@ -97,6 +97,10 @@ class Builder
      */
     public function getAll($columns = null)
     {
+        $carbon = \Yuga\Carbon\Carbon::class;
+        if (class_exists(Carbon::class)) {
+            $carbon = Carbon::class;
+        }
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
             return false;
         }
@@ -110,18 +114,18 @@ class Builder
 			}
         }
         $models = $this->query->getAll($columns); 
-        $models = array_map(function ($model) {
+        $models = array_map(function ($model) use ($carbon) {
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
                 if (property_exists($model, $this->getModel()->getCreatedAtColumn())) {
                     if ($model->{$this->getModel()->getCreatedAtColumn()}) {
-                        $model->{$this->getModel()->getCreatedAtColumn()} = new Carbon($model->{$this->getModel()->getCreatedAtColumn()}); 
+                        $model->{$this->getModel()->getCreatedAtColumn()} = new $carbon($model->{$this->getModel()->getCreatedAtColumn()}); 
                     }
                 }
             }
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
                 if (property_exists($model, $this->getModel()->getUpdatedAtColumn())) {
                     if ($model->{$this->getModel()->getUpdatedAtColumn()}) {
-                        $model->{$this->getModel()->getUpdatedAtColumn()} = new Carbon($model->{$this->getModel()->getUpdatedAtColumn()}); 
+                        $model->{$this->getModel()->getUpdatedAtColumn()} = new $carbon($model->{$this->getModel()->getUpdatedAtColumn()}); 
                     }
                 }
             }
@@ -392,6 +396,10 @@ class Builder
 
     public function first($columns = null)
     {
+        $carbon = \Yuga\Carbon\Carbon::class;
+        if (class_exists(Carbon::class)) {
+            $carbon = Carbon::class;
+        }
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
             return false;
         }
@@ -406,14 +414,14 @@ class Builder
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
                 if (property_exists($item, $this->getModel()->getCreatedAtColumn())) {
                     if ($item->{$this->getModel()->getCreatedAtColumn()}) {
-                        $item->{$this->getModel()->getCreatedAtColumn()} = new Carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
+                        $item->{$this->getModel()->getCreatedAtColumn()} = new $carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
                     }
                 }
             }
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
                 if (property_exists($item, $this->getModel()->getUpdatedAtColumn())) {
                     if ($item->{$this->getModel()->getUpdatedAtColumn()}) {
-                        $item->{$this->getModel()->getUpdatedAtColumn()} = new Carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
+                        $item->{$this->getModel()->getUpdatedAtColumn()} = new $carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
                     }
                 }
             }
@@ -422,11 +430,15 @@ class Builder
             $model->dispatchModelEvent('selected', [$this->query, $model]);
             return $model;
         }
-        return null;
+        return $this->getModel();
     }
 
     public function last($columns = null)
     {
+        $carbon = \Yuga\Carbon\Carbon::class;
+        if (class_exists(Carbon::class)) {
+            $carbon = Carbon::class;
+        }
         if ($columns) {
             $item = $this->query->select($columns)->last();
         } else {
@@ -436,20 +448,20 @@ class Builder
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
                 if (property_exists($item, $this->getModel()->getCreatedAtColumn())) {
                     if ($item->{$this->getModel()->getCreatedAtColumn()}) {
-                        $item->{$this->getModel()->getCreatedAtColumn()} = new Carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
+                        $item->{$this->getModel()->getCreatedAtColumn()} = new $carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
                     }
                 }
             }
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
                 if (property_exists($item, $this->getModel()->getUpdatedAtColumn())) {
                     if ($item->{$this->getModel()->getUpdatedAtColumn()}) {
-                        $item->{$this->getModel()->getUpdatedAtColumn()} = new Carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
+                        $item->{$this->getModel()->getUpdatedAtColumn()} = new $carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
                     }
                 }
             }
             return $this->getModel()->newFromQuery($item, $this->boot);
         }
-        return null;
+        return $this->getModel();
     }
 
     public function firstOrFail($columns = null)
@@ -824,7 +836,11 @@ class Builder
      */
     private function softDelete()
     {
-		$time = Carbon::now()->toDateTimeString();
+        $carbon = \Yuga\Carbon\Carbon::class;
+        if (class_exists(Carbon::class)) {
+            $carbon = Carbon::class;
+        }
+		$time = $carbon::now()->toDateTimeString();
 		
 		if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
             $this->update([$this->getModel()->getDeleteKey() => $time]);

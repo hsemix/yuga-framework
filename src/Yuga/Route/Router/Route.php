@@ -61,10 +61,13 @@ abstract class Route implements IRoute
 
     protected function loadClass($name)
     {
-        if (class_exists($name) === false) {
-            throw new NotFoundHttpException(sprintf('Class "%s" does not exist', $name), 404);
-        }
-        return Application::getInstance()->resolve($name);
+        
+        // if (is_string($name)) {
+            if (class_exists($name) === false) {
+                throw new NotFoundHttpException(sprintf('Class "%s" does not exist', $name), 404);
+            }
+            return Application::getInstance()->resolve($name);
+        
     }
 
     protected function instantiated($callback)
@@ -153,20 +156,35 @@ abstract class Route implements IRoute
             /* When the callback is a function */
             $result = call_user_func_array($callback, $this->instantiated($callback));
 
-            if ($result instanceof ViewModel || is_string($result)/* || $result instanceof View*/) {
+            if ($result instanceof ViewModel || is_string($result) || $result instanceof View) {
                 echo $result;
             }
             return;
 
         }
 
+        if (is_object($callback) === true) {
+            if ($callback instanceof ViewModel) {
+                echo $callback;
+                return;
+            }
+        }
+        
         /* When the callback is a class + method */
         $controller = explode('@', $callback);
 
         $namespace = $this->getNamespace();
 
+        if (count($controller) === 1) {
+            $viewModel = $this->loadClass($controller[0]);
+            if ($viewModel instanceof ViewModel) {
+                echo $viewModel;
+                return;
+            } else {
+                throw new NotFoundHttpException(sprintf('Method not provided for controller class "%s"', $className), 404);
+            }
+        }
         
-
         $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
 
         $class = $this->loadClass($className);

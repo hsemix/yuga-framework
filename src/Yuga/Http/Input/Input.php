@@ -179,7 +179,11 @@ class Input
      */
     public function findPost($index, $defaultValue = null)
     {
-        return isset($this->post[$index]) ? $this->post[$index] : $defaultValue;
+        $input = $this->post;
+        if ($string = file_get_contents("php://input")) {
+            $input = array_merge($this->post, (array)json_decode($string, true));
+        }
+        return isset($input[$index]) ? $input[$index] : $defaultValue;
     }
 
     /**
@@ -276,7 +280,7 @@ class Input
     {
         $output = $_POST;
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'post' || $this->request->getMethod() === 'patch' || $this->request->getMethod() === 'put') {
 
             $contents = file_get_contents('php://input');
 

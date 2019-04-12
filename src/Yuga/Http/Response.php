@@ -41,9 +41,24 @@ class Response
         return $this->redirect->to($url);
     }
 
+    public function redirectResponse($url, $httpCode = null)
+    {
+        return $this->redirect($url, $httpCode);
+    }
+
+    public function viewResponse($args = null, $data = null)
+    {
+        return view($args, $data);
+    }
+
+    public function jsonResponse($value, $options = null, $code = 200, $dept = 512)
+    {
+        return $this->json($value, $options, $code, $dept);
+    }
+
     public function refresh()
     {
-        $this->redirect($this->request->getUri(true));
+        return $this->redirectResponse($this->request->getUri(true));
     }
 
     /**

@@ -253,21 +253,49 @@ class Builder
 
     public function whereIn($key, $values)
     {
+        if(!is_array($values)){
+			$values = [0];
+		}
+
+		if(count($values) < 1){
+			$values = [0];
+		}
         return $this->whereHandler($key, 'IN', $values, 'and');
     }
 
     public function whereNotIn($key, $values)
     {
+        if(!is_array($values)){
+			$values = [0];
+		}
+
+		if(count($values) < 1){
+			$values = [0];
+		}
         return $this->whereHandler($key, 'NOT IN', $values, 'and');
     }
 
     public function orWhereIn($key, $values)
     {
+        if(!is_array($values)){
+			$values = [0];
+		}
+
+		if(count($values) < 1){
+			$values = [0];
+		}
         return $this->whereHandler($key, 'IN', $values, 'or');
     }
 
     public function orWhereNotIn($key, $values)
     {
+        if(!is_array($values)){
+			$values = [0];
+		}
+
+		if(count($values) < 1){
+			$values = [0];
+		}
         return $this->whereHandler($key, 'NOT IN', $values, 'or');
     }
 
