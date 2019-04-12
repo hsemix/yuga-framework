@@ -181,6 +181,7 @@ abstract class Route implements IRoute
                 echo $viewModel;
                 return;
             } else {
+		$className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
                 throw new NotFoundHttpException(sprintf('Method not provided for controller class "%s"', $className), 404);
             }
         }
