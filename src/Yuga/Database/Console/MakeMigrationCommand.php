@@ -89,27 +89,27 @@ class MakeMigrationCommand extends Command
     protected function compileYugaMigrationsTemp($name)
     {
         $migrations = require path('config/migrations.php');
-        $table = 'Create'.ucfirst($name).'Table';
-        if (!in_array($table, $migrations))
+        $table = 'Create' . ucfirst($name) . 'Table';
+        if (!in_array($table, $migrations['migrate']))
             $migrations['migrate'][] = $table;
         
 
         $generatedMigrations = '[';
         foreach ($migrations['migrate'] as $migration) {
-            $generatedMigrations .= "\n\t\t". $migration. "::class,";
+            $generatedMigrations .= "\n\t\t" . $migration . "::class,";
         }
         $generatedMigrations .= "\n\t]";
 
         $generatedSeeds = '[';
         foreach ($migrations['seed'] as $seed) {
-            $generatedSeeds .= "\n\t\t". $seed. "::class,";
+            $generatedSeeds .= "\n\t\t" . $seed . "::class,";
         }
         $generatedSeeds .= "\n\t]";
 
         $migration = str_replace(
             '{migrations}',
             $generatedMigrations,
-            file_get_contents(__DIR__.'/temps/config.temp')
+            file_get_contents(__DIR__ . '/temps/config.temp')
         );
 
         $migration = str_replace(

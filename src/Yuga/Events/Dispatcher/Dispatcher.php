@@ -1,9 +1,10 @@
 <?php
+
 namespace Yuga\Events\Dispatcher;
 
 use Yuga\Shared\Controller as SharedController;
 
-class Event
+class Dispatcher
 {
     use SharedController;
     /**
@@ -21,6 +22,13 @@ class Event
      */
     private $attributes = [];
 
+    /**
+     * The event instance is to be stored in this variable
+     *
+     * @var \Yuga\Events\Dispatcher\Dispatcher
+     */
+    protected static $event;
+
     public function __construct($name = null, $params = null)
     {   
         if ($name) {
@@ -33,6 +41,9 @@ class Event
 
         if (method_exists($this, 'init')) {
             $this->init();
+        }
+        if (!static::$event) {
+            static::$event = $this;
         }
     }
 
@@ -155,6 +166,18 @@ class Event
             $this->attributes[$key] = $value;
         
         return $this;
+    }
+
+    /**
+     * Return a static instance of the event instance throught the entire application
+     * 
+     * @param null
+     * 
+     * @return \Yuga\Events\Dispatcher\Dispatcher
+     */
+    public static function getInstance()
+    {
+        return static::$event;
     }
 
     public function __call($method, $parameters)

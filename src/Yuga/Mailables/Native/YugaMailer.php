@@ -364,7 +364,7 @@ class YugaMailer extends Mailable
 		$this->charset = Application::CHARSET_UTF8;
 		if (extension_loaded('mbstring')) {
 			define('MB_ENABLED', true);
-			@ini_set('mbstring.internal_encoding', $this->charset);
+			// @ini_set('mbstring.internal_encoding', $this->charset);
 			mb_substitute_character('none');
 		} else {
 			define('MB_ENABLED', false);
@@ -372,7 +372,7 @@ class YugaMailer extends Mailable
 
 		if (extension_loaded('iconv')) {
 			define('ICONV_ENABLED', true);
-			@ini_set('iconv.internal_encoding', $this->charset);
+			// @ini_set('iconv.internal_encoding', $this->charset);
 		} else {
 			define('ICONV_ENABLED', false);
 		}

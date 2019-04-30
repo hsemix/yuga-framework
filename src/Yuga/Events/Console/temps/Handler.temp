@@ -1,0 +1,20 @@
+<?php
+
+namespace {namespace}\Handlers;
+
+use Yuga\EventHandlers\HandlerInterface;
+
+class {class} implements HandlerInterface
+{
+    /**
+     * Event Handler Logic here
+     * 
+     * @param \Yuga\Events\Dispatcher $event
+     * 
+     * @return mixed
+     */
+    public function handle($event)
+    {
+        
+    }
+}

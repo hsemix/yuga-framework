@@ -1,10 +1,11 @@
 <?php
+
 namespace Yuga\Events;
 
 use Closure;
 use Yuga\EventHandlers\HandlerInterface;
 use Yuga\Events\Exceptions\EventException;
-use Yuga\Events\Dispatcher\Event as Dispatcher;
+use Yuga\Events\Dispatcher\Dispatcher;
 use Yuga\Interfaces\Events\Dispatcher as IDispatcher;
 
 class Event implements IDispatcher
@@ -66,6 +67,9 @@ class Event implements IDispatcher
     public function attach($eventName, $callback = null, $priority = 1)
     {
         $args = func_get_args();
+        if ($eventName instanceof Dispatcher) {
+            $eventName = $eventName->getName();
+        }
         if (count($args) == 1) {
             $this->triggerObjectHandlers($eventName);
         } else {
@@ -91,15 +95,15 @@ class Event implements IDispatcher
     {
         if (is_array($handlers)) {
             foreach ($handlers as $handler) {
-                if (!$handler instanceof HandlerInterface) {
-                    throw new EventException(get_class($handler).' must implement the `'. HandlerInterface::class .'` interface');
+                if (!method_exists($handler, 'handle')) {
+                    throw new EventException(get_class($handler).' must implement the `handle` method');
                 }
                 $this->listeners[$this->name][1][] = [$handler, 'handle'];
             }
             return;
         }
-        if (!$handlers instanceof HandlerInterface) {
-            throw new EventException(get_class($handlers).' must implement the `'. HandlerInterface::class .'` interface');
+        if (!method_exists($handlers, 'handle')) {
+            throw new EventException(get_class($handlers).' must implement the `handle` method');
         }
 
         $this->listeners[$this->name][1][] = [$handlers, 'handle'];
@@ -193,7 +197,14 @@ class Event implements IDispatcher
         ksort($listeners);
         foreach ($listeners as $list) {
             foreach ($list as $listener) {
-                call_user_func_array($listener, $params);
+                if (is_array($listener)) {
+                    $eventListener = $listener;
+                } elseif ($listener instanceof Closure) {
+                    $eventListener = $listener;
+                } else {
+                    $eventListener = [$listener, 'handle'];
+                }
+                call_user_func_array($eventListener, $params);
                 if($callback instanceof Closure)
                     $callback($event);
             }

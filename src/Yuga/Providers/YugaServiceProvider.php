@@ -2,12 +2,14 @@
 namespace Yuga\Providers;
 
 use Yuga\Console\Commands\ServeCommand;
+use Yuga\Events\Console\MakeEventCommand;
 use Yuga\Models\Console\MakeModelCommand;
 use Yuga\View\Console\MakeViewModelCommand;
 use Yuga\Http\Console\MakeMiddlewareCommand;
 use Yuga\Interfaces\Application\Application;
 use Yuga\Authenticate\Console\MakeAuthCommand;
 use Yuga\Database\Console\MakeMigrationCommand;
+use Yuga\Events\Console\MakeEventHandlerCommand;
 use Yuga\Database\Console\MakeMigrationUpCommand;
 use Yuga\Controllers\Console\MakeControllerCommand;
 use Yuga\Database\Console\MakeMigrationDownCommand;
@@ -34,6 +36,8 @@ class YugaServiceProvider extends ServiceProvider
         'MigrationUp'           => 'yuga.command.up',
         'MigrationMake'         => 'yuga.command.make',
         'MakeServiceProvider'   => 'yuga.command.provider.make',
+        'MakeEvent'             => 'yuga.command.event.make',
+        'MakeEventHandler'      => 'yuga.command.event.handler.make',
     ];
 
     public function __construct(Application $app)
@@ -81,6 +85,14 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make Auth command i.e all classes responsible for the authentication of a user (login, register, forgot password, remember me, reset password)
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMakeAuthCommand($command, $app)
     {
         $app->singleton($command, function () {
@@ -88,6 +100,14 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make Model command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMakeModelCommand($command, $app)
     {
         $app->singleton($command, function () {
@@ -95,6 +115,14 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make Controller command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMakeControllerCommand($command, $app)
     {
         $app->singleton($command, function () {
@@ -102,6 +130,14 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make ViewModel command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMakeViewModelCommand($command, $app)
     {
         $app->singleton($command, function () {
@@ -109,6 +145,14 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make Database Backup command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMakeDatabaseBackupCommand($command, $app)
     {
         $app->singleton($command, function () {
@@ -116,6 +160,14 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make Migration Up command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMigrationUpCommand($command, $app)
     {
         $app->singleton($command, function () {
@@ -123,6 +175,14 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make Migration Down command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMigrationDownCommand($command, $app)
     {
         $app->singleton($command, function () {
@@ -130,6 +190,14 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make Migration command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMigrationMakeCommand($command, $app)
     {
         $app->singleton($command, function () {
@@ -137,10 +205,48 @@ class YugaServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Make ServiceProvider command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
     protected function registerMakeServiceProviderCommand($command, $app)
     {
         $app->singleton($command, function () {
             return new MakeServiceProviderCommand;
+        });
+    }
+
+    /**
+     * Make event command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
+    protected function registerMakeEventCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeEventCommand;
+        });
+    }
+
+    /**
+     * Make event handler command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
+    protected function registerMakeEventHandlerCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeEventHandlerCommand;
         });
     }
 

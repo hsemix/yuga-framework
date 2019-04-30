@@ -50,7 +50,7 @@ class BelongsToMany extends Association
 
     protected function setJoins($query = null)
     {
-        $query = $query ? $query:$this->query;
+        $query = $query ? $query : $this->query;
         $baseTable = $this->query->getModel()->getTable();
         
         $key = $baseTable.'.'.$this->query->getModel()->getPrimaryKey();

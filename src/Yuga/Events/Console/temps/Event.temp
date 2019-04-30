@@ -1,0 +1,13 @@
+<?php
+
+namespace {namespace}\Events;
+
+use Yuga\Events\Dispatcher\Dispatcher;
+
+class {class} extends Dispatcher
+{
+    /**
+     * Event Name
+     */
+    protected $name = 'on:{event}';
+}

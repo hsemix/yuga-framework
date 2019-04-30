@@ -97,26 +97,21 @@ class Application extends Container implements IApplication
         // load default class alias here
         
         if (!$this->runningInConsole()) {
-            $this->setDebugEnabled(env('DEBUG_MODE', true)); 
-            if ($this->getDebugEnabled()) {
+            $this->setDebugEnabled(env('DEBUG_MODE')); 
+            if ($this->getDebugEnabled() === true) {
                 $this->initWhoops();
             } else {
                 error_reporting(0);
-                // die();
-                // error_log('eee', 3, "my-errors.log");
-                set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-                    error_log($errstr . ' worked!', 2, "/my-system-errors.log");
-                });
-            }
-                
+                set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
+            }       
         }
         $this->registerConfig();
         $this->registerBaseBindings($this);
         $this->registerDefaultProviders();
+        $this['events']->dispatch('on:app-start');
         if (!$this->runningInConsole()) {
             $this->make('session')->delete('errors');
         }
-        
     }
 
     /**
@@ -151,7 +146,7 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Return a static instance of the Application instance throught the entire application
+     * Return a static instance of the Application instance through out the entire application
      * 
      * @param null
      * 
@@ -183,7 +178,6 @@ class Application extends Container implements IApplication
      * 
      * @return \Yuga\Appplication\Application $this
      */
-
     public function setDebugEnabled($bool)
     {
         $bool = Boolean::parse($bool);
@@ -417,5 +411,10 @@ class Application extends Container implements IApplication
     public function terminate()
     {
         exit(0);
+    }
+
+    public function __destruct()
+    {
+        $this->get('events')->dispatch('on:app-stop');
     }
 }
