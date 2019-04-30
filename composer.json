@@ -17,6 +17,9 @@
         "symfony/console": "~4.0"
     },
     "autoload": {
+        "files": [
+            "src/Yuga/Support/helpers.php"
+        ],
         "psr-4": {
             "Yuga\\": "src/Yuga/"
         }
