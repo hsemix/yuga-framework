@@ -7,6 +7,7 @@ use ReflectionClass;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
 use Yuga\Support\Inflect;
+use Yuga\Pagination\Paginator;
 use Yuga\Pagination\Pagination;
 use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Collection;
@@ -716,8 +717,10 @@ class Builder
     /**
      * @return Model
      */
-    public function getModel()
+    public function getModel(Pagination $pagination = null)
     {
+        if ($pagination)
+            $this->model->setPagination($pagination);
         return $this->model;
     }
 
@@ -908,7 +911,7 @@ class Builder
      * 
      * @return Collection $results
      */
-    public function paginate($limit = 10, array $options = null)
+    public function simplePaginate($limit = 10, array $options = null)
     {
         $request = new Request;
         $url = explode('?', $request->getUri());
@@ -927,6 +930,49 @@ class Builder
         $this->pagination = $pagination = new Pagination($page, $limit, $this->count());
         $results = $this->limit($limit)->offset($pagination->offset())->getWith(['pagination' => $this->pagination])->get();
         return $results;
+    }
+
+    /**
+     * Paginate results
+     * 
+     * @param int $perPage
+     * @param int $per
+     * @param string $pageName
+     */
+    public function paginate($perPage = null, $page = null, $pageName = 'page', $pathName = null)
+    {
+        $page = $page ?: Paginator::resolveCurrentPage($pageName);
+
+        $perPage = $perPage ?: $this->model->getPerPage();
+
+        $paths = explode('?', (new Request)->getUri(true));
+
+        $this->pagination = $pagination = new Pagination($page, $perPage, $this->count(), $pageName);
+        $options = [
+            'path' => $pathName ?: $paths[0],
+            'pageName' => $pageName,
+            'totalCount' => $pagination->getTotalCount()
+        ];
+        $results = ($total = $pagination->getTotalCount())
+                    ? $this->limit($perPage)->offset($pagination->offset())->getWith([
+                        'pagination' => $this->pagination,
+                        'paginator' => $this->paginator($perPage, $page, $options) 
+                        ? $this->getModel()->getPaginator($perPage, $page, $options) 
+                        : new Paginator($perPage, $page, $options)
+                    ])->get()
+                    : $this->model->newCollection();
+
+        return $results;
+    }
+
+    /**
+     * Get paginator
+     * 
+     * 
+     */
+    protected function paginator($perPage, $page, array $options)
+    {
+        return $this->getModel()->getPaginator($perPage, $page, $options);
     }
 
     /**

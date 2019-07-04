@@ -135,7 +135,10 @@ class MakeEventHandlerCommand extends Command
      */
     protected function processAppConfigFiles($handler, $method, $eventName)
     {
-        $events = require path('config/AppEvents.php');
+        $events = [];
+        if (\file_exists(path('config/AppEvents.php'))) {
+            $events = require path('config/AppEvents.php');
+        }
         $sentHandler = env('APP_NAMESPACE', 'App') . '\\Handlers\\' . $handler;
         $sentEvent = $eventName;
 

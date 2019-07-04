@@ -11,6 +11,8 @@ use Yuga\Support\Str;
 use Yuga\Events\Event;
 use Yuga\Support\Inflect;
 use Yuga\Support\FileLocator;
+use Yuga\Pagination\Paginator;
+use Yuga\Pagination\Pagination;
 use Yuga\Database\Connection\Connection;
 use Yuga\Database\Elegant\Association\HasOne;
 use Yuga\Database\Elegant\Association\HasMany;
@@ -25,6 +27,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
 {
     protected $queryable;
     protected $view_name;
+    protected $paginator;
     protected $table_name;
     protected $pagination;
     public $bootable = [];
@@ -32,6 +35,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     private $original = [];
     protected $hidden = [];
     public $relations = [];
+    protected $perPage = 15;
     protected $fillable = [];
     private $attributes = [];
     public $timestamps = true;
@@ -75,6 +79,18 @@ abstract class Model implements ArrayAccess, JsonSerializable
                 static::$event([$this, 'on'.ucfirst($event)]);
             }
         }
+    }
+
+    /**
+     * Get PerPage items
+     * 
+     * @param null
+     * 
+     * @return int
+     */
+    public function getPerPage()
+    {
+        return $this->perPage;
     }
 
     /**
@@ -597,7 +613,46 @@ abstract class Model implements ArrayAccess, JsonSerializable
      */
     public function newCollection(array $models = [])
     {
-        return new Collection($models);
+        if (count($models) > 0) {
+            if ($models[0]->paginator) {
+                $model = $models[0];
+                $paginator = $model->paginator;
+                $paginator->setPagination($model->pagination);
+                $models = array_map(function ($model) {
+                    unset($model->paginator, $model->pagination);
+                    return $model;
+                }, $models);
+                return $paginator->setItems($models);
+            } else {
+                return new Collection($models);
+            }
+        }
+    }
+
+    /**
+     * Get paginator for paginating results of this model
+     * 
+     * @param int $perPage
+     * @param int $page
+     * @param array $options
+     * 
+     * @return \Yuga\Pagination\Paginator
+     */
+    public function getPaginator($perPage, $page, array $options)
+    {
+        
+    }
+
+    /**
+     * Set a model pagination for later
+     * 
+     * @param Pagination $pagination
+     * @return Model
+     */
+    public function setPagination(Pagination $pagination)
+    {
+        $this->pagination = $pagination;
+        return $this;
     }
 
     /**
@@ -656,7 +711,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
             $this->bootable = $bootable;
             foreach ($bootable as $start => $class) {
                 // $model->$start = $class;
-                if ($start != 'pagination')
+                if ($start != 'pagination' && $start != 'paginator')
                     $this->invokeBootable($start, $model, $items);
                 else 
                     $model->$start = $class;

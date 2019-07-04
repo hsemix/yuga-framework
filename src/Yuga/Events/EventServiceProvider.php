@@ -61,7 +61,11 @@ class EventServiceProvider extends ServiceProvider
      */
     protected function loadEvents(Event $dispatcher)
     {
-        $handlers = array_merge($this->events, require path('config/AppEvents.php'));
+        $otherApplicationEvents = [];
+        if (\file_exists(path('config/AppEvents.php'))) {
+            $otherApplicationEvents = require path('config/AppEvents.php');
+        }
+        $handlers = array_merge($this->events,  $otherApplicationEvents);
 
         foreach ($handlers as $event => $handles) {
             if (is_array($handles)) {

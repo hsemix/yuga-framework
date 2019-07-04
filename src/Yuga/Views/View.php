@@ -88,4 +88,12 @@ class View
 		}
 		return $this;
 	}
+
+	public function __call($method, $parameters)
+	{
+        if (preg_match('/^with(.+)$/', $method, $matches)) {
+			return $this->with(strtolower($matches[1]), $parameters[0]);
+        }
+		return call_user_func_array([$this->viewEngine, $method], $parameters);
+	}
 }

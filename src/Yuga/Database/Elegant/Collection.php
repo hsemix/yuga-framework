@@ -258,7 +258,18 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return count($this->items) > 0 ? (is_object($this->items[0]->getPagination())) ? $this->items[0]->getPagination()->render($options) : null : null;
     }
 
-
+    /**
+     * Slice the underlying collection array.
+     *
+     * @param  int  $offset
+     * @param  int  $length
+     * @return static
+     */
+    public function slice($offset, $length = null)
+    {
+        return new static(array_slice($this->items, $offset, $length, true));
+    }
+    
     public function paginate($limit)
     {
         $page = 1;
@@ -295,7 +306,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
             $offset = 0;
             $found = false;
             foreach ($temp_array as $tmp_key => $tmp_val) {
-                if (!$found and strtolower($val[$subkey]) > strtolower($tmp_val[$subkey])) {
+                if (!$found && strtolower($val[$subkey]) > strtolower($tmp_val[$subkey])) {
                     $temp_array = array_merge((array)array_slice($temp_array, 0, $offset), [$key => $val], array_slice($temp_array,$offset));
                     $found = true;
                 }
