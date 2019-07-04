@@ -1004,8 +1004,6 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
             $this->attributes = array_merge($this->attributes, $options);
         }
-
-        die();
         return $this->attributes;
     }
 
@@ -1035,8 +1033,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
         }
         $this->setKeysForSaveQuery($query)->update($this->getDirty());
         $this->dispatchModelEvent('updated', [$query]);
-        return true;
-        //return $this;
+        // return true;
+        return $this;
     }
 
     /**
