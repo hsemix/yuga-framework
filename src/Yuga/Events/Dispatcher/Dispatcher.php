@@ -2,6 +2,7 @@
 
 namespace Yuga\Events\Dispatcher;
 
+use Yuga\Events\Exceptions\EventException;
 use Yuga\Shared\Controller as SharedController;
 
 class Dispatcher
@@ -68,7 +69,7 @@ class Dispatcher
     public function setParams($params)
     {
         if (!is_array($params)) {
-            throw new Exception('Event parameters must be an array; received `' . gettype($params) . '`');
+            throw new EventException('Event parameters must be an array; received `' . gettype($params) . '`');
         }
         $this->params = $params;
     }
