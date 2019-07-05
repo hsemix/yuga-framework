@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\EventHandlers\Auth;
 
 use Yuga\Events\Event;

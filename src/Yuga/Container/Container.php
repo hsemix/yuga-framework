@@ -130,6 +130,16 @@ class Container implements ArrayAccess
         return $this->prepareObject($key, $object);
     }
 
+    public function inSingletons($class)
+    {
+        foreach(array_values($this->getSingletons()) as $instance){
+            if(get_class($instance) == $class){
+                return $instance;
+            }
+        }
+        return false;
+    }
+
     protected function buildDependencies($arguments, $dependencies, $className)
     {
         foreach ($dependencies as $dependency) {

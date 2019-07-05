@@ -433,10 +433,9 @@ class ViewModel extends BaseView
     protected function handlePostRequest($event)
     {
         if (method_exists($this, 'on' . $event)) {
-            // $loaded = $this->loadDependencies(static::class, 'on' . $event);
-            $loaded = $this->loadDependencies($this, 'on' . $event);
+            $loaded = $this->loadDependencies(static::class, 'on' . $event);
             
-            if ($formModel = $this->getModel('on' . $event) ?: $this->getModel('form')) {
+            if ($formModel = $this->getModel('form')) {
                 $model = $formModel;
             } else {
                 $model = new ElegantModel;
@@ -542,7 +541,7 @@ class ViewModel extends BaseView
     }
 
     /**
-     * Load All dependencies by their type and instantiate each of them
+     * Load All dependencies by their type and instanciate each of them
      * 
      * @author Hamidouh Semix <semix.hamidouh@gmail.com>
      * 

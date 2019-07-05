@@ -178,19 +178,6 @@ class BaseView implements ArrayAccess
         return $this;
     }
 
-    /**
-     * Set a collection of models to use in this ViewModel
-     * 
-     * @param array|[] $models
-     * 
-     * @return static
-     */
-    public function setModels(array $models = [])
-    {
-        $this->processArrayModels($models);
-        return $this;
-    }
-
     protected function processCollectionModels(Collection $models)
     {
         $key = Inflect::pluralize(strtolower(class_base($models[0])));
@@ -210,39 +197,21 @@ class BaseView implements ArrayAccess
                     throw new Exception("Acceptable model types are instance of Yuga\Database\Elegant\Model and Yuga\Database\Elegant\Collection", 1);
                 }
             }
-
-            if (is_string($model)) {
-                $model = new $model;
-
-                if (!$model instanceof Collection && !$model instanceof Model) {
-                    throw new Exception("Acceptable model types are instance of Yuga\Database\Elegant\Model and Yuga\Database\Elegant\Collection", 1);
-                }
-            }
             $this->models[$key] = $model;
         }
         return $this->models;
     }
 
-    /**
-     * Set a table for the default application database model
-     * 
-     * @param string|null $table
-     * 
-     * @return static
-     */
+    protected function hasStringKeys(array $array) {
+        return count(array_filter(array_keys($array), 'is_string')) > 0;
+    }
+
     public function setTable($table = null)
     {
         $this->table = $table;
         return $this;
     }
 
-    /**
-     * Bind the view to the Model automatically
-     * 
-     * @param null
-     * 
-     * @return static
-     */
     public function bindViewToModel()
     {
         $fields = $this->request->getInput()->all();

@@ -57,6 +57,7 @@ trait RegisterUser
         }
         (new $eventClass($user = $this->create($request->all())))->attach(new $handleClass($user))->dispatch();
 
+        event('on:register', ['user' => $user]);
         $auth->login($user);
 
         return $this->registered($request, $user) ?: redirect($this->redirectPath());

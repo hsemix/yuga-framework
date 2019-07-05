@@ -411,3 +411,16 @@ if ( ! function_exists('get_mimes')) {
 		return $mimes;
 	}
 }
+
+
+if ( ! function_exists('event')) {
+	/**
+	 * Returns the MIME types array from config/mimes.php
+	 *
+	 * @return	array
+	 */
+	function event($eventName = "yuga.auto.events", $params = [])
+	{
+		return app()->get('events')->trigger($eventName, $params);
+	}
+}

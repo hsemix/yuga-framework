@@ -15,8 +15,11 @@ class EventServiceProvider extends ServiceProvider
      * @var array $events
      */
     protected $events = [
-        'on:app-start' => \Yuga\EventHandlers\ApplicationStart::class,
-        'on:app-stop'  => \Yuga\EventHandlers\ApplicationStop::class,
+        'on:app-start'      => \Yuga\EventHandlers\ApplicationStart::class,
+        'on:app-stop'       => \Yuga\EventHandlers\ApplicationStop::class,
+        'on:authenticate'   => \Yuga\EventHandlers\Auth\UserLoggedIn::class,
+        'on:signup'         => \Yuga\EventHandlers\Auth\UserRegistered::class,
+        'on:signout'        => \Yuga\EventHandlers\Auth\UserLoggedOut::class,
     ];
 
     /**

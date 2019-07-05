@@ -77,6 +77,7 @@ trait CanLogin
             ]
         ]);
         
+        event('on:authenticate', ['user' => $user]);
         if ($this->request->isAjax()) 
             return (!$validation->hasErrors()) ? true : $validation;
         return ($validation->passed()) ? true : false;

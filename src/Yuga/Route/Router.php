@@ -319,7 +319,7 @@ class Router
                 $message = sprintf('Route not found: "%s"', $uri);
             }
 
-            if (env('MATCH_ROUTES_TO_CONTROLLERS', false)) {
+            if (env('MATCH_ROUTES_TO_CONTROLLERS', false) || env('IMPLICIT_ROUTING', false)) {
                 $this->matchRoutesToControllers($this->request);
             } else {
                 $this->handleException(new NotFoundHttpException($message, 404));
@@ -341,7 +341,7 @@ class Router
         }
 
         $this->defaultRouteCollection['params'] = $url ? array_values($url) : [];
-        $controller = '\\'.env('APP_NAMESPACE', 'App') . '\\Controllers\\' . str_ireplace('controller', '', $this->defaultRouteCollection['controller']) . 'Controller';
+        $controller = '\\'.env('APP_NAMESPACE', 'App') . '\\Controllers\\' . str_ireplace('controller', '', explode("?", $this->defaultRouteCollection['controller'])[0]) . 'Controller';
 
         $method = explode('?', $this->defaultRouteCollection['method'])[0];
         $params = $this->defaultRouteCollection['params'];
