@@ -1005,7 +1005,6 @@ abstract class Model implements ArrayAccess, JsonSerializable
             $this->attributes = array_merge($this->attributes, $options);
         }
 
-        die();
         return $this->attributes;
     }
 
