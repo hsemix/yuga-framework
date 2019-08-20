@@ -36,11 +36,13 @@ class Input
     {
         /* Parse get requests */
         if (count($_GET) > 0) {
-            $this->get = $this->handleGetPost($_GET);
+            // $this->get = $this->handleGetPost($_GET);
+            $this->get = $this->handleGetPost(filter_var_array($_GET, FILTER_SANITIZE_STRING));
         }
 
         /* Parse post requests */
-        $postVars = $_POST;
+        // $postVars = $_POST;
+        $postVars = filter_var_array($_POST, FILTER_SANITIZE_STRING);
 
         if (in_array($this->request->getMethod(), ['put', 'patch', 'delete'], false) === true) {
             parse_str(file_get_contents('php://input'), $postVars);

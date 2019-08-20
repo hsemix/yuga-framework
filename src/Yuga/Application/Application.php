@@ -3,11 +3,11 @@ namespace Yuga\Application;
 
 use Yuga\Debug;
 use Yuga\Boolean;
+use Tracy\Debugger;
 use Yuga\Http\Request;
 use Yuga\Http\Redirect;
 use Yuga\Http\Response;
 use Yuga\Support\Config;
-use Whoops\Run as WhoopsRun;
 use Yuga\View\Client\Jquery;
 use Yuga\Container\Container;
 use Yuga\Views\UI\Site as UI;
@@ -20,7 +20,6 @@ use Yuga\Providers\YugaServiceProvider;
 use Yuga\Database\ElegantServiceProvider;
 use Yuga\Providers\ClassAliasServiceProvider;
 use Yuga\Interfaces\Providers\IServiceProvider;
-use Whoops\Handler\PrettyPageHandler as PrettyPage;
 use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
@@ -98,12 +97,7 @@ class Application extends Container implements IApplication
         
         if (!$this->runningInConsole()) {
             $this->setDebugEnabled(env('DEBUG_MODE')); 
-            if ($this->getDebugEnabled() === true) {
-                $this->initWhoops();
-            } else {
-                error_reporting(0);
-                set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
-            }       
+            $this->initTracy();   
         }
         $this->registerConfig();
         $this->registerBaseBindings($this);
@@ -311,13 +305,20 @@ class Application extends Container implements IApplication
     }
 
     /**
-    * start whoops
-    * @return \Yuga\Application
-    */
-    protected function initWhoops()
+     * Boot Miss Tracy for error debugging and dumping variables
+     * 
+     * @param null
+     * 
+     * @return \Yuga\Application\Application
+     */
+    protected function initTracy()
     {
-        (new WhoopsRun)->pushHandler(new PrettyPage)->register();
-
+        if ($this->getDebugEnabled() === true) {
+            Debugger::enable(Debugger::DEVELOPMENT, storage('logs'));
+        } else {
+            Debugger::enable(Debugger::PRODUCTION, storage('logs'));
+            set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
+        }    
         return $this;
     }
 

@@ -431,7 +431,7 @@ class Builder
             $model->dispatchModelEvent('selected', [$this->query, $model]);
             return $model;
         }
-        return $this->getModel();
+        return $item;
     }
 
     public function last($columns = null)
@@ -462,7 +462,7 @@ class Builder
             }
             return $this->getModel()->newFromQuery($item, $this->boot);
         }
-        return $this->getModel();
+        return $item;
     }
 
     public function firstOrFail($columns = null)
