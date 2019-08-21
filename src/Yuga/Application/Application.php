@@ -314,9 +314,13 @@ class Application extends Container implements IApplication
     protected function initTracy()
     {
         if ($this->getDebugEnabled() === true) {
-            Debugger::enable(Debugger::DEVELOPMENT, storage('logs'));
+            Debugger::enable(Debugger::DEVELOPMENT);
         } else {
-            Debugger::enable(Debugger::PRODUCTION, storage('logs'));
+            $logDir = storage('logs');
+            if(!is_dir($logDir)) {
+                mkdir($logDir);
+            }
+            Debugger::enable(Debugger::PRODUCTION, $logDir);
             set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
         }    
         return $this;
