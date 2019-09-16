@@ -627,6 +627,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
                 return new Collection($models);
             }
         }
+
+        return new Collection($models);
     }
 
     /**
