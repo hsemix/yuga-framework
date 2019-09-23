@@ -183,7 +183,7 @@ class Input
     {
         $input = $this->post;
         if ($string = file_get_contents("php://input")) {
-            $input = array_merge($this->post, (array)json_decode($string, true));
+            $input = array_merge($this->post, filter_var_array((array)json_decode($string, true), FILTER_SANITIZE_STRING));
         }
         return isset($input[$index]) ? $input[$index] : $defaultValue;
     }
