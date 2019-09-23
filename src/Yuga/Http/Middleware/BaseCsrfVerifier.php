@@ -63,7 +63,7 @@ class BaseCsrfVerifier implements IMiddleware
 
             // If the token is not posted, check headers for valid x-csrf-token
             if ($token === null) {
-                $token = $request->getHeader(static::HEADER_KEY);
+                $token = $request->getHeader('http-' . static::HEADER_KEY);
             }
             if ($this->csrfToken->validate($token) === false) {
                 throw new TokenMismatchException('Invalid csrf-token.');
