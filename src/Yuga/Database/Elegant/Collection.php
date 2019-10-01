@@ -189,17 +189,20 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Get an item from the collection by key.
      *
-     * @param  mixed  $key
-     * @param  mixed  $default
+     * @param  mixed|null  $key
+     * @param  mixed|null  $default
      * @return mixed
      */
-    public function get($key, $default = null)
+    public function get($key = null, $default = null)
     {
-        if ($this->offsetExists($key)) {
-            return $this->items[$key];
-        }
+        if ($key) {
+            if ($this->offsetExists($key)) {
+                return $this->items[$key];
+            }
 
-        return value($default);
+            return value($default);
+        }
+        return $this->items;
     }
 
     public function jsonSerialize()
