@@ -251,6 +251,8 @@ class Builder
     }
     public function whereIn($key, $values)
     {
+        if (count($values) == 0)
+            $values[] = 0;
        return $this->where($key, 'IN', $values);
     }
 
@@ -268,6 +270,8 @@ class Builder
 
     public function whereNotIn($key, $values)
     {
+        if (count($values) == 0)
+            $values[] = 0;
         return $this->where($key, 'NOT IN', $values);
     }
 
@@ -317,12 +321,16 @@ class Builder
 
     public function orWhereIn($key, $values)
     {
+        if (count($values) == 0)
+            $values[] = 0;
         $this->orWhere($key, 'IN', $values);
         return $this;
     }
 
     public function orWhereNotIn($key, $values)
     {
+        if (count($values) == 0)
+            $values[] = 0;
         $this->orWhere($key, 'NOT IN', $values);
         return $this;
     }
