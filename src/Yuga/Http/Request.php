@@ -428,6 +428,16 @@ class Request
         }
        return $only;
     }
+
+    public function except(array $exceptFields = [])
+    {
+        $only = [];
+        foreach ($this->all() as $field => $value) {
+            if (!in_array($field, $exceptFields))
+                $only[$field] = $value;
+        }
+       return $only;
+    }
     
     public function isAjax()
     {

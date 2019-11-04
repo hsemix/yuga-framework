@@ -169,7 +169,9 @@ class Html
      */
     public function addClass($class)
     {
-        return $this->addAttribute('class', $class, false);
+        foreach (explode(" ", $class) as $cls)
+            $this->addAttribute('class', $cls);
+        return $this;
     }
 
     /**
@@ -251,5 +253,28 @@ class Html
         $this->beforeHtml[] = $html;
 
         return $this;
+    }
+
+    public function findItemByAttribute($element, $name, $value, $strict = false)
+    {
+
+        $attributes = $element->getAttributes();
+
+        
+        if ($attributes !== null && isset($attributes[$name])) {
+
+            if ($strict === true) {
+                if (in_array($value, $attributes[$name], true) === true) {
+                    return $element;
+                }
+            } else {
+                if (in_array($value, array_values($attributes[$name])) !== false) {
+                    return $element;
+                }
+            }
+
+        }
+
+        return null;
     }
 }

@@ -2,6 +2,7 @@
 namespace Yuga\Events\Console;
 
 use Yuga\Console\Command;
+use Nette\PhpGenerator\PhpFile;
 use Yuga\Application\Application;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
@@ -30,7 +31,7 @@ class MakeEventHandlerCommand extends Command
 
         $eventName = $this->processEventName($event);
         $this->createDirectories();
-        $this->processHandler($handler, $method, $eventName);
+        $this->processHandler($handler, $method, $eventName, $event);
         $this->info('Event Handler created successfully.');
     }
 
@@ -99,16 +100,67 @@ class MakeEventHandlerCommand extends Command
      * 
      * @return void
      */
-    protected function processHandler($handler, $method, $eventName)
+    protected function processHandler($handler, $method, $eventName, $event)
     {
         file_put_contents(
             path('app/Handlers/'.trim($handler).'.php'),
-            $this->compileHandlerTemp(trim($handler))
+            // $this->compileHandlerTemp(trim($handler))
+            $this->generateHandler($handler, $method, $eventName, $event)
         );
         file_put_contents(
             path('config/AppEvents.php'),
             $this->processAppConfigFiles($handler, $method, $eventName)
         );
+    }
+
+    /**
+     * Generate handler logic
+     * 
+     * @param string $handler
+     * @param string $method
+     * @param string $eventName
+     * 
+     * @return void
+     */
+    protected function generateHandler($handler, $method, $eventName, $event)
+    {
+        $file = new PhpFile;
+        $file->addComment('This file is auto-generated.');
+
+        $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Handlers');
+        $namespace->addUse('Yuga\EventHandlers\HandlerInterface');
+        if ($event != 'yuga.auto.events') {
+            $namespace->addUse(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+        }
+
+        $class = $namespace->addClass(trim($handler));
+        $class->addImplement('Yuga\EventHandlers\HandlerInterface');
+
+        $classMethod = $class->addMethod('handle')->setBody('return null;');
+        $classMethod->addComment('Event Handler Logic here');
+        $classMethod->addComment('@param \Yuga\Events\Dispatcher $event');
+        $classMethod->addComment('@return mixed');
+        $paramether = $classMethod->addParameter('event');
+        
+        if (trim($method) != 'handle') {
+            $classMethod = $class->addMethod(trim($method))->setBody('return null;');
+            $classMethod->addComment('Your Event Handler Logic here');
+            if ($event != 'yuga.auto.events') {
+                $classMethod->addComment('@param ' . env('APP_NAMESPACE', 'App') . '\\Events\\' . $event . ' $event');
+            } else {
+                $classMethod->addComment('@param \Yuga\Events\Dispatcher $event');
+            }
+            
+            $classMethod->addComment('@return mixed');
+            $paramether = $classMethod->addParameter('event');
+            if ($event != 'yuga.auto.events') {
+                $paramether->setTypeHint(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+            } else {
+                $paramether->setTypeHint('\Yuga\Events\Dispatcher');
+            }
+        }
+
+        return $file;
     }
 
     /**

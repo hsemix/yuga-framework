@@ -55,4 +55,14 @@ class HtmlTextarea extends Html
         return $this->addAttribute('cols', $cols);
     }
 
+    public function required()
+    {
+        return $this->addAttribute('required');
+    }
+
+    public function isRequired()
+    {
+        return $this->required();
+    }
+
 }

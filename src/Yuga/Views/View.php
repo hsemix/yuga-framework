@@ -44,7 +44,19 @@ class View
 	 */
 	public function __toString()
 	{
-		return $this->viewEngine->display($this->viewFile);
+		try {
+			return $this->viewEngine->display($this->viewFile);
+		} catch (\Throwable $e) {
+			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()} \n({$this->processHaxRuntime()}): {$e->getLine()}", E_USER_ERROR);
+		}
+	}
+
+	protected function processHaxRuntime()
+	{
+		$root = str_replace("./", "", $this->viewEngine->getTemplateDirectory());
+
+		$haxFile = str_replace("/", DIRECTORY_SEPARATOR, $root) . $this->viewFile . ".hax.php";
+		return $haxFile;
 	}
 
 	/**

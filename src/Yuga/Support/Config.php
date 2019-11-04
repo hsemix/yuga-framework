@@ -8,6 +8,7 @@ class Config
 {
     protected $data;
     protected $default = null;
+    
     public function load($file)
     {
         $file = str_replace(".", "/", $file);

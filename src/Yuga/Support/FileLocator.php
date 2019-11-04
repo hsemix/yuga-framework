@@ -11,17 +11,18 @@ class FileLocator
 {
     private $namespaceMap = [];
     private $defaultNamespace = 'global';
+
     public function __construct()
     {
         $this->traverseClasses();
     }
+
     public function getNamespaceFromClass($class)
     {
         $reflection = new ReflectionClass($class);
-        return $reflection->getNameSpaceName() === ''
-                ? $this->defaultNamespace:
-                $reflection->getNameSpaceName();
+        return $reflection->getNameSpaceName() === '' ? $this->defaultNamespace : $reflection->getNameSpaceName();
     }
+
     public function traverseClasses()
     {
         $classes = get_declared_classes();
@@ -35,7 +36,7 @@ class FileLocator
     {
         if(!isset($this->namespaceMap[$namespace]))
             throw new InvalidArgumentException('The Namespace '.$namespace.' doesnot exist');
-        //return $this->namespaceMap[$namespace];
+        
         return $this->namespaceMap[$namespace];
     }
     public function getNameSpaces()

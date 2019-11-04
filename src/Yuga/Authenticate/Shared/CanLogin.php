@@ -45,7 +45,7 @@ trait CanLogin
                 if (!$this->verifyPassword($fetched, $passwordValue, $modelPasswordField, $loginFormUsernameField) instanceof Message) {
                     $this->session->login($fetched);
 
-                    $remember = ($remember === 'on') ? true: false;
+                    $remember = ($remember === 'on' || $remember === '1') ? true: false;
                     if ($remember) {
                         $this->rememberUser($fetched);
                     }

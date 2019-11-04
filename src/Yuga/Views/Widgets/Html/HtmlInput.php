@@ -57,6 +57,11 @@ class HtmlInput extends Html
         return $this->addInputAttribute('required');
     }
 
+    public function isRequired()
+    {
+        return $this->required();
+    }
+
     public function multiple()
     {
         return $this->addInputAttribute('required');

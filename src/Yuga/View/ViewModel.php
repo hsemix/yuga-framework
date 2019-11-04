@@ -330,7 +330,7 @@ class ViewModel extends BaseView
     }
 
     /**
-     * Include snippet from the content/snippet directory
+     * Include snippet from the templates/snippet directory
      * by filling the path to the desired snippet.
      *
      * @author Hamidouh Semix <semix.hamidouh@gmail.com>
@@ -369,14 +369,8 @@ class ViewModel extends BaseView
     {
         try {
             return $this->render();
-         } catch (Exception $e) {
-            try {
-                throw new Exception($e->getMessage());
-            } catch (Exception $e) {
-                echo $e->getMessage();
-            }
-            
-            //$this->setError($e->getMessage());
+         } catch (\Throwable $e) {
+            trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
          }
 
         return '';

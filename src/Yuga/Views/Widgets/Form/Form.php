@@ -14,6 +14,7 @@ use Yuga\Views\Widgets\Html\HtmlSelectOption;
 class Form
 {
 
+    protected $htmlForm;
     /**
      * Starts new form
      * @param string $name
@@ -25,7 +26,9 @@ class Form
     {
         $form = new HtmlForm($name, $method, $action);
         $form->setClosingType(HtmlForm::CLOSE_TYPE_NONE);
-        return $form;
+        $form->make = false;
+        $this->htmlForm = $form;
+        return $this->htmlForm;
     }
 
     /**
@@ -146,7 +149,7 @@ class Form
                 }
 
             } else {
-                throw new \InvalidArgumentException('Data must be either instance of Dataset or array.');
+                throw new \InvalidArgumentException('Data must be either instance of Collection or array.');
             }
         }
 
@@ -218,4 +221,22 @@ class Form
         return "\n</form>";
     }
 
+    public function __call($method, $args) 
+    {
+        return call_user_func_array([$this->htmlForm, $method], $args);
+    }
+
+    /**
+	 * Renders form to string.
+	 * @param can throw exceptions? (hidden parameter)
+	 */
+	// public function __toString(): string
+	// {
+    //     try {
+    //         $this->htmlForm->construct = true;
+    //         return $this->htmlForm->__toString();
+    //     } catch (\Throwable $e) {
+    //         trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
+    //     }
+	// }
 }
