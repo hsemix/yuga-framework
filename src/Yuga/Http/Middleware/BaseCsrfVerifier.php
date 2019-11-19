@@ -65,8 +65,23 @@ class BaseCsrfVerifier implements IMiddleware
             if ($token === null) {
                 $token = $request->getHeader('http-' . static::HEADER_KEY);
             }
+
+            if ($token == null) {
+                throw new TokenMismatchException('Invalid form, Add csrf-token.');
+            }
             if ($this->csrfToken->validate($token) === false) {
-                throw new TokenMismatchException('Invalid csrf-token.');
+
+                if (app()->getDebugEnabled() === true) {
+                    throw new TokenMismatchException('Invalid csrf-token.');
+                } else {
+                    if ($request->isAjax()) {
+                        throw new TokenMismatchException('Your form has expired, please refresh the page and try again.');
+                    } else {
+                        $request->setRewriteCallback('Yuga\Controllers\PageController@formExpired');
+                        return $request;
+                    }
+                }
+                
             }
             return $next($request);
         }

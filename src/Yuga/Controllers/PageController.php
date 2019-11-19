@@ -9,4 +9,9 @@ class PageController extends Controller
     {
         include_once 'not-found.php';
     }
+
+    public function formExpired(Request $request)
+    {
+        include_once 'form-expired.php';
+    }
 }

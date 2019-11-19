@@ -47,7 +47,10 @@ class View
 		try {
 			return $this->viewEngine->display($this->viewFile);
 		} catch (\Throwable $e) {
-			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()} \n({$this->processHaxRuntime()}): {$e->getLine()}", E_USER_ERROR);
+			if ($this->processHaxRuntime() !== false)
+				trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()} \n({$this->processHaxRuntime()}): {$e->getLine()}", E_USER_ERROR);
+			else
+				trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
 		}
 	}
 
@@ -56,7 +59,9 @@ class View
 		$root = str_replace("./", "", $this->viewEngine->getTemplateDirectory());
 
 		$haxFile = str_replace("/", DIRECTORY_SEPARATOR, $root) . $this->viewFile . ".hax.php";
-		return $haxFile;
+		if (file_exists($haxFile))
+			return $haxFile;
+		return false;
 	}
 
 	/**
