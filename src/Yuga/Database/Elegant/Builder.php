@@ -240,7 +240,7 @@ class Builder
         return $this->subQuery($model);
     }
 
-    public function subQuery(Model $model, $alias = null)
+    public function subQuery($model, $alias = null) // removed contract of Model from $model
     {
         return $this->query->subQuery($model->getQuery(), $alias);
     }
