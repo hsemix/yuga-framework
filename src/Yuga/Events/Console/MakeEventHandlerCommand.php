@@ -1,6 +1,7 @@
 <?php
 namespace Yuga\Events\Console;
 
+use Yuga\Support\Str;
 use Yuga\Console\Command;
 use Nette\PhpGenerator\PhpFile;
 use Yuga\Application\Application;
@@ -125,28 +126,30 @@ class MakeEventHandlerCommand extends Command
     protected function generateHandler($handler, $method, $eventName, $event)
     {
         $file = new PhpFile;
-        $file->addComment('This file is auto-generated.');
+        $file->addComment('This file was auto-generated.');
 
         $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Handlers');
         $namespace->addUse('Yuga\EventHandlers\HandlerInterface');
         if ($event != 'yuga.auto.events') {
-            $namespace->addUse(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+            if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
+                $namespace->addUse(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
         }
 
         $class = $namespace->addClass(trim($handler));
         $class->addImplement('Yuga\EventHandlers\HandlerInterface');
 
         $classMethod = $class->addMethod('handle')->setBody('return null;');
-        $classMethod->addComment('Event Handler Logic here');
+        $classMethod->addComment('Event Handler Logic in this method');
         $classMethod->addComment('@param \Yuga\Events\Dispatcher $event');
         $classMethod->addComment('@return mixed');
         $paramether = $classMethod->addParameter('event');
         
         if (trim($method) != 'handle') {
             $classMethod = $class->addMethod(trim($method))->setBody('return null;');
-            $classMethod->addComment('Your Event Handler Logic here');
+            $classMethod->addComment('Your Event Handler Logic in this method');
             if ($event != 'yuga.auto.events') {
-                $classMethod->addComment('@param ' . env('APP_NAMESPACE', 'App') . '\\Events\\' . $event . ' $event');
+                if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
+                    $classMethod->addComment('@param ' . env('APP_NAMESPACE', 'App') . '\\Events\\' . $event . ' $event');
             } else {
                 $classMethod->addComment('@param \Yuga\Events\Dispatcher $event');
             }
@@ -154,7 +157,8 @@ class MakeEventHandlerCommand extends Command
             $classMethod->addComment('@return mixed');
             $paramether = $classMethod->addParameter('event');
             if ($event != 'yuga.auto.events') {
-                $paramether->setTypeHint(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+                if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
+                    $paramether->setTypeHint(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
             } else {
                 $paramether->setTypeHint('\Yuga\Events\Dispatcher');
             }
