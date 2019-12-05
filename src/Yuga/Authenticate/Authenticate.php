@@ -88,7 +88,7 @@ class Authenticate extends BaseController implements IMiddleware
     public function run(Request $request, Closure $next)
     {
         if ($this->guest()) {
-            return (\Auth::authRoutesExist()) ? $this->response->redirect->route('login') : $this->response->redirect->route(env('DEFAULT_LOGIN_REDIRECT', 'login'));
+            return (\Auth::authRoutesExist()) ? $this->response->redirect->route('login') : $this->response->redirect->to(env('DEFAULT_LOGIN_REDIRECT', '/login'));
             die();
         }
 
