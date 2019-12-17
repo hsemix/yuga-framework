@@ -4,12 +4,30 @@
  */
 
 if (! function_exists('view')) {
-    function view($args = null, $data = null)
+    function view($viewName = null, $data = null)
     {
-        if ($args instanceof \Yuga\View\ViewModel)
-            return viewModel($args);
+        if ($viewName) {
+            if ($viewName instanceof \Yuga\View\ViewModel)
+                return viewModel($viewName);
 
-        return new \Yuga\Views\View($args, $data);
+            return new \Yuga\Views\View($viewName, $data);
+        } else {
+            // Magically find the view
+            $trace = debug_backtrace(); 
+            
+            $inspector = $trace[1]; 
+            $method = $inspector['function'];
+            $methodLower = strtolower($method);
+            $classPath = explode('\\', $inspector['class']);
+            $class = str_replace('Controller', '', $classPath[count($classPath) - 1]);
+            $classLower = strtolower($class);
+
+            if (\file_exists(resources('views/' . $class . '/' . $method . '.php')) || \file_exists(resources('views/' . $class . '/' . $method . 'hax.php'))) {
+                return new \Yuga\Views\View($class . '/' . $method, $data);
+            } else {
+                return new \Yuga\Views\View($classLower . '/' . $methodLower, $data);
+            }
+        }
     }
 }
 
@@ -123,7 +141,7 @@ if(!function_exists('resource')) {
 if (!function_exists('resources')) {
     function resources($file = '')
     {
-        return host('/storage/'. $file);
+        return path('resources/'. $file);
     }
 }
 

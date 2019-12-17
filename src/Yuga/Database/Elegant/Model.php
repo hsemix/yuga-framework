@@ -283,7 +283,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     {
         $query = $this->newElegantQuery();
         if (preg_match('/^findBy(.+)$/', $method, $matches)) {
-			return $this->where(strtolower($matches[1]), $parameters[0]);
+			return $this->where(Str::deCamelize($matches[1]), $parameters[0]);
         }
         if (method_exists($query, $method))
             return call_user_func_array([$query, $method], $parameters);
