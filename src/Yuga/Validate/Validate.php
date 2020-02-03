@@ -38,9 +38,24 @@ class Validate
         'unique'    => '{field} already exists',
         'in'        => '{field} must be in {satisfy}',
         'file'      => '{field} must be an uploadable file',
-        'int'       => '{field} must be an number',
+        'int'       => '{field} must be a number',
         'string'    => '{field} must be a string',
         'confirmed' => '{field} Confirmation does not match'
+    ];
+
+    public $messagesArray = [
+        'required'  => '{field} are required!',
+        'min'       => 'All of ({value}) must be a minimum of {satisfy} characters',
+        'max'       => 'All of ({value}) must be a maximum of {satisfy} characters',
+        'email'     => 'One of ({value}) is not a valid email address',
+        'alnum'     => 'All of ({value}) must contain letters and numbers only',
+        'matches'   => 'All of ({value}) must match {satisfy}',
+        'unique'    => 'One of ({value}) already exists',
+        'in'        => 'All of ({value}) must be in {satisfy}',
+        'file'      => '{field} must be an uploadable file',
+        'int'       => 'All of ({value}) must be numbers',
+        'string'    => 'All of ({value}) must be strings',
+        'confirmed' => '{field} Confirmation do not match'
     ];
 
     public $fieldMessages = [];
@@ -63,7 +78,6 @@ class Validate
         $this->fieldRules = $rules;
         $this->items = $items;
         foreach ($items as $item => $value) {
-            //if (in_array(is_array($item)? $item[0] : $item, array_keys($rules))) {
             $processedRules = $this->processRules($rules);
             if (in_array(is_array($item)? $item[0] : $item, $processedRules['fields'])) {
                 $this->fields[$item] = $value;
@@ -75,7 +89,6 @@ class Validate
             }
         }
         return $this;
-        //return $this->fields;
     }
 
     protected function processRules(array $rules = [])
@@ -258,7 +271,12 @@ class Validate
                 $label = ucfirst($field);
         }
         
-        $message = str_replace(['{field}', '{satisfy}', '{value}'], [$label, $satisfy, $this->items[$field]], $this->messages[$rule]);
+        if (is_array($this->items[$field])) {
+            $message =  str_replace(['{field}', '{satisfy}', '{value}'], [$label, $satisfy, implode(', ', $this->items[$field])], $this->messagesArray[$rule]);
+        } else {
+            $message = str_replace(['{field}', '{satisfy}', '{value}'], [$label, $satisfy, $this->items[$field]], $this->messages[$rule]);
+        }
+        
         if (isset($this->fieldMessages[$field])) {
             if (strstr($message, $field) && isset($this->fieldMessages[$field][$rule])) {
                 $message = $this->fieldMessages[$field][$rule];
@@ -290,50 +308,123 @@ class Validate
         return $this;
     }
 
-    protected function validate_required($field, $value, $satisfy)
+    protected function validate_required($field, $values, $satisfy)
     {
         if ($satisfy == 'exists') {
             if ($this->request->exists($field)) {
-                return !empty(trim($value));
+                if (is_array($values)) {
+                    $valid = true;
+                    foreach ($values as $value) {
+                        if (empty(trim($value)))
+                            $valid = false;
+                    }
+                    return $valid;
+                }
+                return !empty(trim($values));
             }
             return;
         }
-        return !empty(trim($value));
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if (empty(trim($value)))
+                    $valid = false;
+            }
+            return $valid;
+        }
+
+        return !empty(trim($values));
     }
 
-    protected function validate_max($field, $value, $satisfy)
+    protected function validate_max($field, $values, $satisfy)
     {
-        return mb_strlen($value) <= $satisfy;
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if ((mb_strlen($value) <= $satisfy) !== true)
+                    $valid = false;
+            }
+            return $valid;
+        }
+        return mb_strlen($values) <= $satisfy;
     }
 
-    protected function validate_min($field, $value, $satisfy)
+    protected function validate_min($field, $values, $satisfy)
     {
-        return mb_strlen($value) >= $satisfy;
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if ((mb_strlen($value) >= $satisfy) !== true)
+                    $valid = false;
+            }
+            return $valid;
+        }
+        return mb_strlen($values) >= $satisfy;
     }
 
-    protected function validate_email($field, $value, $satisfy)
+    protected function validate_email($field, $values, $satisfy)
     {
-        return filter_var($value, FILTER_VALIDATE_EMAIL);
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if (!filter_var($values, FILTER_VALIDATE_EMAIL))
+                    $valid = false;
+            }
+            return $valid;
+        }
+        return filter_var($values, FILTER_VALIDATE_EMAIL);
     }
 
-    protected function validate_alnum($field, $value, $satisfy)
+    protected function validate_alnum($field, $values, $satisfy)
     {
-        return ctype_alnum($value);
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if (!ctype_alnum($value))
+                    $valid = false;
+            }
+            return $valid;
+        }
+        return ctype_alnum($values);
     }
 
-    protected function validate_string($field, $value, $satisfy)
+    protected function validate_string($field, $values, $satisfy)
     {
-        return is_string($value);
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if (!is_string($value))
+                    $valid = false;
+            }
+            return $valid;
+        }
+        return is_string($values);
     }
 
-    protected function validate_int($field, $value, $satisfy)
+    protected function validate_int($field, $values, $satisfy)
     {
-        return (int)$value;
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if (!(int)$value)
+                    $valid = false;
+            }
+            return $valid;
+        }
+        return (int)$values;
     }
 
-    protected function validate_matches($field, $value, $satisfy)
+    protected function validate_matches($field, $values, $satisfy)
     {
-        return $value === $this->items[$satisfy];
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if ($value !== $this->items[$satisfy])
+                    $valid = false;
+            }
+            return $valid;
+        }
+        return $values === $this->items[$satisfy];
     }
 
     protected function validate_unique($field, $value, $satisfy)
@@ -343,12 +434,24 @@ class Validate
         if (count($satisfies) > 1) {
             $field = str_replace(')', '', $satisfies[1]);
         }
-        return !\DB::table($satisfy)->where($field, $value)->first();
+        
+        if (is_array($value))
+            return !\DB::table($satisfy)->whereIn($field, $value)->first();
+        else
+            return !\DB::table($satisfy)->where($field, $value)->first();
     }
 
-    protected function validate_in($field, $value, $satisfy)
+    protected function validate_in($field, $values, $satisfy)
     {
-        return in_array($value, $satisfy);
+        if (is_array($values)) {
+            $valid = true;
+            foreach ($values as $value) {
+                if (!in_array($value, $satisfy))
+                    $valid = false;
+            }
+            return $valid;
+        }
+        return in_array($values, $satisfy);
     }
 
     protected function validate_file($field, $value, $satisfy)
