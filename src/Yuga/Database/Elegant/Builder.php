@@ -172,6 +172,7 @@ class Builder
 
     public function setTable($table)
     {
+        $table = is_object($table) ? $table->getTable() : $table;
         $this->table = $table;
         $this->query = $this->query->table($table);
         return $this;
@@ -227,15 +228,26 @@ class Builder
     protected function valueClosure(Closure $closure, $column)
     {
         extract($this->processKey($column));
-        $model = clone $this->getModel()->setTable($table);
+        $model = clone $this->getModel()->setTable(is_object($table) ? $table->getTable() : $table);
         $newQuery = $model->newElegantQuery();
         call_user_func($closure, $newQuery);
         if (!$newQuery->query->getSelects()) {
             $classTable = strtolower(class_base($model));
-            if (($table || $newQuery->getTable()) && ($colon = strpos($field, $classTable.'_')) === false) {
+            $modelTable = is_object($newQuery->getTable()) ? $newQuery->getModel()->getTable() : $newQuery->getTable();
+            if (($table || $modelTable) && ($colon = strpos($field, $classTable.'_')) === false) {
                 $field = $classTable.'_'.$field;  
             }
             $newQuery->select($field);
+        }
+
+        if ($this->checkTableField($newQuery->getTable() ? is_object($newQuery->getTable()) ? $newQuery->getModel()->getTable() : $newQuery->getTable() : $model->getTable(), is_object($newQuery->getTable()) ? $newQuery->getModel()->getDeleteKey() : $model->getDeleteKey())) {
+            if ($this->withTrashed) {
+                
+            } elseif ($this->onlyTrashed) {
+                $newQuery->whereNotNull($model->getDeleteKey());
+            } else {
+                $newQuery->whereNull($model->getDeleteKey());
+            }
         }
         return $this->subQuery($model);
     }

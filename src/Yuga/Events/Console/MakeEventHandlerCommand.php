@@ -17,7 +17,7 @@ class MakeEventHandlerCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Make an Event Handler Class that the an event will trigger';
+    protected $description = 'Make an Event Handler Class that the event will trigger';
 
     /**
      * Execute the console command.

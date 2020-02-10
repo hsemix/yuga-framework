@@ -13,6 +13,7 @@ use Yuga\Events\Console\MakeEventHandlerCommand;
 use Yuga\Database\Console\MakeMigrationUpCommand;
 use Yuga\Controllers\Console\MakeControllerCommand;
 use Yuga\Database\Console\MakeMigrationDownCommand;
+use Yuga\Database\Console\MakeMigrationSeedCommand;
 use Yuga\Database\Console\MakeDatabaseBackupCommand;
 use Yuga\Providers\Console\MakeServiceProviderCommand;
 
@@ -38,6 +39,7 @@ class YugaServiceProvider extends ServiceProvider
         'MakeServiceProvider'   => 'yuga.command.provider.make',
         'MakeEvent'             => 'yuga.command.event.make',
         'MakeEventHandler'      => 'yuga.command.event.handler.make',
+        // 'MigrationSeed'         => 'yuga.command.seed',
     ];
 
     public function __construct(Application $app)
@@ -247,6 +249,21 @@ class YugaServiceProvider extends ServiceProvider
     {
         $app->singleton($command, function () {
             return new MakeEventHandlerCommand;
+        });
+    }
+
+    /**
+     * Migration seed command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
+    protected function registerMigrationSeedCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeMigrationSeedCommand;
         });
     }
 

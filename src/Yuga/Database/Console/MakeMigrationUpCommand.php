@@ -27,19 +27,4 @@ class MakeMigrationUpCommand extends Command
         $migration->runUp($this->getYuga());
         $this->info('Migration was successful, check your database for confirmation.');
     }
-
-    
-    
-    /**
-     * Get the console command options.
-     *
-     * @return array
-     */
-    protected function getOptions()
-    {
-        return [
-            ['views', null, InputOption::VALUE_OPTIONAL, 'Only Create authentication views.', false],
-            ['force', null, InputOption::VALUE_OPTIONAL, 'Overwrite existing files.', false],
-        ];
-    }
 }

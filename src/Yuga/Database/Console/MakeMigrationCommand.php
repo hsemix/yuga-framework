@@ -53,7 +53,7 @@ class MakeMigrationCommand extends Command
     protected function formatName()
     {
         $table = trim($this->argument('name'));
-        $table = (new \DateTime)->format('YmdHis').'_create_'.strtolower($table).'_table';
+        $table = (new \DateTime)->format('YmdHis') . '_create_' . strtolower($table) . '_table';
         return $table;
     }
 
