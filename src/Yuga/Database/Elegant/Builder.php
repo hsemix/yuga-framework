@@ -424,6 +424,15 @@ class Builder
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
             return false;
         }
+        if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
+            if ($this->withTrashed) {
+				
+			} elseif ($this->onlyTrashed) {
+				$this->query->whereNotNull($this->getModel()->getDeleteKey());
+			} else {
+				$this->query->whereNull($this->getModel()->getDeleteKey());
+			}
+        }
         if ($columns) {
             $item = $this->query->select($columns)->first();
         } else {
@@ -459,6 +468,16 @@ class Builder
         $carbon = \Yuga\Carbon\Carbon::class;
         if (class_exists(Carbon::class)) {
             $carbon = Carbon::class;
+        }
+
+        if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
+            if ($this->withTrashed) {
+				
+			} elseif ($this->onlyTrashed) {
+				$this->query->whereNotNull($this->getModel()->getDeleteKey());
+			} else {
+				$this->query->whereNull($this->getModel()->getDeleteKey());
+			}
         }
         if ($columns) {
             $item = $this->query->select($columns)->last();
