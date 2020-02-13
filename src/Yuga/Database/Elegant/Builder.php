@@ -263,9 +263,11 @@ class Builder
     }
     public function whereIn($key, $values)
     {
-        if (count($values) == 0)
-            $values[] = 0;
-       return $this->where($key, 'IN', $values);
+        if (is_array($values)) {
+            if (count($values) == 0)
+                $values[] = 0;
+        }
+        return $this->where($key, 'IN', $values);
     }
 
     public function whereNot($key, $operator = null, $value = null)
@@ -282,8 +284,10 @@ class Builder
 
     public function whereNotIn($key, $values)
     {
-        if (count($values) == 0)
-            $values[] = 0;
+        if (is_array($values)) {
+            if (count($values) == 0)
+                $values[] = 0;
+        }
         return $this->where($key, 'NOT IN', $values);
     }
 
