@@ -254,7 +254,17 @@ class Builder
 
     public function subQuery($model, $alias = null) // removed contract of Model from $model
     {
-        return $this->query->subQuery($model->getQuery(), $alias);
+        $query = $model->getQuery();
+        if ($this->checkTableField($model->getModel()->getTable(), $model->getModel()->getDeleteKey())) {
+            if ($this->withTrashed) {
+                
+            } elseif ($this->onlyTrashed) {
+                $query->whereNotNull($model->getModel()->getDeleteKey());
+            } else {
+                $query->whereNull($model->getModel()->getDeleteKey());
+            }
+        }
+        return $this->query->subQuery($query, $alias);
     }
 
     public function getBindings()
