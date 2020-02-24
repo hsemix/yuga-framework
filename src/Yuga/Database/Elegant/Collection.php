@@ -285,9 +285,9 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return $this->pagination($options);
     }
 
-    public function links(array $options = null)
+    public function links()
     {
-        return $this->pages($options);
+        return $this->pages();
     }
 
     public function orderBy($key, $asc = 'ASC')
