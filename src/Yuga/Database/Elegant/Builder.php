@@ -1040,7 +1040,7 @@ class Builder
 
         $fields = $request->all();
         $search = $fields['search'];
-        $start = $fields['start'];
+        $start = $fields['start'] ?? 0;
         $orderBy = $fields['order'];
         $draw = $fields['draw'];
         $columns = $fields['columns'];
