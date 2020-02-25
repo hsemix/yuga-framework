@@ -330,4 +330,16 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
             $array = $temp_array;
     }
 
+    /**
+     * Pluck an array
+     */
+    public function pluck($property)
+	{
+		$out = [];
+		for ($i=0, $length = count($this->items); $i < $length; $i++) {
+			$out[] = $this->items[$i][$property];
+		}
+		return new static($out);
+	}
+
 }

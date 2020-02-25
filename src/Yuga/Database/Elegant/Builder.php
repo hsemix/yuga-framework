@@ -7,6 +7,7 @@ use ReflectionClass;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
 use Yuga\Support\Inflect;
+use Yuga\Pagination\DataTable;
 use Yuga\Pagination\Paginator;
 use Yuga\Pagination\Pagination;
 use Yuga\Database\Elegant\Model;
@@ -35,6 +36,7 @@ class Builder
     protected $onlyTrashed = false;
     protected $returnWithRelations = false;
     public $table;
+    protected $searchables = ['*'];
 
     /**
      * Make Builder instance
@@ -146,9 +148,9 @@ class Builder
         return $this;
     }
 
-    public function limit($limit)
+    public function limit($lower, $upper = null)
     {
-        $this->query->limit($limit);
+        $this->query->limit($lower, $upper);
 
         return $this;
     }
@@ -636,6 +638,7 @@ class Builder
         if (is_array($fields) === false) {
             $fields = func_get_args();
         }
+        $this->selectables = $fields;
         $this->query->select($fields);
 
         return $this;
@@ -910,7 +913,7 @@ class Builder
     public function __clone()
     {
         // $this->query = $this->query;
-        // $this->query = clone $this->query;
+        $this->query = clone $this->query;
     }
     
     /**
@@ -1016,6 +1019,75 @@ class Builder
                     : $this->model->newCollection();
 
         return $results;
+    }
+
+    /**
+     * Process results into a datatable
+     * 
+     * @param int $length
+     * @param string $pageName
+     * @param int $draw
+     * @param string $pathName
+     */
+    public function datatable($length = 10, $draw = null, $pageName = 'draw', $pathName = null)
+    {
+        $page = $draw ?: DataTable::resolveCurrentPage($pageName);
+
+        $perPage = $length ?: $this->model->getPerPage();
+
+        $request = new Request;
+        $paths = explode('?', $request->getUri(true));
+
+        $fields = $request->all();
+        $search = $fields['search'];
+        $start = $fields['start'];
+        $orderBy = $fields['order'];
+        $draw = $fields['draw'];
+        $columns = $fields['columns'];
+
+        $searchable = [];
+        $orderable = [];
+
+        foreach ($columns as $column) {
+            if ((bool)$column['searchable'] === true) {
+                if (!in_array($column['data'], $this->getModel()->bootable))
+                    $searchable[] = $column['data'];
+            }
+        }
+
+        $newQuery = clone $this;
+        if ($search['value'] != '') {
+            $newQuery->where(function ($query) use ($searchable, $search) {
+                foreach ($searchable as $searchField) {
+                    $query->orWhere($searchField, 'LIKE', '%' . $search['value'] . '%');
+                }
+            });
+        }
+
+        if (count($orderBy) > 0) {
+            foreach ($orderBy as $filterI => $filter) {
+                $column = $columns[$filter['column']];
+                if ((bool)$column['orderable'] === true) {
+                    if (!in_array($column['data'], $this->getModel()->bootable))
+                        $orderable[$column['data']] = $filter['dir'];
+                }
+            }
+        }
+        
+        if (count($orderable) > 0) {
+            foreach ($orderable as $filterByKey => $dir) {
+                $newQuery->orderBy($filterByKey, $dir);
+            }
+        }
+        
+        $this->pagination = $pagination = new Pagination($page, $perPage, $this->count(), $pageName);
+        $options = [
+            'path' => $pathName ?: $paths[0],
+            'pageName' => $pageName,
+            'recordsTotal' => $this->count(),
+            'recordsFiltered' => $newQuery->count()
+        ];
+        return $newQuery->limit($start, $perPage)->getWith(['pagination' => $this->pagination, 'paginator' => new DataTable($perPage, $page, $options)])->get();
     }
 
     /**

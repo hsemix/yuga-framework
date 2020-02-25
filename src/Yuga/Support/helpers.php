@@ -433,12 +433,24 @@ if ( ! function_exists('get_mimes')) {
 
 if ( ! function_exists('event')) {
 	/**
-	 * Returns the MIME types array from config/mimes.php
+	 * Returns the event object
 	 *
 	 * @return	array
 	 */
 	function event($eventName = "yuga.auto.events", $params = [])
 	{
 		return app()->get('events')->trigger($eventName, $params);
+	}
+}
+
+if ( ! function_exists('jsonResponse')) {
+	/**
+	 * Returns json response
+	 *
+	 * @return	array
+	 */
+	function jsonResponse(array $data = [])
+	{
+		return response()->jsonResponse($data);
 	}
 }
