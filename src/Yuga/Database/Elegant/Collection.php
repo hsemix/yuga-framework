@@ -340,6 +340,16 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 			$out[] = $this->items[$i][$property];
 		}
 		return new static($out);
-	}
+    }
+    
+    public function getRecordsFilteredCount()
+    {
+        return 0;
+    }
+
+    public function getTotalRecordsCount()
+    {
+        return 0;
+    }
 
 }
