@@ -182,7 +182,7 @@ if(!function_exists('env')) {
     function env($key, $default = null)
     {
         if (isset($_ENV[$key])) {
-            return $_ENV[$key] == '' || is_null($_ENV[$key]) ? $default : $_ENV[$key];
+            return $_ENV[$key] === '' || is_null($_ENV[$key]) ? $default : $_ENV[$key];
         }
         return $default;
     }
