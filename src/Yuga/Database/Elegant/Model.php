@@ -25,6 +25,7 @@ use Yuga\Interfaces\Database\Elegant\Association\Association as Relation;
 
 abstract class Model implements ArrayAccess, JsonSerializable
 {
+    protected $cast = [];
     protected $queryable;
     protected $view_name;
     protected $paginator;
@@ -717,6 +718,16 @@ abstract class Model implements ArrayAccess, JsonSerializable
                     $this->invokeBootable($start, $model, $items);
                 else 
                     $model->$start = $class;
+            }
+        }
+
+        if (count($this->cast) > 0) {
+            foreach ($model->cast as $attribute => $type) {
+                if (in_array($attribute, array_keys($model->attributes))) {
+                    $attributeData = $model->attributes[$attribute];
+                    settype($attributeData, $type);
+                    $model->setAttribute($attribute, $attributeData);
+                }
             }
         }
         return $model;

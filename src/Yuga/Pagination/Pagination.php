@@ -318,7 +318,7 @@ class Pagination
 	}
 
 	/**
-	 * Get all pages inform of an array
+	 * Get all pages in form of an array
 	 * 
 	 * @param null
 	 * @return array
