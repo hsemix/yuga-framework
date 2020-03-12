@@ -414,9 +414,9 @@ class Request
     {
         return $this->getInput()->hasFile($key);
     }
-    public function all()
+    public function all(array $filter = null)
     {
-        return $this->getInput()->all();
+        return $this->getInput()->all($filter);
     }
 
     public function only(array $onlyFields = [])
@@ -441,7 +441,7 @@ class Request
     
     public function isAjax()
     {
-        if ($this->getHeader('http-x-requested-with') !== null && strtolower($this->getHeader('http-x-requested-with')) === 'xmlhttprequest') {
+        if (($this->getHeader('http-x-requested-with') !== null && strtolower($this->getHeader('http-x-requested-with')) === 'xmlhttprequest') || ($this->getHeader('http-user-agent') !== null && preg_match('/^(curl|wget)/i', $this->getHeader('http-user-agent')))) {
             return true;
         }
         return false;

@@ -555,6 +555,16 @@ abstract class Model implements ArrayAccess, JsonSerializable
     }
 
     /**
+     * Get the route key for the model to be used in route-model-binding
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return null;
+    }
+
+    /**
      * Get the delete key of the table corresponding to this model
      * 
      * @param null

@@ -14,6 +14,7 @@ use Yuga\Http\Middleware\IMiddleware;
 use Yuga\Route\Exceptions\HttpException;
 use Yuga\Route\Exceptions\NotFoundHttpException;
 use Yuga\Http\Middleware\MiddleWare as RouteMiddleware;
+use Yuga\Database\Elegant\Exceptions\ModelNotFoundException;
 
 abstract class Route implements IRoute
 {
@@ -70,7 +71,7 @@ abstract class Route implements IRoute
         
     }
 
-    protected function instantiated($callback)
+    protected function instantiated($callback, $request = null)
     {
         $reflection = new ReflectionFunction($callback);
         $classes = [];
@@ -78,10 +79,28 @@ abstract class Route implements IRoute
         foreach ($reflection->getParameters() as $param) {
             if ($param->getClass() !== null) {
                 $class = $param->getClass()->name;
-                if($binding = $this->isSingleton($app, $class)) {
-                    $classes[] = $binding;
+                if (array_key_exists($param->name, $params)) {
+                    $modelBindingSettings = $this->processBindings($request);
+                    $field = $dependency::getPrimaryKey();
+                    if (in_array($param->name, array_keys($modelBindingSettings))) {
+                        $field = $modelBindingSettings[$param->name];
+                    }
+
+                    $value = $params[$param->name];
+                    $modelBound = $modelBound = $dependency::where($field, $value)->first();
+
+                    if ($modelBound) {
+                        $dependecies[$param->name] = $modelBound;
+                        $dependecies[$param->name . '_var'] = $params[$param->name];
+                    } else
+                        throw new ModelNotFoundException("Model $dependency with $field = '$value' not found");
+
                 } else {
-                    $classes[] = $app->resolve($class);
+                    if($binding = $this->isSingleton($app, $class)) {
+                        $classes[] = $binding;
+                    } else {
+                        $classes[] = $app->resolve($class);
+                    }
                 }
             } else {
                 if (array_key_exists($param->name, $this->getParameters())) {
@@ -154,9 +173,9 @@ abstract class Route implements IRoute
         if (is_callable($callback) === true) {
 
             /* When the callback is a function */
-            $result = call_user_func_array($callback, $this->instantiated($callback));
+            $result = call_user_func_array($callback, $this->instantiated($callback, $request));
 
-            if ($result instanceof ViewModel || is_string($result) || $result instanceof View) {
+            if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View) {
                 echo $result;
             }
             return;
@@ -207,13 +226,39 @@ abstract class Route implements IRoute
             });
         }
         
-        $result = call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters));
-        if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+        $result = call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters, $request));
+        if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View ) {
             echo $result;
         }
     }
 
-    protected function methodInjection($class, $method, $params)
+    protected function processBindings($request = null)
+    {
+        $modelBindingSettings = [];
+        if (\file_exists(path('config/AppRouteModelBinding.php'))) {
+            $modelBindingSettings = require path('config/AppRouteModelBinding.php');
+        }
+        if (count($modelBindingSettings) > 0) {
+            $routeBindings = [];
+            foreach ($modelBindingSettings as $routeBinding => $fields) {
+                
+                if (count(explode('/', trim($routeBinding, '/'))) == count(explode('/', trim($request->getUri(), '/')))) {
+                    $regex = sprintf(static::PARAMETERS_REGEX_FORMAT, $this->paramModifiers[0], $this->paramOptionalSymbol, $this->paramModifiers[1]);
+                    
+                    if (preg_match_all('/' . $regex . '/', $routeBinding, $parameters)) {
+
+                        foreach (explode(',', $fields) as $index => $field) {
+                            $routeBindings[$parameters[1][$index]] = $field;
+                        }
+                    }
+                }
+            }
+            return $routeBindings;
+        }
+        return [];
+    }
+
+    protected function methodInjection($class, $method, $params, $request = null)
     {
         $parameters = null;
         $app = Application::getInstance();
@@ -222,13 +267,35 @@ abstract class Route implements IRoute
             $reflectionMethod = $reflection->getMethod($method);
             $reflectionParameters = $reflectionMethod->getParameters();
             $dependecies = [];
+
             foreach ($reflectionParameters as $parameter) {
                 if (!is_null($parameter->getClass())) {
                     $dependency = $parameter->getClass()->name;
-                    if($binding = $this->isSingleton($app, $dependency)) {
-                        $dependecies[] = $binding;
+                    if (array_key_exists($parameter->name, $params)) {
+                        $modelBindingSettings = $this->processBindings($request);
+                        $field = $dependency::getPrimaryKey();
+                        if ($dependency::getRouteKeyName() !== null && $dependency::getRouteKeyName() != '') {
+                            $field = $dependency::getRouteKeyName();
+                        }
+                        if (in_array($parameter->name, array_keys($modelBindingSettings))) {
+                            $field = $modelBindingSettings[$parameter->name];
+                        }
+
+                        $value = $params[$parameter->name];
+                        $modelBound = $modelBound = $dependency::where($field, $value)->first();
+
+                        if ($modelBound) {
+                            $dependecies[$parameter->name] = $modelBound;
+                            $dependecies[$parameter->name . '_var'] = $params[$parameter->name];
+                        } else
+                            throw new ModelNotFoundException("Model $dependency with $field = '$value' not found");
+
                     } else {
-                        $dependecies[] = $app->resolve($dependency);
+                        if($binding = $this->isSingleton($app, $dependency)) {
+                            $dependecies[] = $binding;
+                        } else {
+                            $dependecies[] = $app->resolve($dependency);
+                        }
                     }
                 } else {
                     if (array_key_exists($parameter->name, $params)) {
