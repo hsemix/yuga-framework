@@ -197,14 +197,21 @@ class Event implements IDispatcher
         ksort($listeners);
         foreach ($listeners as $list) {
             foreach ($list as $listener) {
+                $eventParams = $params;
                 if (is_array($listener)) {
                     $eventListener = $listener;
                 } elseif ($listener instanceof Closure) {
                     $eventListener = $listener;
                 } else {
                     $eventListener = [$listener, 'handle'];
+                    if ($listener instanceof HandlerInterface) {
+                        if (array_values($params) !== $params) {
+                            $event->setAttributes($params);
+                            $eventParams = [$event];
+                        }
+                    }
                 }
-                call_user_func_array($eventListener, $params);
+                call_user_func_array($eventListener, $eventParams);
                 if($callback instanceof Closure)
                     $callback($event);
             }

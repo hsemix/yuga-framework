@@ -839,7 +839,7 @@ class Builder
      */
     public function checkTableField($table, $field)
     {
-        $tableApi = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
+        $tableApi = '\Yuga\Database\Migration\Schema\\' . ucfirst(env('DATABASE_DRIVER', 'mysql')) . '\\Table';
         return (new $tableApi($table))->columnExists($field);
     }
 
@@ -853,7 +853,7 @@ class Builder
      */
     public function createTableField($table, $field)
     {
-        $tableApi = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
+        $tableApi = '\Yuga\Database\Migration\Schema\\' . ucfirst(env('DATABASE_DRIVER', 'mysql')) . '\\Table';
         $table = new $tableApi($table);
         $table->column($field)->nullable()->datetime();
         $table->addColumns();
@@ -1132,7 +1132,7 @@ class Builder
      */
     public function getQueryIdentifier()
     {
-        return md5(static::class . $this->getSql(true));
+        return md5(static::class . $this->getSql('raw'));
     }
 
     /**
