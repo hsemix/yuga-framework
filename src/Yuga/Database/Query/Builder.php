@@ -7,6 +7,7 @@ use Exception;
 use Yuga\Database\Elegant\Collection;
 use Yuga\Database\Connection\Connection;
 use Yuga\Database\Query\Exceptions\DatabaseQueryException;
+use Yuga\Database\Query\Exceptions\TransactionHaltException;
 
 class Builder
 {
@@ -249,6 +250,46 @@ class Builder
             QueryObject::class,
             [$queryArr['sql'], $queryArr['bindings'], $this->getConnection()]
         );
+    }
+
+    /**
+     * Adds WHERE NOT statement to the current query.
+     *
+     * @param string|Raw|\Closure $key
+     * @param string|array|Raw|\Closure|null $operator
+     * @param mixed|Raw|\Closure|null $value
+     *
+     * @return static
+     */
+    public function whereNot($key, $operator = null, $value = null)
+    {
+        // If two params are given then assume operator is =
+        if (\func_num_args() === 2) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        return $this->whereHandler($key, $operator, $value, 'AND NOT');
+    }
+
+    /**
+     * Adds OR WHERE NOT statement to the current query.
+     *
+     * @param string|Raw|\Closure $key
+     * @param string|null $operator
+     * @param mixed|Raw|\Closure|null $value
+     *
+     * @return static
+     */
+    public function orWhereNot($key, $operator = null, $value = null)
+    {
+        // If two params are given then assume operator is =
+        if (\func_num_args() === 2) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        return $this->whereHandler($key, $operator, $value, 'OR NOT');
     }
 
     public function whereIn($key, $values)
@@ -674,17 +715,73 @@ class Builder
         } else {
             // Its a batch insert
             $return = [];
+
+            if ($this->pdo->inTransaction() === false) {
+
+                $this->transaction(function (Transaction $transaction) use (&$return, $data, $type) {
+                    foreach ($data as $subData) {
+                        $return[] = $transaction->doInsert($subData, $type);
+                    }
+                });
+    
+                return $return;
+            }
+            
             foreach ($data as $subData) {
-                $queryObject = $this->getQuery($type, $subData);
-
-                list($result, $time) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
-
-                if ($result->rowCount() === 1) {
-                    $return[] = $this->pdo->lastInsertId();
-                }
+                $return[] = $this->doInsert($subData, $type);
             }
         }
 
         return $return;
-    }  
+    } 
+    
+    /**
+     * Performs the transaction
+     *
+     * @param \Closure $callback
+     *
+     * @throws Exception
+     * @return Transaction
+     */
+    public function transaction(Closure $callback)
+    {
+        /**
+         * Get the Transaction class
+         *
+         * @var \Yuga\Database\Query\Transaction $queryTransaction
+         * @throws \Exception
+         */
+        $queryTransaction = new Transaction($this->connection);
+        $queryTransaction->statements = $this->statements;
+
+        try {
+            // Begin the PDO transaction
+            if ($this->pdo->inTransaction() === false) {
+                $this->pdo->beginTransaction();
+            }
+
+            // Call closure - this callback will return TransactionHaltException if user has already committed the transaction
+            $callback($queryTransaction);
+
+            // If no errors have been thrown or the transaction wasn't completed within the closure, commit the changes
+            $this->pdo->commit();
+
+        } catch (TransactionHaltException $e) {
+
+            // Commit or rollback behavior has been triggered in the closure
+            return $queryTransaction;
+
+        } catch (\Exception $e) {
+
+            // Something went wrong. Rollback and throw Exception
+            if ($this->pdo->inTransaction() === true) {
+                $this->pdo->rollBack();
+            }
+
+            throw DatabaseQueryException::create($e, $this->getConnection()->getAdapterInstance(), $this->getLastQuery());
+        }
+
+        return $queryTransaction;
+    }
+
 }

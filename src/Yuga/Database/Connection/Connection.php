@@ -121,6 +121,6 @@ class Connection
      */
     public function getLastQuery()
     {
-        return $this->lastQuery?:null;
+        return $this->lastQuery ?: null;
     }
 }

@@ -7,11 +7,19 @@ class PageController extends Controller
 {
     public function notFound(Request $request)
     {
-        include_once 'not-found.php';
+        if (env('NOT_FOUND_404_FILE')) {
+            return view(env('NOT_FOUND_404_FILE'))->withRequest($request);
+        } else {
+            include_once 'not-found.php';
+        }
     }
 
     public function formExpired(Request $request)
     {
-        include_once 'form-expired.php';
+        if (env('FORM_EXPIRED_FILE')) {
+            return view(env('FORM_EXPIRED_FILE'))->withRequest($request);
+        } else {
+            include_once 'form-expired.php';
+        }
     }
 }
