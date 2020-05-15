@@ -38,8 +38,12 @@ class Hash
 
     public static function salt($length = 8)
     {
-        if (function_exists('mcrypt_create_iv')) {
-            $salt = mcrypt_create_iv($length);
+        if (version_compare(\PHP_VERSION, '7.2.0', '<')) {
+            if (function_exists('mcrypt_create_iv')) {
+                $salt = mcrypt_create_iv($length);
+            } else {
+                $salt = random_bytes($length);
+            }
         } else {
             $salt = random_bytes($length);
         }
@@ -51,9 +55,9 @@ class Hash
         return $this->make(uniqid());
     }
 
-    public function code($length = 8)
+    public function code($length = 8, $clean = true)
     {
-        return "$1$" . $this->salt($length) . "$";
+        return $clean ? "$1$" . $this->salt($length) . "$" : $this->salt($length);
     }
 
     public function password($string, $code = null)

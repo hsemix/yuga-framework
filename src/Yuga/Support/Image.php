@@ -2,6 +2,7 @@
 
 namespace Yuga\Support;
 
+use Exception;
 use LogicException;
 use Yuga\Exceptions\ImageException;
 use Yuga\Exceptions\InvalidArgumentException;

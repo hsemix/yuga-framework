@@ -79,7 +79,7 @@ class SmxView extends View
         }
     }
     
-    public function renderHaxTemplate($templateName, $data = false) 
+    public function renderHaxTemplate($templateName, array $data = null) 
     {
         $tempContents = $this->getTemplateDirectory().$templateName.$this->hax;
         $compiled = $this->compiled($templateName).'.php';
@@ -128,8 +128,8 @@ class SmxView extends View
     public function renderArray ($fileName, $dataAr) 
     { 
         $rendered = "";
-        if(count($dataAr && is_array($dataAr))) {
-            foreach($dataAr AS $data) {
+        if (count($dataAr && is_array($dataAr))) {
+            foreach ($dataAr as $data) {
                 $rendered.= $this->display($fileName, $data);
             }
         }
@@ -158,7 +158,7 @@ class SmxView extends View
     
     protected function compile_echo($value)
 	{
-		return preg_replace('/\{\{(.+?)\}\}/', '<?php echo '.htmlentities('$1').'; ?>', $value);
+		return preg_replace('/\{\{(.+?)\}\}/', '<?php echo ' . htmlentities('$1') . '; ?>', $value);
     }
 
     protected function compile_echo_escape($value)
@@ -189,7 +189,7 @@ class SmxView extends View
     
     protected function matches($function)
 	{
-		return '/(\s*)@'.$function.'(\s*\(.*\))/';
+		return '/(\s*)@' . $function . '(\s*\(.*\))/';
     }
     
     protected function compile_section($value)
