@@ -58,7 +58,7 @@ class SmxView extends View
         }
     }
 
-    public function display($temp, $data = false)
+    public function display($temp, array $data = null)
     {
         $temp = str_replace('.', '/', $temp);
         if (file_exists($this->getTemplateDirectory().$temp.$this->hax)) {

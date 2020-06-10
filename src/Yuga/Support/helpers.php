@@ -4,7 +4,7 @@
  */
 
 if (! function_exists('view')) {
-    function view($viewName = null, $data = null)
+    function view($viewName = null, array $data = null)
     {
         if ($viewName) {
             if ($viewName instanceof \Yuga\View\ViewModel)
