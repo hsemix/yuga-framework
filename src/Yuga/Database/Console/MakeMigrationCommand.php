@@ -1,7 +1,9 @@
 <?php
+
 namespace Yuga\Database\Console;
 
 use Yuga\Console\Command;
+use Yuga\Scaffold\Scaffold;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
@@ -23,23 +25,38 @@ class MakeMigrationCommand extends Command
      */
     public function handle()
     {
+        $this->processMigration();
+        $this->info('migration table class created successfully.');
+    }
+
+    /**
+     * Process Migration
+     * 
+     * @param string|null $name
+     */
+    public function processMigration($name = null, array $scaffold = null)
+    {
         $this->createDirectories();
         file_put_contents(
-            path('database/migrations/' . $this->formatName() . '.php'),
-            $this->compileMigrationTemp(trim($this->argument('name')))
+            path('database/migrations/' . $this->formatName($name) . '.php'),
+            $this->compileMigrationTemp(trim($name ? $name : $this->argument('name')), $scaffold)
         );
 
         file_put_contents(
             path('config/migrations.php'),
-            $this->compileYugaMigrationsTemp(trim($this->argument('name')))
+            $this->compileYugaMigrationsTemp(trim($name ? $name : $this->argument('name')))
         );
-        $this->info('migration table class created successfully.');
     }
 
-    protected function compileMigrationTemp($model)
+    protected function compileMigrationTemp($model, array $scaffold = null)
     {
         $table = strtolower($model);
         $migration = str_replace('{table}', $table, file_get_contents(__DIR__.'/temps/Migration.temp'));
+        if ($scaffold) {
+            if (count($scaffold) > 0)
+                $migration = $this->processMigrationTemp($table, $scaffold);
+        }
+        
         return str_replace(
             '{class}',
             'Create'.ucfirst($model).'Table',
@@ -47,12 +64,34 @@ class MakeMigrationCommand extends Command
         );
     }
 
+    protected function processMigrationTemp($table, array $fields = [])
+    {
+        $scaffold = '';
+        $i = 0;
+        foreach ($fields as $field => $type) {
+            $dataType = $this->processFieldType($type);
+            
+            if ($i != (count($fields) - 1))
+                $scaffold .= "$" . "table->column('" . $field . "')->" . $dataType . "->nullable();\n\t\t\t";
+            else
+                $scaffold .= "$" . "table->column('" . $field . "')->" . $dataType . "->nullable();";
+            $i++;
+        }
+
+        return str_replace(['{table}', '{scaffold_fields}'], [$table, $scaffold], file_get_contents(__DIR__.'/temps/MigrationScaffold.temp'));;
+    }
+
+    protected function processFieldType($type)
+    {
+        return Scaffold::getMethod($type) == 'string' ? Scaffold::getMethod($type) . '(255)' : Scaffold::getMethod($type) . '()';
+    }
+
     /**
      * Format the name of the table given i.e. deCamalize it
      */
-    protected function formatName()
+    protected function formatName($name = null)
     {
-        $table = trim($this->argument('name'));
+        $table = trim($name ? $name : $this->argument('name'));
         $table = (new \DateTime)->format('YmdHis') . '_create_' . strtolower($table) . '_table';
         return $table;
     }

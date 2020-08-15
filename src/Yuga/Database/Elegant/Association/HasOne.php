@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Elegant\Association;
 
 use Yuga\Database\Elegant\Model;
@@ -6,7 +7,6 @@ use Yuga\Database\Elegant\Builder;
 
 class HasOne extends Association
 {
-    
     private $child;
     private $query;
     private $parent;

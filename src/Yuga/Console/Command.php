@@ -49,6 +49,11 @@ class Command extends ConsoleCommand
     protected $description;
 
     /**
+     * The consold command Help text
+     */
+    protected $help;
+
+    /**
      * Create a new console command instance.
      *
      * @return void
@@ -61,6 +66,9 @@ class Command extends ConsoleCommand
         // commands just to make things a little easier on the developer. This is
         // so they don't have to all be manually specified in the constructors.
         $this->setDescription($this->description);
+
+        // We set the help text if provided
+        $this->setHelp($this->help);
 
         $this->specifyParameters();
     }

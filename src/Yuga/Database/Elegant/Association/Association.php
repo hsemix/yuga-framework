@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Elegant\Association;
 
 use Closure;
@@ -12,6 +13,7 @@ abstract class Association implements Relation
     private $parent;
     private $child;
     static $conditions;
+
     public function __construct(Builder $query, Model $parent)
     {
         $this->query = $query;
@@ -36,6 +38,7 @@ abstract class Association implements Relation
 
         return $result;
     }
+
     public function noConditions(Closure $callback)
     {
         return call_user_func($callback);

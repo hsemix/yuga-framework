@@ -1,0 +1,17 @@
+@extends('layouts.app')
+
+@section('content')
+    <h1>Details</h1>
+
+    <div>
+        <h4>{title}</h4>
+        <hr />
+        <dl class="row">
+            {form}            
+        </dl>
+    </div>
+    <div>
+        <a href="{{ route('{route}/edit/' . {model-id}) }}">Edit</a> |
+        <a href="{{ route('{route}') }}">Back to List</a>
+    </div>
+@endsection

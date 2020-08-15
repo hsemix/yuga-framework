@@ -62,7 +62,7 @@ class Authenticate extends BaseController implements IMiddleware
 
     public function logout()
     {
-        event('on:logout', ['user' => $this->user()]);
+        event('on:signout', ['user' => $this->user()]);
         if (!is_null($this->user()->remember_token) && $this->cookie->exists($this->settings->get('remember.name'))) {
             $this->user()->save([
                 'remember_token' => null

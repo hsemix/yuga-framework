@@ -611,16 +611,6 @@ class YugaMailer extends Mailable
 	{
 		$this->body = rtrim(str_replace("\r", '', $body));
 
-		/* strip slashes only if magic quotes is ON
-		   if we do it with magic quotes OFF, it strips real, user-inputted chars.
-
-		   NOTE: In PHP 5.4 get_magic_quotes_gpc() will always return 0 and
-			 it will probably not exist in future versions at all.
-		*/
-		if (get_magic_quotes_gpc()) {
-			$this->body = stripslashes($this->body);
-		}
-
 		return $this;
 	}
 
@@ -910,10 +900,6 @@ class YugaMailer extends Mailable
 	 */
 	public function valid_email($email)
 	{
-// 		if (function_exists('idn_to_ascii') && $atpos = strpos($email, '@')) {
-// 			$email = static::substr($email, 0, ++$atpos).idn_to_ascii(static::substr($email, $atpos));
-// 		}
-
 		return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
 	}
 

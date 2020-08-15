@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Elegant\Association;
 
 use Yuga\Database\Elegant\Model;
@@ -7,7 +8,6 @@ use Yuga\Database\Elegant\Collection;
 
 class HasMany extends Association
 {
-    
     private $child;
     private $query;
     private $parent;
@@ -28,14 +28,17 @@ class HasMany extends Association
     {
         return $this->child;
     }
+
     public function getParent()
     {
         return $this->parent;
     }
+
     public function addConditions()
     {
         $this->query->where($this->foreignKey, '=', $this->getParentIdValue());
     }
+
     public function getParentIdValue()
     {
         return $this->parent->getAttribute($this->otherKey);
@@ -53,6 +56,7 @@ class HasMany extends Association
         $foreign = explode(".", $this->foreignKey);
         return end($foreign);
     }
+
     public function saveMany($models)
     {
         foreach ($models as $model) {
@@ -61,6 +65,7 @@ class HasMany extends Association
 
         return $models;
     }
+
     public function bootRelation(array $models, $relation)
     {
         
@@ -71,6 +76,7 @@ class HasMany extends Association
 
         return $models;
     }
+    
     public function match(array $models, Collection $results, $relation)
     {
         return $this->matchMany($models, $results, $relation);

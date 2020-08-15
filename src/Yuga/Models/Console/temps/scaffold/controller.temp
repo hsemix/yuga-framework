@@ -1,0 +1,138 @@
+<?php
+
+namespace {namespace}\Controllers;
+
+use {namespace}\Models\{class};
+use Yuga\Http\Request;
+use Yuga\Http\Redirect;
+use Yuga\Http\Response;
+use Yuga\Session\MessageBag;
+
+class {class}Controller extends Controller
+{
+    /**
+     * Create a new {class}Controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Display all {class_vars}
+     * 
+     * @param {class} ${class_var}
+     * @return \Yuga\Views\View
+     */
+    public function index({class} ${class_var})
+    {
+        return view()->with{classes}(${class_var}->paginate(10));
+    }
+
+    /**
+     * Display the create form for {class_vars}
+     */
+    public function create()
+    {
+        return view();
+    }
+
+    /**
+     * Display the edit form for a {class_var}
+     * 
+     * @param \{namespace}\Models\{class} ${class_var}
+     * @param int $id
+     * @return \Yuga\Views\View
+     */
+    public function edit({class} ${class_var}, int $id)
+    {
+        return view()->with{class}(${class_var}->find($id));
+    }
+
+    /**
+     * Display the details page for a {class_var}
+     * 
+     * @param \{namespace}\Models\{class} ${class_var}
+     * @param int $id
+     * @return \Yuga\Views\View
+     */
+    public function details({class} ${class_var}, int $id)
+    {
+        return view()->with{class}(${class_var}->find($id));
+    }
+
+    /**
+     * Display the delete confirmation form for {class_var}
+     * 
+     * @param \{namespace}\Models\{class} ${class_var}
+     * @param int $id
+     * @return \Yuga\Views\View
+     */
+    public function delete({class} ${class_var}, int $id)
+    {
+        return view()->with{class}(${class_var}->find($id));
+    }
+
+    /**
+     * Create or save {class_var} to a database table
+     * 
+     * @param \Yuga\Http\Request $request
+     * @param \Yuga\Http\Response $response
+     * @param \{namespace}\Models\{class} ${class_var}
+     * @param \Yuga\Session\MessageBag $message
+     */
+    public function create{classes}(Request $request, Response $response, {class} ${class_var}, MessageBag $message)
+    {
+        $validated = $request->validate([
+            {fields}
+        ]);
+
+        ${class_var}->save($validated);
+
+        $message->flash('success', 'Record created successfully');
+
+        return $response->redirect->back();
+    }
+
+    /**
+     * Update or save {class_var} to a database table
+     * 
+     * @param \Yuga\Http\Request $request
+     * @param \Yuga\Http\Response $response
+     * @param \{namespace}\Models\{class} ${class_var}
+     * @param int $id
+     * @param \Yuga\Session\MessageBag $message
+     */
+    public function update{classes}(Request $request, Response $response, {class} ${class_var}, int $id, MessageBag $message)
+    {
+        ${class_var} = ${class_var}->find($id);
+        $validated = $request->validate([
+            {fields}
+        ]);
+
+        ${class_var}->save($validated);
+        
+        $message->flash('success', 'Record updated successfully');
+
+        return $response->redirect->back();
+    }
+
+    /**
+     * Delete {class_var} from the database
+     * 
+     * @param \{namespace}\Models\{class} ${class_var}
+     * @param int $id
+     * @param \Yuga\Session\MessageBag $message
+     * @param \Yuga\Http\Response $response
+     */
+    public function destroy{classes}({class} ${class_var}, int $id, MessageBag $message, Response $response)
+    {
+        ${class_var}->find($id)->delete();
+
+        $message->flash('success', 'Record deleted successfully');
+
+        return $response->redirect->to('/{class_vars}');
+    }
+}

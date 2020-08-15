@@ -7,6 +7,7 @@ use Yuga\Models\Console\MakeModelCommand;
 use Yuga\View\Console\MakeViewModelCommand;
 use Yuga\Http\Console\MakeMiddlewareCommand;
 use Yuga\Interfaces\Application\Application;
+use Yuga\Models\Console\MakeScaffoldCommand;
 use Yuga\Authenticate\Console\MakeAuthCommand;
 use Yuga\Database\Console\MakeMigrationCommand;
 use Yuga\Events\Console\MakeEventHandlerCommand;
@@ -39,7 +40,8 @@ class YugaServiceProvider extends ServiceProvider
         'MakeServiceProvider'   => 'yuga.command.provider.make',
         'MakeEvent'             => 'yuga.command.event.make',
         'MakeEventHandler'      => 'yuga.command.event.handler.make',
-        // 'MigrationSeed'         => 'yuga.command.seed',
+        'MigrationSeed'         => 'yuga.command.seed',
+        'Scaffold'               => 'yuga.command.scaffold',
     ];
 
     public function __construct(Application $app)
@@ -264,6 +266,21 @@ class YugaServiceProvider extends ServiceProvider
     {
         $app->singleton($command, function () {
             return new MakeMigrationSeedCommand;
+        });
+    }
+
+    /**
+     * Scaffold command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
+    protected function registerScaffoldCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeScaffoldCommand;
         });
     }
 

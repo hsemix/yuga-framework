@@ -83,6 +83,21 @@ class Event implements IDispatcher
         }
         return $this;
     }
+
+    /**
+     * Allias to the attach method
+     *
+     * @param  string   $eventName
+     * @param  callable $callback|null
+     * @param  int  $priority
+     *
+     * @return void
+     */
+    public function on($eventName, $callback = null, $priority = 1)
+    {
+        return $this->attach($eventName, $callback, $priority);
+    }
+
     /**
      * Some times the name provided in the attach method might be an instance of the HandlerInterface
      * When that happens, Make sure the $event has the handle method

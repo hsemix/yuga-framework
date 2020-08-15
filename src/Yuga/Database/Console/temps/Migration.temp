@@ -7,7 +7,7 @@ class {class} extends Migration
 {
 	/**
 	* This method contains the entire schema of the table you want to create
-	* I'ts what the php yuga migration:up runs 
+	* It's what the php yuga migration:up runs 
 	*
 	* @param null
 	* 

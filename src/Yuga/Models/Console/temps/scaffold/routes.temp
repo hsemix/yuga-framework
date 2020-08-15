@@ -1,0 +1,11 @@
+
+Route::group(['prefix' => '{routes}'], function () {
+    Route::get('/', '{class}Controller@index');
+    Route::get('/create', '{class}Controller@create');
+    Route::get('/edit/{id}', '{class}Controller@edit');
+    Route::get('/details/{id}', '{class}Controller@details');
+    Route::get('/delete/{id}', '{class}Controller@delete');
+    Route::post('/create', '{class}Controller@create{classes}');
+    Route::post('/edit/{id}', '{class}Controller@update{classes}');
+    Route::post('/delete/{id}', '{class}Controller@destroy{classes}');
+});

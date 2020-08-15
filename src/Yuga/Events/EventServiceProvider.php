@@ -5,6 +5,7 @@ namespace Yuga\Events;
 use Yuga\Console\Events\YugaStart;
 use Yuga\Providers\ServiceProvider;
 use Yuga\Interfaces\Application\Application;
+use Yuga\Interfaces\Events\Dispatcher as IDispatcher;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -58,11 +59,11 @@ class EventServiceProvider extends ServiceProvider
     /**
      * Load all event handlers that have been registered by the developer
      * 
-     * @param \Yuga\Events\Event $dispatcher
+     * @param \Yuga\Events\IDispatcher $dispatcher
      * 
      * @return \Yuga\Events\Event $dispatcher
      */
-    protected function loadEvents(Event $dispatcher)
+    protected function loadEvents(IDispatcher $dispatcher)
     {
         $otherApplicationEvents = [];
         if (\file_exists(path('config/AppEvents.php'))) {

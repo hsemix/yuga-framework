@@ -138,6 +138,11 @@ class Validate
         return $this->failed();
     }
 
+    public function hasMessages()
+    {
+        return $this->hasErrors();
+    }
+
     public function passed()
     {
         return !$this->failed();

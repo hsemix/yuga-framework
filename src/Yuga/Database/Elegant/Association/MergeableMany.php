@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Elegant\Association;
 
 use Yuga\Database\Elegant\Model;

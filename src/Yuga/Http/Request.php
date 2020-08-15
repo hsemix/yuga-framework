@@ -28,6 +28,11 @@ class Request
      */
     protected $loadedRoute;
 
+    /**
+     * Form fields
+     */
+    protected $formFields = [];
+
     public function __construct()
     {
         $this->parseHeaders();
@@ -36,6 +41,7 @@ class Request
         $this->input = new Input($this);
         $this->method = strtolower($this->input->get('_method', $this->getHeader('request-method'), 'post'));
         $this->app = Application::getInstance();
+        $this->data = $this->except(['_token']);
     }
 
     protected function parseHeaders()

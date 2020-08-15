@@ -1,0 +1,31 @@
+@extends('layouts.app')
+
+@section('content')
+
+    <h1>{title}</h1>
+
+    <p>
+        <a href="{route}/create">Create New</a>
+    </p>
+    <table class="table">
+        <thead>
+            <tr>
+                {menu}
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ({loop})
+                <tr>
+                    {table}
+                    <td>
+                        <a href="{{ route('{route}/edit/' . {model-id}) }}">Edit</a> |
+                        <a href="{{ route('{route}/details/' . {model-id}) }}">Details</a> |
+                        <a href="{{ route('{route}/delete/' . {model-id}) }}">Delete</a>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+    {{ ${route}->links() }}
+@endsection

@@ -83,6 +83,7 @@ class Dispatcher
     {
         return $this->params;
     }
+
     /**
      * Get an individual parameter
      *
@@ -103,6 +104,7 @@ class Dispatcher
             return $default;
         }
     }
+
     /**
      * Set the event name
      *
@@ -115,6 +117,7 @@ class Dispatcher
         $this->name = (string)$name;
         return $this;
     }
+
     /**
      * Set an individual parameter to a value
      *
@@ -135,6 +138,7 @@ class Dispatcher
     {
         return $this->getAttribute($key);
     }
+    
 	/**
 	* Set a variable and make an object point to it
 	*/
