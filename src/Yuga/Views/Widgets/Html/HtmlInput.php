@@ -64,7 +64,7 @@ class HtmlInput extends Html
 
     public function multiple()
     {
-        return $this->addInputAttribute('required');
+        return $this->addInputAttribute('multiple');
     }
 
     public function maxLength($maxLength)

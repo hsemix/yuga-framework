@@ -40,9 +40,9 @@ class LoginWithRemember implements IMiddleware
     public function run(Request $request, Closure $next)
     {
         $settings = $this->app->config->load('config.Settings');
-        if($this->cookie->exists($settings->get('remember.name')) && !$this->session->isLoggedIn()){
+        if($this->cookie->exists($settings->get('remember.name')) && !$this->session->isLoggedIn()) {
             $hash = $this->cookie->get($settings->get('remember.name'));
-            if($hashCheck = $this->user->where('remember_token', $hash)->first()){
+            if($hashCheck = $this->user->where('remember_token', $hash)->first()) {
                 $this->session->login($hashCheck);
             }
         }

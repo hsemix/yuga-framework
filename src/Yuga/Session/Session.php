@@ -86,6 +86,11 @@ class Session implements ISession
 		return (isset($_SESSION[$name])) ? true : false;
 	}
 
+	public static function has($name)
+	{
+		return self::exists($name);
+	}
+
 	public static function delete($name)
 	{
 		if (self::exists($name)) {

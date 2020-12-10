@@ -732,15 +732,50 @@ abstract class Model implements ArrayAccess, JsonSerializable
         }
 
         if (count($this->cast) > 0) {
-            foreach ($model->cast as $attribute => $type) {
-                if (in_array($attribute, array_keys($model->attributes))) {
-                    $attributeData = $model->attributes[$attribute];
-                    settype($attributeData, $type);
-                    $model->setAttribute($attribute, $attributeData);
-                }
-            }
+            $model = $this->castTo($model);
         }
         return $model;
+    }
+
+    protected function castTo(Model $model)
+    {
+        foreach ($model->cast as $attribute => $type) {
+            if (in_array($attribute, array_keys($model->attributes))) {
+                $attributeData = $model->attributes[$attribute];
+
+                if ($type == 'array') {
+                    $attributeData = $this->castToArray($attributeData);
+                } else if ($type == 'json' || $type == 'json-array') {
+                    $attributeData = $this->castToJson($attributeData);
+                } else {
+                    settype($attributeData, $type);
+                }
+                $model->setAttribute($attribute, $attributeData);
+            }
+        }
+
+        return $model;
+    }
+
+    protected function isJson(?string $string = null)
+    {
+        json_decode($string ?? null);
+		return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    protected function castToArray(string $string)
+    {
+        if ($this->isJson($string))
+            $string = json_decode($string, true);
+        else
+            $string = (array)$string;
+        
+        return $string;
+    }
+
+    protected function castToJson($array)
+    {
+        return json_encode($array);
     }
 
     /**

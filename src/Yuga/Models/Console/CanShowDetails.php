@@ -8,6 +8,11 @@ use Yuga\Database\Elegant\Model;
 
 trait CanShowDetails
 {
+    /**
+     * Make the scaffold for a details form
+     * 
+     * @param \Yuga\Database\Elegant\Model $model
+     */
     protected function makeDetailsForm(Model $model)
     {
         $name = \class_base($model);
@@ -15,13 +20,11 @@ trait CanShowDetails
         $property = \strtolower($name);
         foreach ($model->scaffold as $fieldName => $type) {
 
-            
-            
             $fieldType = Scaffold::getFormType($type);
             
             $label = \ucfirst($fieldName);
             if ($fieldType != 'password') {
-                $inputs .= '<dt class="col-sm-2">'. str_replace('_', ' ', $label) .'</dt> <dd class="col-sm-10">{{ $' . $property . '->' . $fieldName . ' }}</dd>' . "\n\t\t\t";
+                $inputs .= '<div class="col-sm-2">'. str_replace('_', ' ', $label) .'</div> <div class="col-sm-10">{{ $' . $property . '->' . $fieldName . ' }}</div>' . "\n\t\t\t";
             }
         }
         

@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\Widgets\Html;
 
 class Html
@@ -13,12 +14,31 @@ class Html
     protected $attributes = [];
     protected $afterHtml = [];
     protected $beforeHtml = [];
+    protected $parent;
+
+    protected static $instance;
     
 
     public function __construct($tag)
     {
         $this->tag = $tag;
         $this->closingType = static::CLOSE_TYPE_TAG;
+
+        if (!static::$instance) {
+            static::$instance = $this;
+        }
+    }
+
+    /**
+     * Return a static instance of the Element
+     * 
+     * @param null
+     * 
+     * @return static
+     */
+    public static function getInstance()
+    {
+        return static::$instance;
     }
 
     /**
@@ -76,6 +96,13 @@ class Html
         return $this;
     }
 
+    public function addParentAttribute($name, $value = '')
+    {
+        $this->parent->addAttribute($name, $value);
+
+        return $this;
+    }
+
     /**
      * @param array $attributes
      * @return static $this
@@ -87,6 +114,34 @@ class Html
         }
 
         return $this;
+    }
+
+    /**
+     * @param array $attributes
+     * @return static $this
+     */
+    public function addAttributes(array $attributes)
+    {
+        return $this->setAttributes($attributes);
+    }
+
+    /**
+     * @param array $attributes
+     * @return static $this
+     */
+    public function setParentAttributes(array $attributes)
+    {
+        $this->parent->setAttributes($attributes);
+        return $this;
+    }
+
+    /**
+     * @param array $attributes
+     * @return static $this
+     */
+    public function addParentAttributes(array $attributes)
+    {
+        return $this->setParentAttributes($attributes);
     }
 
     public function attr($name, $value = '', $replace = true)
@@ -153,6 +208,12 @@ class Html
             $html = $after;
             $output .= ($html instanceof static) ? $html->render() : $html;
         }
+
+        $parent = $this->getParent();
+
+        if ($parent) {
+            $output = $parent->addInnerHtml($output)->render();
+        }
         return $output;
     }
 
@@ -171,6 +232,18 @@ class Html
     {
         foreach (explode(" ", $class) as $cls)
             $this->addAttribute('class', $cls);
+        return $this;
+    }
+
+    /**
+     * Add class
+     * @param string $class
+     * @return static
+     */
+    public function addParentClass($class)
+    {
+        foreach (explode(" ", $class) as $cls)
+            $this->parent->addAttribute('class', $cls);
         return $this;
     }
 
@@ -276,5 +349,44 @@ class Html
         }
 
         return null;
+    }
+
+    /**
+     * Set parent html
+     *
+     * @param Html|string|null $parent
+     * @param array $attributes
+     * @return static
+     */
+    public function setParent($parent = null, array $attributes = [])
+    {
+        if ($parent) {
+            if ($parent instanceof static) {
+                $this->parent = $parent->setAttributes($attributes);
+            } else {
+                $this->parent = (new self($parent))->setAttributes($attributes);
+            }
+        }
+        
+
+        return $this;
+    }
+
+    /**
+     * Get parent html
+     * @return Html|null
+     */
+    public function getParent()
+    {
+        return $this->parent;
+    }
+
+    /**
+     * Add a parent to an html Element
+     */
+    public function addParent($element)
+    {
+        $this->setParent($element);  
+        return $this->parent; 
     }
 }

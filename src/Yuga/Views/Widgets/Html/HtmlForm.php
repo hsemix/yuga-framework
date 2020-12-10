@@ -88,6 +88,14 @@ class HtmlForm extends Html
         return (new HtmlInput($type, $name, $value))->id($name);
     }
 
+    /**
+     * Add a submit button
+     * 
+     * @param string $name
+     * @param string $type
+     * @param string|null $value
+     * @param bool $saveValue
+     */
     public function submitButton($name, $type = 'submit', $value = null, $saveValue = true)
     {
         if ($saveValue && ($value === null && input()->get($name) !== null || request()->getMethod() !== 'get')) {
@@ -144,8 +152,12 @@ class HtmlForm extends Html
                 $this->fireFormEvents($this);
             }
             if ($this->make === true) {
-                $this->buildForm();
-            }
+                // $this->buildOutput();
+                $this->buildFormWithTable();
+            } 
+            // else {
+            //     $this->buildOutput('div');
+            // }
             return parent::__toString();
         } catch (\Throwable $e) {
             trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
@@ -256,7 +268,24 @@ class HtmlForm extends Html
         return $control;
     }
 
-    protected function buildForm()
+    public function buildOutput($formParent = 'table')
+    {
+        if ($formParent == 'table')
+            return $this->buildFormWithTable();
+        else
+            return $this->buildFormWithParent($formParent);
+    }
+
+    protected function buildFormWithParent(?string $formParent = null)
+    {
+        foreach ($this->controls as $name => $controlObject) {
+            $this->append($controlObject['control']);
+        }
+
+        return $this;
+    }
+
+    protected function buildFormWithTable()
     {
         $layout = '';
         

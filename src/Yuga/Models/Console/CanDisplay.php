@@ -8,6 +8,12 @@ use Yuga\Database\Elegant\Model;
 
 trait CanDisplay
 {
+    /**
+     * Make the scaffold for a Index page
+     * 
+     * @param \Yuga\Database\Elegant\Model $model
+     * @param mixed
+     */
     protected function makeIndexForm(Model $model)
     {
         $name = \class_base($model);

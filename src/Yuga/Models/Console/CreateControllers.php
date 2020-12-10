@@ -7,6 +7,12 @@ use Yuga\Database\Elegant\Model;
 
 trait CreateControllers
 {
+    /**
+     * Make the scaffold for a controller
+     * 
+     * @param \Yuga\Database\Elegant\Model $model
+     * @param mixed
+     */
     protected function processControllers(Model $model)
     {
         $name = \class_base($model);

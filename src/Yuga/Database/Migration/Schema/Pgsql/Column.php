@@ -22,7 +22,7 @@ class Column
 
     const INDEX_PRIMARY = 'PRIMARY KEY';
     const INDEX_UNIQUE = 'UNIQUE';
-    const INDEX_INDEX = 'INDEX';
+    const INDEX_INDEX = null;
     const INDEX_FULLTEXT = 'FULLTEXT';
 
     const RELATION_TYPE_RESTRICT = 'RESTRICT';
@@ -31,8 +31,9 @@ class Column
     const RELATION_TYPE_NO_ACTION = 'NO ACTION';
 
     const TYPE_VARCHAR = 'VARCHAR';
-    const TYPE_LONGTEXT = 'LONGTEXT';
+    const TYPE_LONGTEXT = 'TEXT';
     const TYPE_TEXT = 'TEXT';
+    const TYPE_TEXT_ARRAY = 'TEXT[]';
     const TYPE_MEDIUMTEXT = 'MEDIUMTEXT';
     const TYPE_TINYTEXT = 'TINYTEXT';
     const TYPE_INTEGER = 'INTEGER';
@@ -81,6 +82,7 @@ class Column
         self::TYPE_VARCHAR,
         self::TYPE_LONGTEXT,
         self::TYPE_TEXT,
+        self::TYPE_TEXT_ARRAY,
         self::TYPE_MEDIUMTEXT,
         self::TYPE_TINYTEXT,
         self::TYPE_INTEGER,
@@ -227,7 +229,7 @@ class Column
 
     public function getIndex()
     {
-        return $this->index;
+        return $this->index ? : null;
     }
 
     public function setIncrement($increment)
@@ -373,6 +375,13 @@ class Column
         return $this;
     }
 
+    public function textarray()
+    {
+        $this->setType(self::TYPE_TEXT_ARRAY);
+        
+        return $this;
+    }
+
     public function datetime()
     {
         $this->setType(self::TYPE_DATETIME);
@@ -474,7 +483,7 @@ class Column
 
         $query = sprintf('"%s" %s%s %s', $this->getName(), $this->getType(), $length, $this->getAttributes());
 
-        $query .= (!$this->getNullable()) ? 'NOT null' : 'null';
+        $query .= (!$this->getNullable()) ? 'NOT Null' : 'DEFAULT Null';
 
         if ($this->getDefaultValue()) {
             $query .= PdoHelper::formatQuery(' DEFAULT %s', [$this->getDefaultValue()]);

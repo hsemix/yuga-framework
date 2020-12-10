@@ -6,9 +6,9 @@
     <div>
         <h4>{title}</h4>
         <hr />
-        <dl class="row">
+        <div class="row">
             {form}            
-        </dl>
+        </div>
     </div>
     <div>
         <a href="{{ route('{route}/edit/' . {model-id}) }}">Edit</a> |

@@ -68,6 +68,30 @@ class MigrationServiceProvider extends ServiceProvider
         }
     }
 
+    public function seed(Application $app)
+    {
+        $config = $app->config->load('config.migrations');
+
+        if ($app->runningInConsole()) {
+            if (count($config->get('migrate')) > 0) {
+                foreach (glob($this->getMigrationPath()."*.php") as $migration) {
+                    require_once $migration;
+                }
+                $this->runSeeders($config->get('migrate'));
+            } 
+        }    
+    }
+
+    protected function runSeeders($migrations)
+    {
+        foreach ($migrations as $migration) {
+            if (class_exists($migration)) {
+                $migration = new $migration;
+                $migration->seeder();
+            }
+        }
+    }
+
     protected function getMigrationPath()
     {
         return path().'database'.DIRECTORY_SEPARATOR.'migrations'.DIRECTORY_SEPARATOR;

@@ -63,6 +63,7 @@ class MakeScaffoldCommand extends Command
                 // make all the index pages
                 $this->makeIndexForm($modelInstance);
                 // make all the delete pages
+                $this->makeDeleteForm($modelInstance);
                 // process routes
                 $this->processRoutes($modelInstance);
                 // process controllers

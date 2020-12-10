@@ -21,6 +21,8 @@ use Yuga\Route\Exceptions\HttpException;
 use Yuga\Route\Support\IControllerRoute;
 use Yuga\Http\Middleware\BaseCsrfVerifier;
 use Yuga\Route\Exceptions\NotFoundHttpException;
+use Yuga\Route\Exceptions\NotFoundHttpMethodException;
+use Yuga\Route\Exceptions\NotFoundHttpControllerException;
 
 class Router
 {
@@ -356,11 +358,11 @@ class Router
                 return;
             } else {
                 $message = sprintf('Method: "%s" not found', $method);
-                $this->handleException(new NotFoundHttpException($message, 404));
+                $this->handleException(new NotFoundHttpMethodException($message, 404));
             }
         } else {
             $message = sprintf('Controller: "%s" not found', $controller);
-            $this->handleException(new NotFoundHttpException($message, 404));
+            $this->handleException(new NotFoundHttpControllerException($message, 404));
         }
     }
 

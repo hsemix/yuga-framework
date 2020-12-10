@@ -50,6 +50,7 @@ class Types
     const TYPE_HIDDEN = 'HIDDEN';
     const TYPE_FILE = 'FILE';
     const TYPE_RANGE = 'RANGE';
+    const TYPE_EDITOR = 'EDITOR';
 
     public static $INPUT_TYPES = [
         self::TYPE_EMAIL => 'email',
@@ -98,5 +99,6 @@ class Types
         self::TYPE_MULTILINESTRING => 'text',
         self::TYPE_MULTIPOLYGON => 'text',
         self::TYPE_GEOMETRYCOLLECTION => 'text',
+        self::TYPE_EDITOR => 'editor',
     ];
 }

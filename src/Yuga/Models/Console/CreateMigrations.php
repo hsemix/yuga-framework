@@ -8,6 +8,12 @@ use Yuga\Database\Console\MakeMigrationCommand;
 
 trait CreateMigrations
 {
+    /**
+     * Make the scaffold for migrations
+     * 
+     * @param \Yuga\Database\Elegant\Model $model
+     * @param mixed
+     */
     protected function processMigrations(Model $model)
     {
         $name = \class_base($model);

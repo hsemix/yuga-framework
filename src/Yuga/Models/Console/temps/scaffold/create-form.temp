@@ -27,3 +27,7 @@
         <a href="{{ route('{route}') }}">Back to List</a>
     </div>
 @endsection
+
+@section('scripts')
+    {scripts}
+@endsection

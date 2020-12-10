@@ -1049,7 +1049,7 @@ class Builder
         $orderable = [];
 
         foreach ($columns as $column) {
-            if ((bool)$column['searchable'] === 'true') {
+            if ($column['searchable'] === 'true') {
                 if (!in_array($column['data'], $this->getModel()->bootable))
                     $searchable[] = $column['data'];
             }
@@ -1067,7 +1067,7 @@ class Builder
         if (count($orderBy) > 0) {
             foreach ($orderBy as $filterI => $filter) {
                 $column = $columns[$filter['column']];
-                if ((bool)$column['orderable'] === 'true') {
+                if ($column['orderable'] === 'true') {
                     if (!in_array($column['data'], $this->getModel()->bootable))
                         $orderable[$column['data']] = $filter['dir'];
                 }

@@ -58,12 +58,23 @@ class HtmlButton extends Html
 	 */
 	public function isClicked()
 	{
-		$value = $this->getValue();
+        $value = $this->getValue();
+
+        // echo '<pre>';
+        // print_r($this->getParent());
+        // die();
 		return $value !== null && $value !== [];
     }
     
     public function getValue()
     {
-        return count($value = $this->getAttribute('value')) > 0 ? $value[0] : null;
+        $value = $this->getAttribute('value');
+        return  $value ? $value[0] : null;
+    }
+
+    public function getName()
+    {
+        $name = $this->getAttribute('name');
+        return  $name ? $name[0] : null;
     }
 }

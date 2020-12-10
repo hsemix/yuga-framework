@@ -13,7 +13,9 @@ use Yuga\Route\Support\IGroupRoute;
 use Yuga\Http\Middleware\IMiddleware;
 use Yuga\Route\Exceptions\HttpException;
 use Yuga\Route\Exceptions\NotFoundHttpException;
+use Yuga\Route\Exceptions\NotFoundHttpMethodException;
 use Yuga\Http\Middleware\MiddleWare as RouteMiddleware;
+use Yuga\Route\Exceptions\NotFoundHttpControllerException;
 use Yuga\Database\Elegant\Exceptions\ModelNotFoundException;
 
 abstract class Route implements IRoute
@@ -62,13 +64,19 @@ abstract class Route implements IRoute
 
     protected function loadClass($name)
     {
-        
-        // if (is_string($name)) {
-            if (class_exists($name) === false) {
-                throw new NotFoundHttpException(sprintf('Class "%s" does not exist', $name), 404);
+        $exception = NotFoundHttpException::class;
+        if (env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}') != null) {
+            $debugSettings = json_decode(env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}'), true);
+            if (isset($debugSettings['controller_missing'])) {
+                if ($debugSettings['controller_missing'] === true) {
+                    $exception = NotFoundHttpControllerException::class;
+                }  
             }
-            return Application::getInstance()->resolve($name);
-        
+        }
+        if (class_exists($name) === false) {
+            throw new $exception(sprintf('Class "%s" does not exist', $name), 404);
+        }
+        return Application::getInstance()->resolve($name);
     }
 
     protected function instantiated($callback, $request = null)
@@ -212,7 +220,17 @@ abstract class Route implements IRoute
 
         
         if (method_exists($class, $method) === false) {
-            throw new NotFoundHttpException(sprintf('Method "%s" does not exist in class "%s"', $method, $className), 404);
+            $exception = NotFoundHttpException::class;
+            if (env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}') != null) {
+                $debugSettings = json_decode(env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}'), true);
+                
+                if (isset($debugSettings['method_missing'])) {
+                    if ($debugSettings['method_missing'] === true) {
+                        $exception = NotFoundHttpMethodException::class;
+                    } 
+                }
+            }
+            throw new $exception(sprintf('Method "%s" does not exist in class "%s"', $method, $className), 404);
         }
 
         $parameters = $this->getParameters();

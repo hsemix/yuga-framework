@@ -61,6 +61,7 @@ class XmlElement implements IXmlNode
     public function setParent($parent)
     {
         $this->parent = $parent;
+        return $this;
     }
 
     public function addChild(IXmlNode $node)

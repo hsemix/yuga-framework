@@ -7,6 +7,12 @@ use Yuga\Database\Elegant\Model;
 
 trait CreateRoutes
 {
+    /**
+     * Make the scaffold for a routes
+     * 
+     * @param \Yuga\Database\Elegant\Model $model
+     * @param mixed
+     */
     protected function processRoutes(Model $model)
     {
         $name = \class_base($model);

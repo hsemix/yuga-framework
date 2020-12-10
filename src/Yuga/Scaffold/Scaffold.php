@@ -51,6 +51,7 @@ class Scaffold extends Types
         self::TYPE_MULTILINESTRING => 'string',
         self::TYPE_MULTIPOLYGON => 'string',
         self::TYPE_GEOMETRYCOLLECTION => 'string',
+        self::TYPE_EDITOR => 'longtext',
     ];
 
     public static function getMethod($type)
