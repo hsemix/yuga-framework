@@ -72,6 +72,24 @@ class MakeScaffoldCommand extends Command
                 $this->processMigrations($modelInstance);
             }
         }
+        $this->layoutMvc();
+    }
+
+    protected function layoutMvc()
+    {
+        $temp = 'layouts/app.temp';
+        $layout = 'layouts/app.hax.php';
+        
+        if (!is_dir($directory = path('resources/views/layouts'))) {
+            mkdir($directory, 0755, true);
+        }
+        if (file_exists($view = path('resources/views/' . $layout)) && !$this->option('force')) {
+            if ($this->confirm("The [{$view}] view already exists. Do you want to replace it?")) {
+                copy(__DIR__.'/temps/scaffold/' . $temp, $view);
+            }
+        } else {
+            copy(__DIR__.'/temps/scaffold/' . $temp, $view);
+        }
     }
 
     /**

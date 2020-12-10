@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="with" content="Yuga Framework 3.4.0" />
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -23,11 +24,11 @@
         </nav>
 
         @yield('content')
-
-
     </div>
 
     <!-- Scripts -->
     {{ script(['yuga/js/jQuery/jquery-2.2.3.min.js', 'yuga/bootstrap/js/bootstrap.min.js']) }}
+    <!-- Custom Styles per page -->
+    @yield('scripts')
 </body>
 </html>
