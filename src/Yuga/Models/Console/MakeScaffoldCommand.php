@@ -68,8 +68,11 @@ class MakeScaffoldCommand extends Command
                 $this->processRoutes($modelInstance);
                 // process controllers
                 $this->processControllers($modelInstance);
-                // process migrations
-                $this->processMigrations($modelInstance);
+                if ($this->option('migrations') == 'yes') {
+                    // process migrations
+                    $this->processMigrations($modelInstance);
+                }
+                
             }
         }
         $this->layoutMvc();
@@ -103,6 +106,7 @@ class MakeScaffoldCommand extends Command
             ['models', null, InputOption::VALUE_OPTIONAL, 'The names of all models whose scaffold are to be created (separated by commas).', 'all'],
             ['dir', null, InputOption::VALUE_OPTIONAL, 'The name of the folder where your models reside inside of the app folder.', 'Models'],
             ['force', null, InputOption::VALUE_OPTIONAL, 'Overwrite existing files.', false], 
+            ['migrations', null, InputOption::VALUE_OPTIONAL, 'Whether or not migrations should be created.', 'yes']
         ];
     }
 }
