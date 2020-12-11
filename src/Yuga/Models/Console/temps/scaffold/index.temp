@@ -1,31 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
+    <div class="container">
+        <h1>{title}</h1>
 
-    <h1>{title}</h1>
-
-    <p>
-        <a href="{route}/create">Create New</a>
-    </p>
-    <table class="table">
-        <thead>
-            <tr>
-                {menu}
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ({loop})
+        <p>
+            <a href="{route}/create">Create New</a>
+        </p>
+        <table class="table">
+            <thead>
                 <tr>
-                    {table}
-                    <td>
-                        <a href="{{ route('{route}/edit/' . {model-id}) }}">Edit</a> |
-                        <a href="{{ route('{route}/details/' . {model-id}) }}">Details</a> |
-                        <a href="{{ route('{route}/delete/' . {model-id}) }}">Delete</a>
-                    </td>
+                    {menu}
+                    <th></th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
-    {{ ${route}->links() }}
+            </thead>
+            <tbody>
+                @foreach ({loop})
+                    <tr>
+                        {table}
+                        <td>
+                            <a href="{{ route('{route}/edit/' . {model-id}) }}">Edit</a> |
+                            <a href="{{ route('{route}/details/' . {model-id}) }}">Details</a> |
+                            <a href="{{ route('{route}/delete/' . {model-id}) }}">Delete</a>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        {{ ${route}->links() }}
+    <div class="container">
 @endsection

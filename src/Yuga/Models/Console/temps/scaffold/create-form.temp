@@ -1,30 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
-    <h1>{form-title}</h1>
+    <div class="container">
+        <h1>{form-title}</h1>
 
-    <h4>{title}</h4>
-    <hr />
-    <div class="row">
-        <div class="col-md-12">
-            <form method="post">
-                {{ token() }}
-                @if ($errors->hasMessages())
-                    <div class="text-danger">{{ implode('<br />', $errors->getFirst()) }}</div>
-                @endif
-                @if ($session->exists('success'))
-                    <div class="text-success">{{ $session->flash('success') }}</div>
-                @endif
-                {inputs}            
-                <div class="form-group">
-                    <input type="submit" value="Create" class="btn btn-primary" />
-                </div>
-            </form>
+        <h4>{title}</h4>
+        <hr />
+        <div class="row">
+            <div class="col-md-12">
+                <form method="post">
+                    {{ token() }}
+                    @if ($errors->hasMessages())
+                        <div class="text-danger">{{ implode('<br />', $errors->getFirst()) }}</div>
+                    @endif
+                    @if ($session->exists('success'))
+                        <div class="text-success">{{ $session->flash('success') }}</div>
+                    @endif
+                    {inputs}            
+                    <div class="form-group">
+                        <input type="submit" value="Create" class="btn btn-primary" />
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
 
-    <div>
-        <a href="{{ route('{route}') }}">Back to List</a>
+        <div>
+            <a href="{{ route('{route}') }}">Back to List</a>
+        </div>
     </div>
 @endsection
 
