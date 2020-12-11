@@ -27,15 +27,15 @@ trait CanUpdate
             $input = '<input name="'. $fieldName .'" id="' . $fieldName . '" type="'. $fieldType .'" class="form-control" />';
 
             if ($fieldType != 'password') {
-                $input = '<input name="'. $fieldName .'" id="' . $fieldName . '" type="'. $fieldType .'" value="{{ old(\''. $fieldName .'\') }}" class="form-control" />';
+                $input = '<input name="'. $fieldName .'" id="' . $fieldName . '" type="'. $fieldType .'"  value="{{ $' . $property . '->' . $fieldName . ' }}" class="form-control" />';
             }
             if ($fieldType == 'textarea') {
-                $input = '<textarea name="'. $fieldName .'" id="' . $fieldName . '" cols="10" rows="4" class="form-control" placeholder="Type Something..."></textarea>';
+                $input = '<textarea name="'. $fieldName .'" id="' . $fieldName . '" cols="10" rows="4" class="form-control" placeholder="Type Something...">{{ $' . $property . '->' . $fieldName . ' }}</textarea>';
             }
 
             if ($fieldType == 'editor') {
                 $isEditor = true;
-                $input = '<textarea name="'. $fieldName .'" id="editor" cols="10" rows="4" class="form-control editor"></textarea>';
+                $input = '<textarea name="'. $fieldName .'" id="editor" cols="10" rows="4" class="form-control editor">{{ $' . $property . '->' . $fieldName . ' }}</textarea>';
                 $editors += 1;
             }
 
