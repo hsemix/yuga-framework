@@ -21,6 +21,7 @@ class EventServiceProvider extends ServiceProvider
         'on:authenticate'   => \Yuga\EventHandlers\Auth\UserLoggedIn::class,
         'on:signup'         => \Yuga\EventHandlers\Auth\UserRegistered::class,
         'on:signout'        => \Yuga\EventHandlers\Auth\UserLoggedOut::class,
+        'on:hax-render'     => \Yuga\EventHandlers\Hax\Rendered::class,
     ];
 
     /**
@@ -44,8 +45,6 @@ class EventServiceProvider extends ServiceProvider
      */
     public function load(Application $app)
     {
-        // $app->singleton('events', Event::class);
-        // $app->resolve('events');
         $app->singleton('events', function ($app) {
             return $this->loadEvents(new Event($app));
         });

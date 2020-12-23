@@ -21,6 +21,7 @@ class ViewServiceProvider extends ServiceProvider
             $template->host = (new Request)->getHost();
             $template->app = $app;
             
+            event('on:hax-render', ['view' => $template]);
             return $template;
         }
     }

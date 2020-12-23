@@ -129,7 +129,7 @@ class Application extends Container implements IApplication
             static::$app = $this;
         }
         $providers = $this->config->load('config.ServiceProviders');
-        
+        $this->registerConfigProviders();
         foreach ($this->config->getAll() as $name => $provider) {
             if (class_exists($provider)) {
                 $this->singleton($name, $provider);
@@ -220,6 +220,16 @@ class Application extends Container implements IApplication
     }
 
     /**
+     * Register those providers that need to be loaded before any other providers
+     * 
+     * @return void
+     */
+    protected function registerConfigProviders()
+    {
+        $this->registerProvider(new EventServiceProvider($this));
+    }
+
+    /**
      * Register all of the base service providers.
      *
      * @return void
@@ -227,8 +237,6 @@ class Application extends Container implements IApplication
     protected function registerDefaultProviders()
     {
         $this->registerProvider(new ElegantServiceProvider($this));
-
-        $this->registerProvider(new EventServiceProvider($this));
 
         $this->registerProvider(new LogServiceProvider($this));
 
