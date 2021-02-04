@@ -43,6 +43,7 @@ class Redirect
         $url = (route($url) == '') ? $url : route($url);
         $this->header('location: ' . $url);
         die();
+        // return $this;
     }
 
     public function header($value)
