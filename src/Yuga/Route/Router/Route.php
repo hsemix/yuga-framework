@@ -290,7 +290,7 @@ abstract class Route implements IRoute
                 if (!is_null($parameter->getClass())) {
                     $dependency = $parameter->getClass()->name;
                     if (array_key_exists($parameter->name, $params)) {
-                        $dependencyObject = new $dependecy;
+                        $dependencyObject = new $dependency;
                         $modelBindingSettings = $this->processBindings($request);
                         $field = $dependencyObject->getPrimaryKey();
                         if ($dependencyObject->getRouteKeyName() !== null && $dependencyObject->getRouteKeyName() != '') {
