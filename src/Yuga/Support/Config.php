@@ -9,11 +9,16 @@ class Config
     protected $data;
     protected $default = null;
     
-    public function load($file)
+    public function load($file, $key = null)
     {
         $file = str_replace(".", "/", $file);
         $file = require path($file.'.php');
-        $this->data = $file;
+
+        if ($key)
+            $this->data[$key] = $file;
+        else
+            $this->data = $file;
+        
         return $this;
     }
 
