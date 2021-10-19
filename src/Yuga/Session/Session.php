@@ -15,15 +15,15 @@ class Session implements ISession
 	public $user_id;
 	private static $instances = [];
 	private $app;
-	private $sessionName;
+	private $sessionName = 'yuga_session';
 	public function __construct(Application $app)
 	{
 		if (session_status() == PHP_SESSION_NONE) {
 			@session_start();
 		}
-		$this->app = $app;
-		$config = $this->app->config->load('config.Settings');
-		$this->sessionName = $config->get('session.name');
+		// $this->app = $app;
+		// $config = $this->app->config->load('config.Settings');
+		// $this->sessionName = $config->get('session.name');
 		$this->check_login();
 	}
 

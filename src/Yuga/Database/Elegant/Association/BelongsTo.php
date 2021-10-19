@@ -28,4 +28,14 @@ class BelongsTo extends Association
         $table = $this->child->getTable();
         $this->query->where($table.'.'.$this->otherKey, '=', $this->parent->{$this->foreignKey});
     }
+
+    /**
+     * Get the results of the relationship.
+     *
+     * @return mixed
+     */
+    public function getResults()
+    {
+        return $this->query->first();
+    }
 }

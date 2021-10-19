@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Query;
 
 use PDO;
@@ -6,6 +7,8 @@ use Closure;
 use Exception;
 use Yuga\Database\Elegant\Collection;
 use Yuga\Database\Connection\Connection;
+use Yuga\Database\Query\ActiveRecord\Row;
+use Yuga\Database\Query\ActiveRecord\ResultSet;
 use Yuga\Database\Query\Exceptions\DatabaseQueryException;
 use Yuga\Database\Query\Exceptions\TransactionHaltException;
 
@@ -18,8 +21,11 @@ class Builder
     protected $pdoStatement;
     protected $statements = [];
     protected $grammarInstance;
+    protected $activeRecordTable;
     protected $fetchParameters = [PDO::FETCH_OBJ];
     protected $acceptableTypes = ['select', 'insert', 'insertignore', 'replace', 'delete', 'update', 'criteriaonly'];
+
+    protected static $builder;
     
     public function __construct(Connection $connection = null)
     {
@@ -40,6 +46,15 @@ class Builder
             [$this->connection]
         );
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        if (!static::$builder) {
+            static::$builder = $this;
+        }
+    }
+
+    public static function getInstance()
+    {
+        return static::$builder;
     }
 
     public function getPdo()
@@ -58,8 +73,17 @@ class Builder
         return $this->connection;
     }
 
+    public function getActiveRecordTable()
+    {
+        return $this->activeRecordTable;
+    }
+    
     public function table($tables)
     {
+        if (is_string($tables)) {
+            $this->activeRecordTable = $tables;
+        }
+
         if (!is_array($tables)) {
             // change supplied parameters to an array so as to capture tables as an array,
             $tables = func_get_args();
@@ -197,6 +221,29 @@ class Builder
     {
         $this->limit($number);
         return $this;
+    }
+
+    /**
+     * Set the limit and offset for a given page.
+     *
+     * @param  int  $page
+     * @param  int  $perPage
+     * @return \Yuga\Database\Query\Builder|static
+     */
+    public function getPage($page, $perPage = 15)
+    {
+        return $this->skip(($page - 1) * $perPage)->take($perPage);
+    }
+
+    /**
+     * Alias to set the "offset" value of the query.
+     *
+     * @param  int  $value
+     * @return \Yuga\Database\Query\Builder|static
+     */
+    public function skip($value)
+    {
+        return $this->offset($value);
     }
 
     public function offSet($offset)
@@ -502,12 +549,17 @@ class Builder
      */
     public function get($columns = null)
     {
+        if (env('DATABASE_DB_API_ACTIVE_RECORD', false) == true)
+            return new ResultSet($this->getAll($columns));
         return new Collection($this->getAll($columns));
     }
 
     public function getAll($columns = null)
     {
         if ($this->pdoStatement === null) {
+            if (env('DATABASE_DB_API_ACTIVE_RECORD', false) == true) {
+                $this->asObject(Row::class);
+            }
             if($columns)
                 $this->select($columns);
             $queryObject = $this->getQuery('select');
@@ -771,7 +823,7 @@ class Builder
             // Commit or rollback behavior has been triggered in the closure
             return $queryTransaction;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
             // Something went wrong. Rollback and throw Exception
             if ($this->pdo->inTransaction() === true) {

@@ -6,9 +6,12 @@ use Iterator;
 use Countable;
 use ArrayAccess;
 use JsonSerializable;
+use Yuga\Support\Str;
 use Yuga\Http\Request;
+use Yuga\Views\Widgets\Html\Html;
+use Yuga\Database\Elegant\Collection;
 
-class Datatable extends Paginator
+class DataTable extends Paginator
 {
     /**
      * The current path resolver callback.
@@ -16,36 +19,48 @@ class Datatable extends Paginator
      * @var \Closure
      */
     protected static $currentPathResolver;
+
     /**
      * The query string variable used to store the page.
      *
      * @var string
      */
     protected $pageName = 'draw';
+
     /**
      * The path variable used to store the page.
      *
      * @var string
      */
     protected $path;
+
     /**
      * The per-page variable used to store the page.
      *
      * @var int
      */
     protected $perPage;
+
     /**
     * The current-page variable used tn the page.
     *
     * @var int
     */
     protected $currentPage;
+
     /**
      * The total items count variable 
      * 
      * @var int
      */
     protected $totalCount;
+
+    protected $additionalColumns = [];
+
+    protected $columns = [];
+
+    protected $dom = null;
+    protected $buttons = [];
 
     /**
      * Create a new paginator instance.
@@ -56,7 +71,7 @@ class Datatable extends Paginator
      * @param  array  $options (path, query, fragment, pageName)
      * @return void
      */
-    public function __construct($perPage, $currentPage = null, array $options = [])
+    public function __construct($perPage = 10, $currentPage = null, array $options = [])
     {
         foreach ($options as $key => $value) {
             $this->{$key} = $value;
@@ -154,5 +169,115 @@ class Datatable extends Paginator
             'recordsTotal'      => $this->getTotalRecordsCount(),
             'recordsFiltered'   => $this->getRecordsFilteredCount(),
         ];
+    }
+
+    public function getColumns(): array
+    {
+        return $this->columns;
+    }
+
+    public static function of(Collection $collection)
+    {
+        return $collection;
+    }
+
+    public function addColumn(string $title, callable $callable)
+    {
+        $this->additionalColumns[$title] = $callable(1);
+        return $this;
+    }
+
+    public function tableColumns(array $columns)
+    {
+        
+        if ($this->isAssociative($columns)) {
+            $this->columns = array_map(function($column) {
+                if (!is_array($column))
+                    return ['data' => $column];
+                return $column;
+            }, $columns);
+        } else {
+            $this->columns = $columns;
+        }
+
+        if ((new Request)->isAjax())
+            return $this->toJsonData();
+        return $this;
+    }
+
+    protected function isAssociative(array $array)
+    {
+        return count(array_filter(array_keys($array), 'is_string')) === 0;
+    }
+
+    public function dom(string $type)
+    {
+        $this->dom = $type;
+        if ((new Request)->isAjax())
+            return $this->toJsonData();
+
+        return $this;
+    }
+
+    public function buttons(array $buttons = [])
+    {
+        $this->buttons = $buttons;
+
+        if ((new Request)->isAjax())
+            return $this->toJsonData();
+        return $this;
+    }
+
+    public function scripts(bool $readyState = true)
+    {
+        $settings = [
+            "columns" => $this->columns,
+            "processing" => true,
+            "serverSide" => true,
+            "ajax" => $this->path,
+            "buttons" => $this->buttons,
+            "dom" => $this->dom,
+        ];
+
+        $js = 'var tables = $("#table_' . Str::deCamelize(class_base($this->first())) . '").DataTable(' . json_encode($settings) . ');';
+        if ($readyState)
+            $js = '$(function() {' . $js . '});';
+        
+        return '<script type="text/javascript">' . $js . '</script>';
+    }
+
+    public function toJsonData()
+    {
+        return response()->json([
+            'data' => $this,
+            "recordsTotal" => $this->getTotalRecordsCount(),
+            "recordsFiltered" => $this->getRecordsFilteredCount(),
+        ]);
+    }
+
+    public function table(array $settings = [], bool $showFooter = false)
+    {
+        $table = new Html('table');
+        $table->id('table_' . Str::deCamelize(class_base($this->first())));
+        if (isset($settings['class']))
+            $table->addClass($settings['class']);
+           
+        $tableHead = new Html('thead');
+        $tableFoot = new Html('tfoot');
+        $tableBody = new Html('tbody');
+
+        foreach ($this->columns as $column) {
+            $th = (new Html('th'))->addInnerHtml(ucwords(str_replace('_', ' ', isset($column['name']) ? $column['name'] : $column['data'])));
+            $tableHead->addInnerHtml($th);
+            if ($showFooter)
+                $tableFoot->addInnerHtml($th);
+        }
+
+        $table->addInnerHtml($tableHead);
+        $table->addInnerHtml($tableBody);
+        if ($showFooter)
+            $table->addInnerHtml($tableFoot);
+
+        return $table;
     }
 }

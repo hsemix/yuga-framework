@@ -55,5 +55,12 @@ abstract class Association implements Relation
             return $key ? $value->getAttribute($key) : $value->getPrimaryKey();
         }, $models)));
     }
+
+    /**
+     * Get the results of the relationship.
+     *
+     * @return mixed
+     */
+    abstract public function getResults();
     
 }

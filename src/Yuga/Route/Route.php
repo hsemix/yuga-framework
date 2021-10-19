@@ -14,6 +14,7 @@ use Yuga\Route\Router\RouteUrl;
 use Yuga\Route\Router\RouteGroup;
 use Yuga\Route\Router\RouteResource;
 use Yuga\Exceptions\CallbackException;
+use Yuga\Route\Router\RouteController;
 use Yuga\Http\Middleware\BaseCsrfVerifier;
 use Yuga\Http\Exceptions\BadFormedUrlException;
 

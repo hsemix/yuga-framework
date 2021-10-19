@@ -18,6 +18,7 @@ use Yuga\Database\Query\Builder as QueryBuilder;
 use Yuga\Database\Elegant\Association\Association;
 use Yuga\Database\Elegant\Exceptions\ModelException;
 use Yuga\Database\Elegant\Exceptions\ModelNotFoundException;
+use Yuga\Database\Query\ActiveRecord\Row;
 
 class Builder
 {   
@@ -49,7 +50,7 @@ class Builder
     public function __construct(Connection $connection = null, Model $model)
     {
         $this->model = $model;
-        $this->query = (new QueryBuilder)->table($this->model->getTable());
+        $this->query = (new QueryBuilder($connection))->table($this->model->getTable());
     }
 
     /**
@@ -118,6 +119,8 @@ class Builder
         }
         $models = $this->query->getAll($columns); 
         $models = array_map(function ($model) use ($carbon) {
+            if ($model instanceof Row)
+                $model = (object)$model->toArray();
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
                 if (property_exists($model, $this->getModel()->getCreatedAtColumn())) {
                     if ($model->{$this->getModel()->getCreatedAtColumn()}) {
@@ -431,6 +434,28 @@ class Builder
         return $item;
     }
 
+    /**
+     * Execute the query and get the first result or call a callback.
+     *
+     * @param  \Closure|array  $columns
+     * @param  \Closure|null  $callback
+     * @return \Yuga\Database\Elegant\Model|static|mixed
+     */
+    public function firstOr($columns = ['*'], Closure $callback = null)
+    {
+        if ($columns instanceof Closure) {
+            $callback = $columns;
+
+            $columns = ['*'];
+        }
+
+        if (!is_null($model = $this->first($columns))) {
+            return $model;
+        }
+
+        return call_user_func($callback);
+    }
+
     public function first($columns = null)
     {
         $carbon = \Yuga\Carbon\Carbon::class;
@@ -450,13 +475,17 @@ class Builder
 			}
         }
         if ($columns) {
+            if (is_array($columns) === false) {
+                $columns = func_get_args();
+            }
             $item = $this->query->select($columns)->first();
         } else {
             $item = $this->query->first();
         }
-        
+
         if ($item !== null) {
-            
+            if ($item instanceof Row)
+                $item = (object)$item->toArray();
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
                 if (property_exists($item, $this->getModel()->getCreatedAtColumn())) {
                     if ($item->{$this->getModel()->getCreatedAtColumn()}) {
@@ -501,6 +530,8 @@ class Builder
             $item = $this->query->last();
         }
         if ($item !== null) {
+            if ($item instanceof Row)
+                $item = (object)$item->toArray();
             if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
                 if (property_exists($item, $this->getModel()->getCreatedAtColumn())) {
                     if ($item->{$this->getModel()->getCreatedAtColumn()}) {
@@ -809,6 +840,18 @@ class Builder
         if($raw == 'raw')
             return $this->getQuery()->getQuery()->getRawSql();
         return $this->getQuery()->getQuery()->getSql();
+    }
+
+    /**
+     * Return a printable representation of the Builder object
+     * 
+     * @param string|null $raw
+     * 
+     * @return string
+     */
+    public function toRawSql()
+    {
+        return $this->getQuery()->getQuery()->getRawSql();
     }
 
     /**
@@ -1155,6 +1198,54 @@ class Builder
         }
         $this->getModel()->setTable($objectCallingView);
         return $this->getModel();
+    }
+
+    /**
+     * Chunk the results of the query.
+     *
+     * @param  int  $count
+     * @param  callable  $callback
+     * @return void
+     */
+    public function chunk($count, callable $callback)
+    {
+        $results = $this->getPage($page = 1, $count)->get();
+
+        while (count($results) > 0) {
+            call_user_func($callback, $results);
+
+            $page++;
+
+            $results = $this->getPage($page, $count)->get();
+        }
+    }
+
+    /**
+     * Call the given model span on the underlying model.
+     *
+     * @param  string  $span
+     * @param  array   $parameters
+     * @return \Yuga\Database\Elegant\Query\Builder
+     */
+    public function callSpan($span, $parameters)
+    {
+        array_unshift($parameters, $this);
+
+        return call_user_func_array([$this->model, $span], $parameters) ?: $this;
+    }
+
+    /**
+     * Dynamically handle calls into the query instance.
+     *
+     * @param  string  $method
+     * @param  array   $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        $result = call_user_func_array([$this->query, $method], $parameters);
+
+        return $result;
     }
 
     public function __sleep()

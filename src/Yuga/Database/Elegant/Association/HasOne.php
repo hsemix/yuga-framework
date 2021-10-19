@@ -54,4 +54,14 @@ class HasOne extends Association
 
         return $models;
     }
+
+    /**
+     * Get the results of the relationship.
+     *
+     * @return mixed
+     */
+    public function getResults()
+    {
+        return $this->query->first();
+    }
 }

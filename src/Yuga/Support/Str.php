@@ -11,6 +11,13 @@ class Str
 {
     public const TRIM_CHARACTERS = " \t\n\r\0\x0B\u{A0}";
 
+	/**
+     * The cache of studly-cased words.
+     *
+     * @var array
+     */
+    protected static $studlyCache = [];
+
     public static function getFirstOrDefault($value, $default = null)
     {
         return ($value !== null && trim($value) !== '') ? trim($value) : $default;
@@ -119,11 +126,6 @@ class Str
     
     public static function title($value)
 	{
-		if (MB_STRING)
-		{
-			return mb_convert_case($value, MB_CASE_TITLE, \App::getCharset());
-		}
-
 		return ucwords(strtolower($value));
     }
 
@@ -134,12 +136,12 @@ class Str
     
     public static function lower($value)
 	{
-        return (MB_STRING) ? mb_strtolower($value, \App::getCharset()) : strtolower($value);
+        return mb_strtolower($value, \App::getCharset());
     }
     
     public static function upper($value)
 	{
-		return (MB_STRING) ? mb_strtoupper($value, \App::getCharset()) : strtoupper($value);
+		return mb_strtoupper($value, \App::getCharset());
     }
 
     /**
@@ -470,5 +472,24 @@ class Str
 		]);
 		return $m;
 	}
+
+	/**
+     * Convert a value to studly caps case.
+     *
+     * @param  string  $value
+     * @return string
+     */
+    public static function studly($value)
+    {
+        $key = $value;
+
+        if (isset(static::$studlyCache[$key])) {
+            return static::$studlyCache[$key];
+        }
+
+        $value = ucwords(str_replace(['-', '_'], ' ', $value));
+
+        return static::$studlyCache[$key] = str_replace(' ', '', $value);
+    }
 
 }

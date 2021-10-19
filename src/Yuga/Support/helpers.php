@@ -1,4 +1,8 @@
 <?php
+
+use Yuga\Support\Arr;
+use Yuga\Support\Str;
+use Yuga\Database\Elegant\Collection;
 /**
  * @author Mahad Tech Solutions
  */
@@ -42,7 +46,7 @@ if (! function_exists('session')) {
     function session($param = null)
     {
         if ($param)
-            return app()->make('session')->exists($param);
+            return app()->make('session')->get($param);
         return app()->make('session');
     }
 }
@@ -94,7 +98,7 @@ if (! function_exists('data_get')) {
 
         while (($segment = array_shift($key)) !== null) {
             if ($segment === '*') {
-                if ($target instanceof \Yuga\Collection) {
+                if ($target instanceof Collection) {
                     $target = $target->all();
                 } elseif (!is_array($target)) {
                     return value($default);
@@ -189,8 +193,10 @@ if(!function_exists('env')) {
 }
 
 if (!function_exists('app')) {
-    function app()
+    function app($param = null)
     {
+        if ($param)
+            return \Yuga\Application\Application::getInstance()->make($param);
         return \Yuga\Application\Application::getInstance();
     }
 }
@@ -251,7 +257,7 @@ if(!function_exists('redirect')) {
             response()->httpCode($code);
         }
 
-        response()->redirect($url);
+        return response()->redirect($url);
     }
 }
 
@@ -453,4 +459,74 @@ if ( ! function_exists('jsonResponse')) {
 	{
 		return response()->jsonResponse($data);
 	}
+}
+
+if (!function_exists('e')) {
+    /**
+     * Escape HTML entities in a string.
+     *
+     * @param  string  $value
+     * @return string
+     */
+    function e($value)
+    {
+        return htmlentities($value, ENT_QUOTES, 'UTF-8', false);
+    }
+}
+
+if (! function_exists('starts_with')) {
+    /**
+     * Determine if a given string starts with a given substring.
+     *
+     * @param  string  $haystack
+     * @param  string|array  $needles
+     * @return bool
+     */
+    function starts_with($haystack, $needles)
+    {
+        return Str::startsWith($haystack, $needles);
+    }
+}
+
+if (!function_exists('str_contains')) {
+    /**
+     * Determine if a given string contains a given substring.
+     *
+     * @param  string  $haystack
+     * @param  string|array  $needles
+     * @return bool
+     */
+    function str_contains($haystack, $needles)
+    {
+        return Str::contains($haystack, $needles);
+    }
+}
+
+if (!function_exists('array_pull')) {
+    /**
+     * Get a value from the array, and remove it.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @param  mixed   $default
+     * @return mixed
+     */
+    function array_pull(&$array, $key, $default = null)
+    {
+        return Arr::pull($array, $key, $default);
+    }
+}
+
+if (! function_exists('array_fetch')) {
+    /**
+     * Fetch a flattened array of a nested array element.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @return array
+     */
+    function array_fetch($array, $key)
+    {
+        return Arr::fetch($array, $key);
+    }
 }

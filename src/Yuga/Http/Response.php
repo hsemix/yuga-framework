@@ -38,7 +38,10 @@ class Response
         if ($httpCode !== null) {
             $this->httpCode($httpCode);
         }
-        return $this->redirect->to($url);
+
+        $this->redirect->setPath($url);
+        return $this->redirect;
+        // return $this->redirect->to($url);
     }
 
     public function redirectResponse($url, $httpCode = null)

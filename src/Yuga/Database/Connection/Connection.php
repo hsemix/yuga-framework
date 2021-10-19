@@ -2,6 +2,7 @@
 namespace Yuga\Database\Connection;
 
 use PDO;
+use PDOException;
 use Yuga\Container\Container;
 use Yuga\Database\Query\QueryObject;
 
@@ -52,7 +53,7 @@ class Connection
             $pdo = $adapterInstance->connect($this->adapterConfig);
             $this->setPdoInstance($pdo);
             $this->adapterInstance = $adapterInstance;
-        } catch(PDOException $ex) {
+        } catch (PDOException $ex) {
             die("Database selection failed: ". $ex->getMessage());
         }
 

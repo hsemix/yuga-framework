@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\Inheritance;
 
 use Exception;

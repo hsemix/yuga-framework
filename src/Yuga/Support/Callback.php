@@ -3,6 +3,7 @@
 namespace Yuga\Support;
 
 use function is_array, is_object, is_string;
+use Yuga\Exceptions\InvalidArgumentException;
 
 
 /**
@@ -85,7 +86,7 @@ final class Callback
 	public static function check($callable, bool $syntax = false)
 	{
 		if (!is_callable($callable, $syntax)) {
-			throw new Nette\InvalidArgumentException($syntax
+			throw new InvalidArgumentException($syntax
 				? 'Given value is not a callable type.'
 				: sprintf("Callback '%s' is not callable.", self::toString($callable))
 			);

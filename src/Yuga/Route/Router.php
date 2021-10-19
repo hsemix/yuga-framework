@@ -9,6 +9,7 @@ use ReflectionClass;
 use Yuga\Views\View;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
+use Yuga\Http\Redirect;
 use Yuga\View\ViewModel;
 use Yuga\Route\Shared\Shared;
 use Yuga\Route\Support\IRoute;
@@ -20,6 +21,7 @@ use Yuga\Route\Support\ILoadableRoute;
 use Yuga\Route\Exceptions\HttpException;
 use Yuga\Route\Support\IControllerRoute;
 use Yuga\Http\Middleware\BaseCsrfVerifier;
+use Yuga\Route\Support\IRouterBootManager;
 use Yuga\Route\Exceptions\NotFoundHttpException;
 use Yuga\Route\Exceptions\NotFoundHttpMethodException;
 use Yuga\Route\Exceptions\NotFoundHttpControllerException;
@@ -354,6 +356,8 @@ class Router
                 $result = call_user_func_array([$controller, $method], $this->methodInjection($controller, $method, $params));
                 if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
                     echo $result;
+                } elseif ($result instanceof Redirect) {
+                    $result->to($result->getPath());
                 }
                 return;
             } else {

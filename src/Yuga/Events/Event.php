@@ -3,9 +3,9 @@
 namespace Yuga\Events;
 
 use Closure;
+use Yuga\Events\Dispatcher\Dispatcher;
 use Yuga\EventHandlers\HandlerInterface;
 use Yuga\Events\Exceptions\EventException;
-use Yuga\Events\Dispatcher\Dispatcher;
 use Yuga\Interfaces\Events\Dispatcher as IDispatcher;
 
 class Event implements IDispatcher

@@ -96,5 +96,15 @@ class HasMany extends Association
     {
         $this->query->whereIn($this->getPlainForeignKey(), $this->getKeys($models, $this->otherKey));
     }
+
+    /**
+     * Get the results of the relationship.
+     *
+     * @return mixed
+     */
+    public function getResults()
+    {
+        return $this->query->get();
+    }
     
 }

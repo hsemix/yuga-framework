@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration;
 
 use Yuga\Providers\ServiceProvider;

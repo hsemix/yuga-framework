@@ -4,6 +4,10 @@ namespace Yuga\Container;
 use Closure;
 use ArrayAccess;
 use ReflectionClass;
+use ReflectionMethod;
+use ReflectionFunction;
+use ReflectionParameter;
+use InvalidArgumentException;
 use Yuga\Container\Support\ClassNotInstantiableException;
 
 class Container implements ArrayAccess
@@ -203,5 +207,126 @@ class Container implements ArrayAccess
     {
         unset($this->bindings[$key]);
     }
+
+    /**
+     * Call the given Closure / class@method and inject its dependencies.
+     *
+     * @param  callable|string  $callback
+     * @param  array  $parameters
+     * @param  string|null  $defaultMethod
+     * @return mixed
+     */
+    public function call($callback, array $parameters = [], $defaultMethod = null)
+    {
+        if ($this->isCallableWithAtSign($callback) || $defaultMethod) {
+            return $this->callClass($callback, $parameters, $defaultMethod);
+        }
+
+        $dependencies = $this->getMethodDependencies($callback, $parameters);
+
+        return call_user_func_array($callback, $dependencies);
+    }
+
+    /**
+     * Call a string reference to a class using Class@method syntax.
+     *
+     * @param  string  $target
+     * @param  array  $parameters
+     * @param  string|null  $defaultMethod
+     * @return mixed
+     */
+    protected function callClass($target, array $parameters = array(), $defaultMethod = null)
+    {
+        $segments = explode('@', $target);
+
+        // If the listener has an @ sign, we will assume it is being used to delimit
+        // the class name from the handle method name. This allows for handlers
+        // to run multiple handler methods in a single class for convenience.
+        $method = (count($segments) == 2) ? $segments[1] : $defaultMethod;
+
+        if (is_null($method)) {
+            throw new InvalidArgumentException('Method not provided.');
+        }
+
+        return $this->call([$this->buildObject($segments[0]), $method], $parameters);
+    }
+
+    /**
+     * Determine if the given string is in Class@method syntax.
+     *
+     * @param  mixed  $callback
+     * @return bool
+     */
+    protected function isCallableWithAtSign($callback)
+    {
+        if (!is_string($callback)) {
+            return false;
+        }
+
+        return strpos($callback, '@') !== false;
+    }
+
+     /**
+     * Get all dependencies for a given method.
+     *
+     * @param  callable|string  $callback
+     * @param  array  $parameters
+     * @return array
+     */
+    protected function getMethodDependencies($callback, array $parameters = [])
+    {
+        $dependencies = [];
+
+        //  
+        
+        $reflector = $this->getCallReflector($callback);
+
+        foreach ($reflector->getParameters() as $key => $parameter) {
+            $this->addDependencyForCallParameter($parameter, $parameters, $dependencies);
+        }
+
+        return array_merge($dependencies, $parameters);
+    }
+
+    /**
+     * Get the proper reflection instance for the given callback.
+     *
+     * @param  callable|string  $callback
+     * @return \ReflectionFunctionAbstract
+     */
+    protected function getCallReflector($callback)
+    {
+        if (is_string($callback) && strpos($callback, '::') !== false) {
+            $callback = explode('::', $callback);
+        }
+
+        if (is_array($callback)) {
+            return new ReflectionMethod($callback[0], $callback[1]);
+        }
+
+        return new ReflectionFunction($callback);
+    }
+
+    /**
+     * Get the dependency for the given call parameter.
+     *
+     * @param  \ReflectionParameter  $parameter
+     * @param  array  $parameters
+     * @param  array  $dependencies
+     * @return mixed
+     */
+    protected function addDependencyForCallParameter(ReflectionParameter $parameter, array &$parameters, &$dependencies)
+    {
+        if (array_key_exists($parameter->name, $parameters)) {
+            $dependencies[] = $parameters[$parameter->name];
+
+            unset($parameters[$parameter->name]);
+        } else if ($parameter->getClass()) {
+            $dependencies[] = $this->buildObject($parameter->getClass()->name);
+        } else if ($parameter->isDefaultValueAvailable()) {
+            $dependencies[] = $parameter->getDefaultValue();
+        }
+    }
+
 
 }

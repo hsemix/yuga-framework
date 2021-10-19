@@ -18,13 +18,14 @@ use Yuga\Http\Request as HttpRequest;
 use Yuga\Invocation\CallableResolver;
 use Yuga\Providers\YugaServiceProvider;
 use Yuga\Database\ElegantServiceProvider;
+use Yuga\Database\Tracy\DatabasePanel;
 use Yuga\Providers\ClassAliasServiceProvider;
 use Yuga\Interfaces\Providers\IServiceProvider;
 use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '3.4.1';
+    const VERSION = '4.0.0';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
@@ -85,28 +86,43 @@ class Application extends Container implements IApplication
      * @var string
      */
     protected $encryptionMethod = 'AES-256-CBC';
+
+    protected $debuggerStarted = false;
+
+    protected $booted = false;
     
     public function __construct($root = null)
     {
         $this->site = new UI;
         $this->basePath = $root;
         $this->charset = static::CHARSET_UTF8;
+        $this->run();
+    }
+
+    public function run()
+    {
         $this->singleton('config', Config::class);
         $this->config = $this->resolve('config');
         // load default class alias here
         
         if (!$this->runningInConsole()) {
-            $this->setDebugEnabled(env('DEBUG_MODE')); 
-            $this->initTracy();   
+            $this->setDebugEnabled(env('DEBUG_MODE', false)); 
+            $this->initTracy();  
         }
         $this->registerConfig();
+        if ($this->debuggerStarted) {
+            $this['events']->dispatch('on:yuga-tracy');
+        }
         $this->registerBaseBindings($this);
         $this->registerDefaultProviders();
         $this['events']->dispatch('on:app-start');
+
         if (!$this->runningInConsole()) {
             $this->make('session')->delete('errors');
         }
+        return $this;
     }
+
 
     /**
      * Determine if we are running in the console.
@@ -293,10 +309,28 @@ class Application extends Container implements IApplication
     {
         if (!$this->providerLoaded($provider)) {
             if (method_exists($provider, 'register')) {
+                $this->bootProvider($provider);
                 $provider->register($this);
             }
             $this->loadedProviders[] = get_class($provider);
             return $this;
+        }
+    }
+
+    public function getProviders()
+    {
+        return $this->loadedProviders;
+    }
+
+    /**
+     * @param \Yuga\Interfaces\Providers\IServiceProvider $provider
+     * 
+     * @return mixed
+     */
+    protected function bootProvider(IServiceProvider $provider)
+    {
+        if (method_exists($provider, 'boot')) {
+            return $this->call([$provider, 'boot']);
         }
     }
 
@@ -323,6 +357,7 @@ class Application extends Container implements IApplication
     {
         if ($this->getDebugEnabled() === true) {
             Debugger::enable(Debugger::DEVELOPMENT);
+            $this->debuggerStarted = true;
         } else {
             $logDir = storage('logs');
             if(!is_dir($logDir)) {

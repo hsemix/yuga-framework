@@ -6,6 +6,8 @@ namespace Yuga\Shared;
 
 use Yuga\App;
 use Yuga\Hash\Hash;
+use Yuga\Views\View;
+use Yuga\Support\Str;
 use Yuga\Http\Request;
 use Yuga\Cookie\Cookie;
 use Yuga\Http\Response;
@@ -14,6 +16,7 @@ use Yuga\Validate\Validate;
 use Yuga\Http\Middleware\MiddleWare;
 use Yuga\Http\Middleware\IMiddleware;
 use Yuga\Route\Exceptions\HttpException;
+use Yuga\Route\Exceptions\NotFoundHttpException;
 
 trait Controller
 {
@@ -118,6 +121,80 @@ trait Controller
     public function getView()
     {
         return $this->view = App::make('view');
+    }
+
+    /**
+     * Route every uri to resources/views/Page/Route.php
+     * 
+     * @param Request $request
+     * @param string|null $slug
+     * 
+     * @return View
+     */
+    public function show(Request $request, $slug = null): View
+    {
+        $segments = [];
+        $slug = trim($slug, '/');
+
+        if (!empty($slug)) {
+            $segments = explode('/', $slug, 2);
+        }
+
+        // Compute the page and subpage.
+        list ($page, $subPage) = array_pad($segments, 2, null);
+
+        // Compute the full View name, i.e. 'about-us' -> 'Pages/Users'
+        array_unshift($segments, 'pages');
+
+        $view = implode('/', array_map(function ($value) {
+            return Str::studly($value);
+        }, $segments));
+
+        $view = rtrim($view, '/');
+
+        if (View::exists($view)) {
+            // We found a proper View for the given URI.
+        }
+
+        // We will look for a Home View before going to Exception.
+        else if (!View::exists($viewFile = $view .'/Home')) {
+            throw new NotFoundHttpException('no template file "' . $viewFile . '.php" or "' . $view . '.php"  present in directory "./resources/views"');
+        }
+
+        $title = Str::title(str_replace(array('-', '_'), ' ', $subPage ?: ($page ?: 'Home')));
+    
+        $methods = explode('/', $slug);
+        $methodCamel = implode('', array_map(function ($value) {
+            return Str::studly($value);
+        }, $methods));
+
+        $method_snake = Str::deCamelize($methodCamel);
+
+        $requestMethod = strtolower($request->getMethod());
+        if ($requestMethod != 'get') {
+            if ($requestMethod == 'post') {
+                if (method_exists($this, "on" . ucfirst($requestMethod) . $methodCamel)) {
+                    App::call([$this, "on" . ucfirst($requestMethod) . $methodCamel]);
+                } elseif (method_exists($this, "on_" . $requestMethod . '_' . $method_snake)) {
+                    App::call([$this, "on_" . $requestMethod . '_' . $method_snake]);
+                }
+            } else {
+                if (method_exists($this, "onPost" . ucfirst($requestMethod) . $methodCamel)) {
+                    App::call([$this, "onPost" . ucfirst($requestMethod) . $methodCamel]);
+                } elseif (method_exists($this, "on_post_" . $requestMethod . '_' . $method_snake)) {
+                    App::call([$this, "on_post_" . $requestMethod . '_' . $method_snake]);
+                }
+            }
+            
+        } else {
+            if (method_exists($this, 'render' . $methodCamel)) {
+                App::call([$this, 'render' . $methodCamel]);
+            } elseif (method_exists($this, 'render_' . $method_snake)) {
+                App::call([$this, 'render_' . $method_snake]);
+            }
+        }
+        
+        return View::make($view)->shares('title', $title);
     }
 
     /**

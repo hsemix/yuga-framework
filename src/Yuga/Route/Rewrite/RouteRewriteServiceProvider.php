@@ -1,8 +1,8 @@
 <?php
 namespace Yuga\Route\Rewrite;
 
+use Yuga\Route\Route;
 use Yuga\Http\Request;
-use Yuga\Application\Router;
 use Yuga\Providers\ServiceProvider;
 use Yuga\Route\Support\IRouterBootManager;
 use Yuga\Interfaces\Application\Application;
@@ -13,12 +13,12 @@ class RouteRewriteServiceProvider extends ServiceProvider implements IRouterBoot
     public function load(Application $app)
     {
         if (!$app->runningInConsole()) {
-            Router::router()->setBootManagers([$this]);
+            Route::router()->setBootManagers([$this]);
         }
     }
 
-    public function boot(Request $request) {
-
+    public function boot(Request $request) 
+    {
         $rewriteRules = require path('config/RouteRewriteRules.php');
 
         foreach($rewriteRules as $url => $rule) {

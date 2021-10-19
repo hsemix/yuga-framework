@@ -2,14 +2,28 @@
 namespace Yuga\Http;
 
 use Yuga\Route\Route;
+use Yuga\Application\Application;
 
 class Redirect
 {
     protected $request;
 
+    protected $path;
+
     public function __construct(Request $request)
     {
         $this->request = $request;
+    }
+
+    public function setPath(string $path)
+    {
+        $this->path = $path;
+        return $this;
+    }
+
+    public function getPath()
+    {
+        return $this->path;
     }
 
     /**
@@ -102,4 +116,29 @@ class Redirect
         header("Location: {$url}");
         exit;
     }
+
+    public function with($key = null, $value = null)
+    {
+        if ($key) {
+            if (is_array($value)) {
+                foreach ($value as $var => $value) {
+                    $this->with($var, $value);	
+                }
+            } else {
+                Application::getInstance()->get('session')->flash($key, $value);
+            }
+        }
+
+        return $this;
+    }
+
+    public function __call($method, $parameters)
+	{
+        if (preg_match('/^with(.+)$/', $method, $matches)) {
+			$decamelized = \Str::deCamelize($matches[1]);
+			$camelized = \Str::camelize($decamelized);
+			return $this->with($camelized, $parameters[0]);
+        }
+		return call_user_func_array([$this, $method], $parameters);
+	}
 }

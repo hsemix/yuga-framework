@@ -1,7 +1,9 @@
 <?php
+
 namespace Yuga\Database\Connection\Adapters;
 
 use PDO;
+use PDOException;
 use Yuga\Database\Query\Exceptions\DatabaseQueryException;
 
 class Mysql extends BaseAdapter
@@ -28,7 +30,7 @@ class Mysql extends BaseAdapter
             }
             $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $connection;
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             throw DatabaseQueryException::create($e, $this->getQueryAdapterClass());
         }
     }

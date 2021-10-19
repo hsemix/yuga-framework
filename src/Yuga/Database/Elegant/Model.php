@@ -1,10 +1,12 @@
 <?php
+
 namespace Yuga\Database\Elegant;
 
 use Closure;
 use Exception;
 use ArrayAccess;
 use Carbon\Carbon;
+use LogicException;
 use ReflectionClass;
 use JsonSerializable;
 use Yuga\Support\Str;
@@ -286,6 +288,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
         if (preg_match('/^findBy(.+)$/', $method, $matches)) {
 			return $this->where(Str::deCamelize($matches[1]), $parameters[0]);
         }
+        if (method_exists($this, $span = 'span' . ucfirst($method)))
+            return $query->callSpan($span, $parameters);
         if (method_exists($query, $method))
             return call_user_func_array([$query, $method], $parameters);
         return null;
@@ -299,15 +303,18 @@ abstract class Model implements ArrayAccess, JsonSerializable
      * 
      * @return Builder
 	 */
-    public static function __callStatic($method, $args) 
+    public static function __callStatic($method, $parameters) 
     {
         $instance = new static;
         $query = $instance->newElegantQuery();
 		if (preg_match('/^findBy(.+)$/', $method, $matches)) {
-			return $instance->where(strtolower($matches[1]), $args[0]);
+			return $instance->where(strtolower($matches[1]), $parameters[0]);
         }
+        if (method_exists($instance, $span = 'span' . ucfirst($method)))
+            return $query->callSpan($span, $parameters);
+
         if (method_exists($query, $method))
-            return call_user_func_array([$instance, $method], $args);
+            return call_user_func_array([$instance, $method], $parameters);
         return null;
     }
     
@@ -379,7 +386,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     /**
      * Change the model to a json string
      * 
-     * @param array|null $options
+     * @param int|null $options
      * 
      * @return string
      */
@@ -496,17 +503,28 @@ abstract class Model implements ArrayAccess, JsonSerializable
      */
     public function getAttribute($key)
     {
-		$new_instance_class = $this->newInstance([], true);
-        $class = new ReflectionClass($new_instance_class);
-        
-		if ($class->hasMethod('hasMany') && $class->hasMethod($key) && Inflect::pluralize($key) == $key) {
-			$this->attributes[$key] = $this->$key()->get();
-		} elseif ($class->hasMethod('belongsTo') && $class->hasMethod($key)) {
-			$this->attributes[$key] = $this->$key()->first();
-		} elseif ($class->hasMethod('hasOne') && $class->hasMethod($key)) {
-			$this->attributes[$key] = $this->$key()->first();
-		}
-        return @$this->attributes[$key];
+        if (array_key_exists($key, $this->attributes)) {
+            return $this->attributes[$key];
+        } elseif (array_key_exists($key, $this->relations)) {
+            return $this->relations[$key];
+        } else {
+            $camelizedKey = Str::camelize($key);
+
+            if (method_exists($this, $camelizedKey)) {
+                return $this->getRelationFromMethod($key, $camelizedKey);
+            }
+        }
+    }
+
+    protected function getRelationFromMethod($key, $camelizedKey)
+    {
+        $relation = call_user_func([$this, $camelizedKey]);
+
+        if (!$relation instanceof Relation) {
+            throw new LogicException('Relationship method must return an object of type [Yuga\Interfaces\Database\Elegant\Association\Association]');
+        }
+
+        return $this->relations[$key] = $relation->getResults();
     }
 
     /**
@@ -1511,7 +1529,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
         }
 
         if (is_null($foreignKey)) {
-            $foreignKey = $relation.'_id';
+            $foreignKey = $relation . '_id';
         }
         $class = $this->returnAppropriateNamespace($class);
         $class = new $class;

@@ -13,7 +13,7 @@ class ViewServiceProvider extends ServiceProvider
     public function load(Application $app)
     {
         if (!$app->runningInConsole()) {
-            $app->singleton('view', SmxView::class);
+            $app->singleton('view', HaxCompiler::class);
             $template = $app->resolve('view', [
                 './resources/views/'
             ]);
@@ -21,7 +21,7 @@ class ViewServiceProvider extends ServiceProvider
             $template->host = (new Request)->getHost();
             $template->app = $app;
             
-            event('on:hax-render', ['view' => $template]);
+            event('on:hax-render', ['compiler' => $template]);
             return $template;
         }
     }

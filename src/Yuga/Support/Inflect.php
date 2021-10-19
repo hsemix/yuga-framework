@@ -72,15 +72,33 @@ class Inflect
     ];
       
     static $uncountable = [ 
-        'sheep', 
-        'fish',
+        'audio',
+        'bison',
+        'chassis',
+        'compensation',
+        'coreopsis',
+        'data',
         'deer',
-        'series',
-        'species',
-        'money',
-        'rice',
+        'education',
+        'equipment',
+        'fish',
+        'gold',
         'information',
-        'equipment'
+        'knowledge',
+        'love',
+        'rain',
+        'money',
+        'moose',
+        'nutrition',
+        'offspring',
+        'plankton',
+        'police',
+        'rice',
+        'series',
+        'sheep',
+        'species',
+        'swine',
+        'traffic',
     ];
       
     public static function pluralize($string) 
@@ -139,7 +157,9 @@ class Inflect
         else
             return $count . " " . self::pluralize($string);
     }
-	public static function toWords($number) {
+    
+	public static function toWords($number) 
+    {
 		$hyphen      = '-';
 		$conjunction = ' and ';
 		$separator   = ', ';

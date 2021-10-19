@@ -4,7 +4,8 @@
  */
 namespace Yuga\Views;
 
-use App;
+use Yuga\App;
+use Yuga\Support\Str;
 
 class View
 {
@@ -83,6 +84,11 @@ class View
 		return $this;
 	}
 
+	public function shares($key, $value)
+    {
+        return $this->with($key, $value);
+    }
+
 	/**
 	 * Get the first view that exists in the array and render that instead
 	 * 
@@ -106,11 +112,27 @@ class View
 		return $this;
 	}
 
+	public static function exists(string $view)
+	{
+		if (file_exists(path('resources/views/' . str_replace(".", "/", $view) . '.hax.php'))) {
+			return true;
+		} elseif (file_exists(path('resources/views/' . str_replace(".", "/", $view) . '.php'))) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public static function make(string $view)
+	{
+		return new static($view);
+	}
+
 	public function __call($method, $parameters)
 	{
         if (preg_match('/^with(.+)$/', $method, $matches)) {
-			$decamelized = \Str::deCamelize($matches[1]);
-			$camelized = \Str::camelize($decamelized);
+			$decamelized = Str::deCamelize($matches[1]);
+			$camelized = Str::camelize($decamelized);
 			return $this->with($camelized, $parameters[0]);
         }
 		return call_user_func_array([$this->viewEngine, $method], $parameters);

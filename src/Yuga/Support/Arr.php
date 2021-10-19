@@ -106,4 +106,109 @@ class Arr
 
         return array_merge([], ...$results);
     }
+
+    public static function first(array $array, $callback = null)
+    {
+        $result = array_filter($array, $callback);
+        return $result;
+    }
+
+    /**
+     * Get an item from an array using "dot" notation.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @param  mixed   $default
+     * @return mixed
+     */
+    public static function get($array, $key, $default = null)
+    {
+        if (is_null($key)) return $array;
+
+        if (isset($array[$key])) return $array[$key];
+
+        foreach (explode('.', $key) as $segment) {
+            if (! is_array($array) || ! array_key_exists($segment, $array)) {
+                return value($default);
+            }
+
+            $array = $array[$segment];
+        }
+
+        return $array;
+    }
+
+    /**
+     * Get a value from the array, and remove it.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @param  mixed   $default
+     * @return mixed
+     */
+    public static function pull(&$array, $key, $default = null)
+    {
+        $value = static::get($array, $key, $default);
+
+        static::forget($array, $key);
+
+        return $value;
+    }
+
+    /**
+     * Remove one or many array items from a given array using "dot" notation.
+     *
+     * @param  array  $array
+     * @param  array|string  $keys
+     * @return void
+     */
+    public static function forget(&$array, $keys)
+    {
+        $original =& $array;
+
+        foreach ((array) $keys as $key)
+        {
+            $parts = explode('.', $key);
+
+            while (count($parts) > 1)
+            {
+                $part = array_shift($parts);
+
+                if (isset($array[$part]) && is_array($array[$part]))
+                {
+                    $array =& $array[$part];
+                }
+            }
+
+            unset($array[array_shift($parts)]);
+
+            // clean up after each pass
+            $array =& $original;
+        }
+    }
+
+    /**
+     * Fetch a flattened array of a nested array element.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @return array
+     */
+    public static function fetch($array, $key)
+    {
+        foreach (explode('.', $key) as $segment) {
+            $results = [];
+
+            foreach ($array as $value) {
+                if (array_key_exists($segment, $value = (array)$value))
+                {
+                    $results[] = $value[$segment];
+                }
+            }
+
+            $array = array_values($results);
+        }
+
+        return array_values($results);
+    }
 }
