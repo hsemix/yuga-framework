@@ -34,7 +34,7 @@ class Session implements ISession
 	public function is_logged_in()
 	{
 		if (self::exists($this->sessionName) && self::get($this->sessionName)) {
-			$this->logged_in = TRUE;
+			$this->logged_in = true;
 		}
 		return $this->logged_in;
 	}

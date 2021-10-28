@@ -1,6 +1,8 @@
 <?php
+
 namespace Yuga\Http;
 
+use Exception;
 use Yuga\Route\Route;
 use Yuga\Http\Input\Input;
 use Yuga\Validate\Validate;
@@ -228,6 +230,17 @@ class Request
         }
 
         return $defaultValue;
+    }
+
+    public function getBearerToken()
+    {
+        if ($authorize = $this->getHeader('http-authorization')) {
+            if (preg_match('/Bearer\s(\S+)/', $authorize, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        throw new Exception('Access Token Not Found', 401);
     }
 
     /**

@@ -274,6 +274,17 @@ class HaxCompiler extends View
     }
 
     /**
+     * Compile the else statements into valid PHP.
+     *
+     * @param  string  $expression
+     * @return string
+     */
+    protected function compileElse($expression)
+    {
+        return "<?php else: ?>";
+    }
+
+    /**
      * Compile the forelse statements into valid PHP.
      *
      * @param  string  $expression

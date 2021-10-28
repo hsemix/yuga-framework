@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Http;
 
 use Yuga\Route\Route;
@@ -56,8 +57,7 @@ class Redirect
 
         $url = (route($url) == '') ? $url : route($url);
         $this->header('location: ' . $url);
-        die();
-        // return $this;
+        return $this;
     }
 
     public function header($value)

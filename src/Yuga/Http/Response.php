@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Http;
 
 use InvalidArgumentException;

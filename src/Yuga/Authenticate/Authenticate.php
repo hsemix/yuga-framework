@@ -40,7 +40,20 @@ class Authenticate extends BaseController implements IMiddleware
     public function user()
     {
         $model = $this->model;
-        return ($this->session->isLoggedIn()) ? $model->find($this->session->user_id) : $model;
+
+        if ($this->session->isLoggedIn()) {
+            return $model->find($this->session->user_id);
+        } else {
+            if (method_exists($model, 'access')) {
+                try {
+                    $token = request()->getBearerToken();
+                    return $model->access($token);
+                } catch(\Exception $e) {
+                    return $model;
+                }
+            }
+            return $model;
+        }
     }
 
     public function login($username, $password, $remember = null)
