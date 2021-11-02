@@ -357,7 +357,12 @@ class Router
                 if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
                     echo $result;
                 } elseif ($result instanceof Redirect) {
-                    $result->to($result->getPath());
+                    if ($result->getPath() !== null) {
+                        $result->header('location: ' . $result->getPath());
+                        exit();
+                    } else {
+                        throw new NotFoundHttpException("You have not provided a Redirect URL");
+                    }
                 }
                 return;
             } else {

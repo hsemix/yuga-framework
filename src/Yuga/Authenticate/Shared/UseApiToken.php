@@ -12,7 +12,8 @@ trait UseApiToken
     public function generateToken($secrete = null)
     {
         $token = $this->createToken([
-            'id' => $this->id
+            'id' => $this->id,
+            'sub' => $this->id,
         ], $secrete);
         return new Jwt($token, $secrete);
     }

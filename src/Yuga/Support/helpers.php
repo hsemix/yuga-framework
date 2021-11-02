@@ -251,12 +251,12 @@ if(!function_exists('input')) {
 }
 
 if(!function_exists('redirect')) {
-    function redirect($url, $code = null)
+    function redirect($url = null, $code = null)
     {
         if ($code !== null) {
             response()->httpCode($code);
         }
-
+        
         return response()->redirect($url);
     }
 }

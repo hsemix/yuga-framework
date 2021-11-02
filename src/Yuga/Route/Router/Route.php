@@ -5,6 +5,7 @@ use ReflectionClass;
 use Yuga\Views\View;
 use Yuga\Http\Request;
 use ReflectionFunction;
+use Yuga\Http\Redirect;
 use Yuga\View\ViewModel;
 use Yuga\Container\Container;
 use Yuga\Route\Support\IRoute;
@@ -185,6 +186,13 @@ abstract class Route implements IRoute
 
             if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View) {
                 echo $result;
+            } elseif ($result instanceof Redirect) {
+                if ($result->getPath() !== null) {
+                    $result->header('Location: ' . $result->getPath());
+                    exit();
+                } else {
+                    throw new NotFoundHttpException("You have not provided a Redirect URL");
+                }
             }
             return;
 
@@ -247,6 +255,13 @@ abstract class Route implements IRoute
         $result = call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters, $request));
         if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View ) {
             echo $result;
+        } elseif ($result instanceof Redirect) {
+            if ($result->getPath() !== null) {
+                $result->header('location: ' . $result->getPath());
+                exit();
+            } else {
+                throw new NotFoundHttpException("You have not provided a Redirect URL");
+            }
         }
     }
 

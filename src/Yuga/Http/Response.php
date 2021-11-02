@@ -34,15 +34,12 @@ class Response
      * @param string $url
      * @param int $httpCode
      */
-    public function redirect($url, $httpCode = null)
+    public function redirect($url = null, $httpCode = null)
     {
         if ($httpCode !== null) {
             $this->httpCode($httpCode);
         }
-
-        $this->redirect->setPath($url);
-        return $this->redirect;
-        // return $this->redirect->to($url);
+        return $this->redirect->to($url);
     }
 
     public function redirectResponse($url, $httpCode = null)

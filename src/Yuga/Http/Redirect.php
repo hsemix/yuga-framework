@@ -16,7 +16,7 @@ class Redirect
         $this->request = $request;
     }
 
-    public function setPath(string $path)
+    public function setPath(string $path = null)
     {
         $this->path = $path;
         return $this;
@@ -56,7 +56,7 @@ class Redirect
         }
 
         $url = (route($url) == '') ? $url : route($url);
-        $this->header('location: ' . $url);
+        $this->setPath($url);
         return $this;
     }
 
