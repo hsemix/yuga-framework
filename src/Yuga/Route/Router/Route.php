@@ -158,9 +158,21 @@ abstract class Route implements IRoute
                 throw new HttpException($mWare . ' must inherit the IMiddleware interface');
             }
 
-            $mWare->run($request, function ($request) {
+            $result = $mWare->run($request, function ($request) {
                 return $request;
             });
+
+            if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+                echo $result;
+            } elseif ($result instanceof Redirect) {
+                if ($result->getPath() !== null) {
+                    $result->header('location: ' . $result->getPath());
+                    exit();
+                } else {
+                    throw new NotFoundHttpException("You have not provided a Redirect URL");
+                }
+            }
+            return;
         } 
     }
 
