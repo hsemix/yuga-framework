@@ -166,7 +166,7 @@ abstract class Route implements IRoute
                 echo $result;
             } elseif ($result instanceof Redirect) {
                 if ($result->getPath() !== null) {
-                    $result->header('location: ' . $result->getPath());
+                    $result->header('Location: ' . $result->getPath());
                     exit();
                 } else {
                     throw new NotFoundHttpException("You have not provided a Redirect URL");
@@ -269,7 +269,7 @@ abstract class Route implements IRoute
             echo $result;
         } elseif ($result instanceof Redirect) {
             if ($result->getPath() !== null) {
-                $result->header('location: ' . $result->getPath());
+                $result->header('Location: ' . $result->getPath());
                 exit();
             } else {
                 throw new NotFoundHttpException("You have not provided a Redirect URL");

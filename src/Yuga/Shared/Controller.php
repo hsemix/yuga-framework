@@ -10,7 +10,9 @@ use Yuga\Views\View;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
 use Yuga\Cookie\Cookie;
+use Yuga\Http\Redirect;
 use Yuga\Http\Response;
+use Yuga\View\ViewModel;
 use Yuga\Session\Session;
 use Yuga\Validate\Validate;
 use Yuga\Http\Middleware\MiddleWare;
@@ -93,9 +95,21 @@ trait Controller
                     if (($routeMiddleWare instanceof IMiddleware) === false) {
                         throw new HttpException($controllerMiddleware . ' must inherit the IMiddleware interface');
                     }
-                    $results = $routeMiddleWare->run($request, function($request) {
+                    $result = $routeMiddleWare->run($request, function($request) {
                         return $request;
                     }, $middleWare->except);
+
+                    if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+                        echo $result;
+                    } elseif ($result instanceof Redirect) {
+                        if ($result->getPath() !== null) {
+                            $result->header('location: ' . $result->getPath());
+                            exit();
+                        } else {
+                            throw new NotFoundHttpException("You have not provided a Redirect URL");
+                        }
+                    }
+                    return;
                 } else {
                     throw new HttpException($controllerMiddleware . ' Middleware is not yet defined');
                 }
@@ -107,9 +121,21 @@ trait Controller
                 if (($routeMiddleWare instanceof IMiddleware) === false) {
                     throw new HttpException($ware . ' must inherit the IMiddleware interface');
                 }
-                $results = $routeMiddleWare->run($request, function($request) {
+                $result = $routeMiddleWare->run($request, function($request) {
                     return $request;
                 }, $middleWare->except);
+
+                if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+                    echo $result;
+                } elseif ($result instanceof Redirect) {
+                    if ($result->getPath() !== null) {
+                        $result->header('Location: ' . $result->getPath());
+                        exit();
+                    } else {
+                        throw new NotFoundHttpException("You have not provided a Redirect URL");
+                    }
+                }
+                return;
             } else {
                 throw new HttpException($ware . ' Middleware is not yet defined');
             }
