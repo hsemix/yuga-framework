@@ -48,7 +48,7 @@ class View
         } elseif (file_exists($this->getTemplateDirectory().$exceptionFile.self::EXT)) {
             extract($this->vars);
             ob_start();
-            require_once $this->getTemplateDirectory().$exceptionFile.self::EXT;
+            require $this->getTemplateDirectory().$exceptionFile.self::EXT;
             $rendered = ob_get_contents(); 
             ob_end_flush();  
         } else {

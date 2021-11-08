@@ -109,7 +109,7 @@ class HaxCompiler extends View
             }
         }
         extract($this->vars, EXTR_SKIP);
-        include_once $compiled;
+        include $compiled;
     }
 
     protected function compile($path)
