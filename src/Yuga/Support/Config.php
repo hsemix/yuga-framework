@@ -48,4 +48,16 @@ class Config
     {
         return $this->data;
     }
+
+    public function set($key, $value)
+    {
+        $segments = explode('.', $key);
+        $data = $this->data;
+        foreach ($segments as $segment) {
+            if (isset($data[$segment])) {
+                $data = $data[$segment] = $value;
+            }
+        }
+        return $data;
+    }
 }

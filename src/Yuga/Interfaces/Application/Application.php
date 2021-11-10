@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Interfaces\Application;
 
 use Yuga\Interfaces\Providers\IServiceProvider;

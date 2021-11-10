@@ -56,6 +56,8 @@ class Redirect
         }
 
         $url = (route($url) == '') ? $url : route($url);
+        // $this->header('location: ' . $url);
+        // exit();
         $this->setPath($url);
         return $this;
     }

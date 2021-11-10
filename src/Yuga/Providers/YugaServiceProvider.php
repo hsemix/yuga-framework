@@ -1,7 +1,9 @@
 <?php
+
 namespace Yuga\Providers;
 
 use Yuga\Console\Commands\ServeCommand;
+use Yuga\Console\Commands\MakeAppCommand;
 use Yuga\Events\Console\MakeEventCommand;
 use Yuga\Models\Console\MakeModelCommand;
 use Yuga\View\Console\MakeViewModelCommand;
@@ -16,6 +18,7 @@ use Yuga\Controllers\Console\MakeControllerCommand;
 use Yuga\Database\Console\MakeMigrationDownCommand;
 use Yuga\Database\Console\MakeMigrationSeedCommand;
 use Yuga\Database\Console\MakeDatabaseBackupCommand;
+use Yuga\Database\Console\MakeDatabaseRestoreCommand;
 use Yuga\Providers\Console\MakeServiceProviderCommand;
 
 class YugaServiceProvider extends ServiceProvider
@@ -34,14 +37,16 @@ class YugaServiceProvider extends ServiceProvider
         'MakeModel'             => 'yuga.command.model',
         'MakeController'        => 'yuga.command.controller',
         'MakeViewModel'         => 'yuga.command.viewmodel',
-        // 'MakeDatabaseBackup'    => 'yuga.command.backup',
+        'MakeDatabaseBackup'    => 'yuga.command.backup',
+        'MakeDatabaseRestore'    => 'yuga.command.restore',
         'MigrationUp'           => 'yuga.command.up',
         'MigrationMake'         => 'yuga.command.make',
         'MakeServiceProvider'   => 'yuga.command.provider.make',
         'MakeEvent'             => 'yuga.command.event.make',
         'MakeEventHandler'      => 'yuga.command.event.handler.make',
         'MigrationSeed'         => 'yuga.command.seed',
-        'Scaffold'               => 'yuga.command.scaffold',
+        'Scaffold'              => 'yuga.command.scaffold',
+        'MakeApp'               => 'yuga.command.appcommand'
     ];
 
     public function __construct(Application $app)
@@ -59,10 +64,23 @@ class YugaServiceProvider extends ServiceProvider
         foreach ($this->commands as $name => $command) {
             $method = "register{$name}Command";
 
-            call_user_func_array(array($this, $method), [$command, $app]);
+            call_user_func_array([$this, $method], [$command, $app]);
         }
 
-        $this->commands(array_values($this->commands));
+        $otherCommands = [];
+        if (\file_exists(path('config/AppCommands.php'))) {
+            $otherCommands = require path('config/AppCommands.php');
+        }
+
+        if (count($otherCommands) > 0) {
+            foreach ($otherCommands as $command) {
+                $app->singleton($command, function () use ($command, $app) {
+                    return $app->resolve($command);
+                });
+            }
+        }
+
+        $this->commands(array_values(array_merge($this->commands, $otherCommands)));
     }
 
     /**
@@ -160,7 +178,22 @@ class YugaServiceProvider extends ServiceProvider
     protected function registerMakeDatabaseBackupCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeDatabaseBackupCommand;
+            return $this->app->resolve(MakeDatabaseBackupCommand::class);
+        });
+    }
+
+    /**
+     * Make Database Backup command
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
+    protected function registerMakeDatabaseRestoreCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return $this->app->resolve(MakeDatabaseRestoreCommand::class);
         });
     }
 
@@ -281,6 +314,16 @@ class YugaServiceProvider extends ServiceProvider
     {
         $app->singleton($command, function () {
             return new MakeScaffoldCommand;
+        });
+    }
+
+    /**
+     * App commands
+     */
+    protected function registerMakeAppCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeAppCommand;
         });
     }
 

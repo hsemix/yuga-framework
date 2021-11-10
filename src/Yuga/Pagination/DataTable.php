@@ -178,7 +178,10 @@ class DataTable extends Paginator
 
     public static function of(Collection $collection)
     {
-        return $collection;
+        $paginator = new self(10, 1, [
+            'tt' => '2',
+        ]);
+        return $paginator;
     }
 
     public function addColumn(string $title, callable $callable)
@@ -241,7 +244,7 @@ class DataTable extends Paginator
 
         $js = 'var tables = $("#table_' . Str::deCamelize(class_base($this->first())) . '").DataTable(' . json_encode($settings) . ');';
         if ($readyState)
-            $js = '$(function() {' . $js . '});';
+            $js = '$(function(){' . $js . '});';
         
         return '<script type="text/javascript">' . $js . '</script>';
     }
@@ -278,6 +281,7 @@ class DataTable extends Paginator
         if ($showFooter)
             $table->addInnerHtml($tableFoot);
 
+        // $this->toJsonData();
         return $table;
     }
 }

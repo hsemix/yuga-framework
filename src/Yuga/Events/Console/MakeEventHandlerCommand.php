@@ -158,9 +158,9 @@ class MakeEventHandlerCommand extends Command
             $paramether = $classMethod->addParameter('event');
             if ($event != 'yuga.auto.events') {
                 if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
-                    $paramether->setTypeHint(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+                    $paramether->setType(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
             } else {
-                $paramether->setTypeHint('\Yuga\Events\Dispatcher');
+                $paramether->setType('\Yuga\Events\Dispatcher');
             }
         }
 

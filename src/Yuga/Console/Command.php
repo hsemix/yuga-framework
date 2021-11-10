@@ -54,6 +54,11 @@ class Command extends ConsoleCommand
     protected $help;
 
     /**
+     * The Path to be created
+     */
+    protected $path;
+
+    /**
      * Create a new console command instance.
      *
      * @return void
@@ -391,6 +396,20 @@ class Command extends ConsoleCommand
     public function setContainer($yuga)
     {
         $this->yuga = $yuga;
+    }
+
+    /**
+     * Create the directories for the files.
+     *
+     * @return void
+     */
+    protected function createDirectories()
+    {
+        if ($this->path) {
+            if (!is_dir($directory = path($this->path))) {
+                mkdir($directory, 0755, true);
+            }
+        }
     }
 
 }

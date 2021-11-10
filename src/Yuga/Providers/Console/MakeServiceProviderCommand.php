@@ -82,18 +82,22 @@ class MakeServiceProviderCommand extends Command
     protected function compileYugaProvidersTemp($name)
     {
         $providers = require path('config/ServiceProviders.php');
-        $providers[] = env('APP_NAMESPACE', 'App').'\\Providers\\'.$name;
+
+        $providerToMake = env('APP_NAMESPACE', 'App') . '\\Providers\\' . $name;
+
+        if (!in_array($providerToMake, $providers))
+            $providers[] = $providerToMake;
 
         $generatedProviders = '[';
         foreach ($providers as $provider) {
-            $generatedProviders .= "\n\t\\". $provider. "::class,";
+            $generatedProviders .= "\n\t\\" . $provider . "::class,";
         }
         $generatedProviders .= "\n]";
 
         return str_replace(
             '{providers}',
-            $generatedProviders.';',
-            file_get_contents(__DIR__.'/temps/config.temp')
+            $generatedProviders . ';',
+            file_get_contents(__DIR__ . '/temps/config.temp')
         );
     }
 }

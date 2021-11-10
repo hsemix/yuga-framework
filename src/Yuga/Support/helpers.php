@@ -328,14 +328,14 @@ if(!function_exists('array_get')) {
 if (!function_exists('path')) {
     function path($file = null)
     {
-        return $_ENV['base_path'].'/'.$file;
+        return $_ENV['base_path'] . DIRECTORY_SEPARATOR . $file;
     }
 }
 
 if (!function_exists('storage')) {
     function storage($path = null) 
     {
-        return path('storage/' . $path);
+        return path('storage' . DIRECTORY_SEPARATOR . $path);
     }
 }
 
