@@ -225,11 +225,11 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return $this->arrayFlatten($this->toArray(), 0);
     }
 
-    public function arrayFlatten($array, $preserve_keys = 1, &$newArray = []) 
+    public function arrayFlatten($array, $preserve_keys = 1, $newArray = []) 
     {
         foreach ($array as $key => $child) {
             if(is_array($child)) {
-                $newArray =& $this->arrayFlatten($child, $preserve_keys, $newArray);
+                $newArray = $this->arrayFlatten($child, $preserve_keys, $newArray);
             } elseif ($preserve_keys + is_string($key) > 1) {
                 $newArray[$key] = $child;
             } else {
@@ -258,7 +258,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
     public function pagination(array $options = null)
     {
-        return count($this->items) > 0 ? (is_object($this->items[0]->getPagination())) ? $this->items[0]->getPagination()->render($options) : null : null;
+        return count($this->items) > 0 ? ((is_object($this->items[0]->getPagination())) ? $this->items[0]->getPagination()->render($options) : null) : null;
     }
 
     /**
@@ -305,7 +305,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return $this;       
     }
 
-    protected function sksort(&$array, $subkey = "id", $sort_ascending = false) 
+    protected function sksort($array, $subkey = "id", $sort_ascending = false) 
     {
         $temp_array = [];
         if (count($array))
