@@ -9,7 +9,7 @@ abstract class ServiceProvider implements IServiceProvider
     /**
      * Register a service provider to the container and resolve it or later
      * 
-     * @param \Yuga\Container\Container $app
+     * @param \Yuga\Interfaces\Application\Application $app
      * 
      * @return \Yuga\Interfaces\Application\Application
      */
@@ -45,5 +45,15 @@ abstract class ServiceProvider implements IServiceProvider
         $events->attach('yuga.start', function($yuga) use ($commands) {
             $yuga->resolveCommands($commands);
         });
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [];
     }
 }

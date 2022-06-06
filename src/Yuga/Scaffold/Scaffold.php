@@ -15,7 +15,7 @@ class Scaffold extends Types
         self::TYPE_VARCHAR => 'string',
         self::TYPE_LONGTEXT => 'longtext',
         self::TYPE_TEXT => 'text',
-        self::TYPE_MEDIUMTEXT => 'textarea',
+        self::TYPE_MEDIUMTEXT => 'text',
         self::TYPE_TINYTEXT => 'text',
         self::TYPE_INT => 'integer',
         self::TYPE_TINYINT => 'integer',

@@ -195,7 +195,8 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
      *
      * @return array
      */
-    public function all(){
+    public function all()
+    {
         return $this->items;
     }
 
@@ -238,11 +239,11 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return $this->arrayFlatten($this->toArray(), 0);
     }
 
-    public function arrayFlatten($array, $preserve_keys = 1, &$newArray = []) 
+    public function arrayFlatten($array, $preserve_keys = 1, $newArray = []) 
     {
         foreach ($array as $key => $child) {
             if(is_array($child)) {
-                $newArray =& $this->arrayFlatten($child, $preserve_keys, $newArray);
+                $newArray = $this->arrayFlatten($child, $preserve_keys, $newArray);
             } elseif ($preserve_keys + is_string($key) > 1) {
                 $newArray[$key] = $child;
             } else {
@@ -499,7 +500,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
             $this->pagination = $pagination = new Pagination($page, $limit, $this->query->count());
             return $this->query->limit($limit)->offset($pagination->offset())->get();
         } else {
-            return new NotFoundHttpException("Pagination only works with models");
+            throw new NotFoundHttpException("Pagination only works with models");
         }
     }
 
@@ -528,7 +529,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return $this;       
     }
 
-    protected function sksort(&$array, $subkey = "id", $sort_ascending = false) 
+    protected function sksort($array, $subkey = "id", $sort_ascending = false) 
     {
         $temp_array = [];
         if (count($array))

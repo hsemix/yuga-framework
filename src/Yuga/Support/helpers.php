@@ -517,7 +517,7 @@ if (!function_exists('array_pull')) {
     }
 }
 
-if (! function_exists('array_fetch')) {
+if (!function_exists('array_fetch')) {
     /**
      * Fetch a flattened array of a nested array element.
      *
@@ -528,5 +528,32 @@ if (! function_exists('array_fetch')) {
     function array_fetch($array, $key)
     {
         return Arr::fetch($array, $key);
+    }
+}
+
+
+if (!function_exists('last')) {
+    /**
+     * Get the last element from an array.
+     *
+     * @param  array  $array
+     * @return mixed
+     */
+    function last($array)
+    {
+        return end($array);
+    }
+}
+
+if (!function_exists('with')) {
+    /**
+     * Return the given object. Useful for chaining.
+     *
+     * @param  mixed  $object
+     * @return mixed
+     */
+    function with($object)
+    {
+        return $object;
     }
 }

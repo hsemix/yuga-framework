@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Http\Input;
 
 use Yuga\Interfaces\Http\Input\IInputItem;
@@ -131,7 +132,6 @@ class InputFile implements IInputItem
     {
         $file = explode('.', basename($this->getFilename()));
         return end($file);
-        //return pathinfo($this->getFilename(), PATHINFO_EXTENSION);
     }
 
     /**
@@ -189,6 +189,9 @@ class InputFile implements IInputItem
      */
     public function move($destination, $newFilename)
     {
+        if (!is_dir($destination)) {
+            mkdir($destination, 0777, true);
+        }
         return move_uploaded_file($this->tmpName, $destination . '/' .$newFilename);
     }
 

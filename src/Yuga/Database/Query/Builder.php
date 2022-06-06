@@ -5,6 +5,8 @@ namespace Yuga\Database\Query;
 use PDO;
 use Closure;
 use Exception;
+use Traversable;
+use IteratorAggregate;
 use Yuga\Database\Elegant\Collection;
 use Yuga\Database\Connection\Connection;
 use Yuga\Database\Query\ActiveRecord\Row;
@@ -12,9 +14,10 @@ use Yuga\Database\Query\ActiveRecord\ResultSet;
 use Yuga\Database\Query\Exceptions\DatabaseQueryException;
 use Yuga\Database\Query\Exceptions\TransactionHaltException;
 
-class Builder
+class Builder implements IteratorAggregate
 {
     protected $pdo;
+    protected $adapter;
     protected $container;
     protected $connection;
     protected $tablePrefix;
@@ -22,6 +25,7 @@ class Builder
     protected $statements = [];
     protected $grammarInstance;
     protected $activeRecordTable;
+    protected $adapterConfig = [];
     protected $fetchParameters = [PDO::FETCH_OBJ];
     protected $acceptableTypes = ['select', 'insert', 'insertignore', 'replace', 'delete', 'update', 'criteriaonly'];
 
@@ -50,6 +54,11 @@ class Builder
         if (!static::$builder) {
             static::$builder = $this;
         }
+    }
+
+    public function getIterator(): Traversable
+    {
+        return $this->get();
     }
 
     public static function getInstance()
@@ -92,6 +101,11 @@ class Builder
         $tables = $this->addTablePrefix($tables, false);
         $instance->addStatement('tables', $tables);
         return $instance;
+    }
+
+    public function addPrefix($values, $tableFieldMix = true)
+    {
+        return $this->addTablePrefix($values, $tableFieldMix);
     }
 
     protected function addTablePrefix($values, $tableFieldMix = true)

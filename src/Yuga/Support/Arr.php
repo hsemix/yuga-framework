@@ -200,8 +200,7 @@ class Arr
             $results = [];
 
             foreach ($array as $value) {
-                if (array_key_exists($segment, $value = (array)$value))
-                {
+                if (array_key_exists($segment, $value = (array)$value)) {
                     $results[] = $value[$segment];
                 }
             }

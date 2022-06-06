@@ -3,6 +3,7 @@
 namespace Yuga\Database\Tracy;
 
 use Tracy\IBarPanel;
+use Yuga\Database\Query\DB;
 
 class DatabasePanel implements IBarPanel
 {
@@ -11,7 +12,7 @@ class DatabasePanel implements IBarPanel
 	 */
 	public function getTab(): string
 	{
-		return '<span title="Explaining tooltip">
+		return '<span title="Database Queries">
 			<svg>....</svg>
 			<span class="tracy-label">Elegant Database</span>
 		</span>';
@@ -23,11 +24,16 @@ class DatabasePanel implements IBarPanel
 	 */
 	public function getPanel(): string
 	{
-		return '<h1>Title</h1>
+		$lastQuery = 'No Query was Executed';
+
+		if (DB::getLastQuery() != null) {
+			$lastQuery = DB::getLastQuery()->getRawSql();
+		}
+		return '<h1>Last Executed Query</h1>
 
 		<div class="tracy-inner">
 		<div class="tracy-inner-container">
-			... content ...
+		<div class="tracy-InfoPan">' . $lastQuery . '</div>
 		</div>
 		</div>';
 	}

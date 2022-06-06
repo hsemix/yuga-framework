@@ -16,6 +16,7 @@ use Yuga\Support\FileLocator;
 use Yuga\Pagination\Paginator;
 use Yuga\Pagination\Pagination;
 use Yuga\Database\Connection\Connection;
+use Yuga\Database\Query\ActiveRecord\Row;
 use Yuga\Database\Elegant\Association\HasOne;
 use Yuga\Database\Elegant\Association\HasMany;
 use Yuga\Database\Elegant\Association\BelongsTo;
@@ -333,8 +334,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 	/**
 	 * Make the object act like an array when at access time
 	 *
-     * @param $offset
-     * @param $value
+     * @param mixed $offset
+     * @param mixed $value
      * 
      * @return void
 	 */
@@ -700,6 +701,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
         $instance = new static;
         
         $items = array_map(function ($item) use ($instance, $bootable, $items) {
+            if ($item instanceof Row)
+                $item = (object)$item->toArray();
             return $instance->newFromQuery($item, $bootable, $items);
         }, $items);
         return $instance->newCollection($items);

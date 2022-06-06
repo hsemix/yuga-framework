@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Elegant;
 
 use Closure;
@@ -92,6 +93,11 @@ class Builder
 		return $this;
 	}
 
+    public function addTablePrefix($field)
+    {
+        return $this->query->addPrefix($field);
+    }
+
     /**
      * Query the database and return the results as model instances
      * 
@@ -101,10 +107,6 @@ class Builder
      */
     public function getAll($columns = null)
     {
-        $carbon = \Yuga\Carbon\Carbon::class;
-        if (class_exists(Carbon::class)) {
-            $carbon = Carbon::class;
-        }
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
             return false;
         }
@@ -112,31 +114,14 @@ class Builder
             if ($this->withTrashed) {
 				
 			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->getModel()->getDeleteKey());
+				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
 			} else {
-				$this->query->whereNull($this->getModel()->getDeleteKey());
+				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
 			}
         }
+        
         $models = $this->query->getAll($columns); 
-        $models = array_map(function ($model) use ($carbon) {
-            if ($model instanceof Row)
-                $model = (object)$model->toArray();
-            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
-                if (property_exists($model, $this->getModel()->getCreatedAtColumn())) {
-                    if ($model->{$this->getModel()->getCreatedAtColumn()}) {
-                        $model->{$this->getModel()->getCreatedAtColumn()} = new $carbon($model->{$this->getModel()->getCreatedAtColumn()}); 
-                    }
-                }
-            }
-            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
-                if (property_exists($model, $this->getModel()->getUpdatedAtColumn())) {
-                    if ($model->{$this->getModel()->getUpdatedAtColumn()}) {
-                        $model->{$this->getModel()->getUpdatedAtColumn()} = new $carbon($model->{$this->getModel()->getUpdatedAtColumn()}); 
-                    }
-                }
-            }
-            return $model;
-        }, $models);
+        
         $results = $this->getModel()->makeModels($models, $this->boot);
         
         $this->getModel()->dispatchModelEvent('selected', [$this->query, $results]);
@@ -245,13 +230,13 @@ class Builder
             $newQuery->select($field);
         }
 
-        if ($this->checkTableField($newQuery->getTable() ? is_object($newQuery->getTable()) ? $newQuery->getModel()->getTable() : $newQuery->getTable() : $model->getTable(), is_object($newQuery->getTable()) ? $newQuery->getModel()->getDeleteKey() : $model->getDeleteKey())) {
+        if ($this->checkTableField($newQuery->getTable() ? (is_object($newQuery->getTable()) ? $newQuery->getModel()->getTable() : $newQuery->getTable()) : $model->getTable(), is_object($newQuery->getTable()) ? $newQuery->getModel()->getDeleteKey() : $model->getDeleteKey())) {
             if ($this->withTrashed) {
                 
             } elseif ($this->onlyTrashed) {
-                $newQuery->whereNotNull($model->getDeleteKey());
+                $newQuery->whereNotNull($this->addTablePrefix($model->getDeleteKey()));
             } else {
-                $newQuery->whereNull($model->getDeleteKey());
+                $newQuery->whereNull($this->addTablePrefix($model->getDeleteKey()));
             }
         }
         return $this->subQuery($model);
@@ -261,12 +246,12 @@ class Builder
     {
         $query = $model->getQuery();
         if ($this->checkTableField($model->getModel()->getTable(), $model->getModel()->getDeleteKey())) {
-            if ($this->withTrashed) {
+            if ($model->withTrashed) {
                 
-            } elseif ($this->onlyTrashed) {
-                $query->whereNotNull($model->getModel()->getDeleteKey());
+            } elseif ($model->onlyTrashed) {
+                $query->whereNotNull($this->addTablePrefix($model->getModel()->getDeleteKey()));
             } else {
-                $query->whereNull($model->getModel()->getDeleteKey());
+                $query->whereNull($this->addTablePrefix($model->getModel()->getDeleteKey()));
             }
         }
         return $this->query->subQuery($query, $alias);
@@ -458,10 +443,6 @@ class Builder
 
     public function first($columns = null)
     {
-        $carbon = \Yuga\Carbon\Carbon::class;
-        if (class_exists(Carbon::class)) {
-            $carbon = Carbon::class;
-        }
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
             return false;
         }
@@ -469,9 +450,9 @@ class Builder
             if ($this->withTrashed) {
 				
 			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->getModel()->getDeleteKey());
+				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
 			} else {
-				$this->query->whereNull($this->getModel()->getDeleteKey());
+				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
 			}
         }
         if ($columns) {
@@ -486,20 +467,6 @@ class Builder
         if ($item !== null) {
             if ($item instanceof Row)
                 $item = (object)$item->toArray();
-            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
-                if (property_exists($item, $this->getModel()->getCreatedAtColumn())) {
-                    if ($item->{$this->getModel()->getCreatedAtColumn()}) {
-                        $item->{$this->getModel()->getCreatedAtColumn()} = new $carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
-                    }
-                }
-            }
-            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
-                if (property_exists($item, $this->getModel()->getUpdatedAtColumn())) {
-                    if ($item->{$this->getModel()->getUpdatedAtColumn()}) {
-                        $item->{$this->getModel()->getUpdatedAtColumn()} = new $carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
-                    }
-                }
-            }
             $model = $this->getModel()->newFromQuery($item, $this->boot);
             // $model->setQuery($this);
             $model->dispatchModelEvent('selected', [$this->query, $model]);
@@ -510,18 +477,13 @@ class Builder
 
     public function last($columns = null)
     {
-        $carbon = \Yuga\Carbon\Carbon::class;
-        if (class_exists(Carbon::class)) {
-            $carbon = Carbon::class;
-        }
-
         if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
             if ($this->withTrashed) {
 				
 			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->getModel()->getDeleteKey());
+				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
 			} else {
-				$this->query->whereNull($this->getModel()->getDeleteKey());
+				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
 			}
         }
         if ($columns) {
@@ -532,20 +494,7 @@ class Builder
         if ($item !== null) {
             if ($item instanceof Row)
                 $item = (object)$item->toArray();
-            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getCreatedAtColumn())){
-                if (property_exists($item, $this->getModel()->getCreatedAtColumn())) {
-                    if ($item->{$this->getModel()->getCreatedAtColumn()}) {
-                        $item->{$this->getModel()->getCreatedAtColumn()} = new $carbon($item->{$this->getModel()->getCreatedAtColumn()}); 
-                    }
-                }
-            }
-            if($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getUpdatedAtColumn())){
-                if (property_exists($item, $this->getModel()->getUpdatedAtColumn())) {
-                    if ($item->{$this->getModel()->getUpdatedAtColumn()}) {
-                        $item->{$this->getModel()->getUpdatedAtColumn()} = new $carbon($item->{$this->getModel()->getUpdatedAtColumn()}); 
-                    }
-                }
-            }
+            
             return $this->getModel()->newFromQuery($item, $this->boot);
         }
         return $item;
@@ -570,6 +519,12 @@ class Builder
     {
         $result = $this->query->select($this->query->raw('MAX(' . $field . ') AS max'))->getAll();
         return (int)$result[0]->max;
+    }
+
+    public function min($field)
+    {
+        $result = $this->query->select($this->query->raw('MIN(' . $field . ') AS min'))->getAll();
+        return (int)$result[0]->min;
     }
 
     public function sum($field)
@@ -749,6 +704,8 @@ class Builder
 
     public function join($table, $key, $operator = null, $value = null, $type = 'inner')
     {
+        if ($table instanceof Model)
+            $table = $table->getTable();
         $this->query->join($table, $key, $operator, $value, $type);
 
         return $this;
@@ -767,6 +724,8 @@ class Builder
      */
     public function leftJoin($table, $key, $operator = null, $value = null)
     {
+        if ($table instanceof Model)
+            $table = $table->getTable();
         $this->query->leftJoin($table, $key, $operator, $value);
 
         return $this;
@@ -785,6 +744,8 @@ class Builder
      */
     public function rightJoin($table, $key, $operator = null, $value = null)
     {
+        if ($table instanceof Model)
+            $table = $table->getTable();
         $this->query->rightJoin($table, $key, $operator, $value);
 
         return $this;
@@ -864,10 +825,11 @@ class Builder
      */
     public function dates($updated_at, $created_at)
     {
-		if(!$this->checkTableField($this->model->getTable(), $created_at)){
+		if (!$this->checkTableField($this->model->getTable(), $created_at)) {
 			$this->createTableField($this->model->getTable(), $created_at);
 		}
-		if(!$this->checkTableField($this->model->getTable(), $updated_at)){
+
+		if (!$this->checkTableField($this->model->getTable(), $updated_at)) {
 			$this->createTableField($this->model->getTable(), $updated_at);
 		}
     }
@@ -1023,8 +985,8 @@ class Builder
                 }
             }
         }
-        if($this->checkTableField($this->model->getTable(), 'deleted_at')){
-            $this->whereNull('deleted_at');
+        if($this->checkTableField($this->model->getTable(), $this->model->getDeleteKey())){
+            $this->whereNull($this->addTablePrefix($this->model->getDeleteKey()));
         }
         $this->pagination = $pagination = new Pagination($page, $limit, $this->count());
         $results = $this->limit($limit)->offset($pagination->offset())->getWith(['pagination' => $this->pagination])->get();

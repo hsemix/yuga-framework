@@ -16,27 +16,6 @@ class HaxExtension implements HandlerInterface
      */
     public function handle($event)
     {
-        $event->attach('on:yuga-tracy', function ($event) {
-            echo 'yes...';
-
-            // $event->dispatch('on:yuga-tracy');
-        });
-
-        // die();
-
-        // $event->dispatch();
-
-        // return $event;
-
-        // echo '<pre>';
-
-        // print_r($event);
-
-        // if (count(array_keys($event->extensions['keys'])) > 0) {
-        //     echo '<pre>';
-        //     print_r($event->extensions);
-        //     die();
-        // }
-        // die();
+        
     }
 }

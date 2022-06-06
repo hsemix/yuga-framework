@@ -4,6 +4,7 @@ namespace Yuga\Application;
 use Yuga\Debug;
 use Yuga\Boolean;
 use Tracy\Debugger;
+use Yuga\Route\Route;
 use Yuga\Http\Request;
 use Yuga\Http\Redirect;
 use Yuga\Http\Response;
@@ -11,16 +12,18 @@ use Yuga\Support\Config;
 use Yuga\View\Client\Jquery;
 use Yuga\Container\Container;
 use Yuga\Views\UI\Site as UI;
+use App\Middleware\WebMiddleware;
 use Yuga\Logger\LogServiceProvider;
 use Yuga\Route\RouteServiceProvider;
 use Yuga\Events\EventServiceProvider;
 use Yuga\Http\Request as HttpRequest;
 use Yuga\Invocation\CallableResolver;
+use Yuga\Database\Tracy\DatabasePanel;
 use Yuga\Providers\YugaServiceProvider;
 use Yuga\Database\ElegantServiceProvider;
-use Yuga\Database\Tracy\DatabasePanel;
 use Yuga\Providers\ClassAliasServiceProvider;
 use Yuga\Interfaces\Providers\IServiceProvider;
+use Yuga\Route\Exceptions\NotFoundHttpExceptionHandler;
 use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
@@ -96,7 +99,7 @@ class Application extends Container implements IApplication
         $this->site = new UI;
         $this->basePath = $root;
         $this->charset = static::CHARSET_UTF8;
-        $this->run();
+        // $this->run();
     }
 
     public function run()
@@ -153,6 +156,25 @@ class Application extends Container implements IApplication
                 $this->registerProvider($provider);
             }
         }
+
+        if (env('ROUTER_BOOTED', false)) {
+            if (env('ENABLE_MVP_ROUTES', false)) {
+                
+                Route::group(['middleware' => 'web', 'namespace' => 'App\Controllers', 'exceptionHandler' => NotFoundHttpExceptionHandler::class], function () {
+                    $routePrefix = '/' . trim(env('PREFIX_MVP_ROUTE', '/'), '/') . '/';
+                    $routePrefix = ($routePrefix == '//') ? '/' : $routePrefix;
+                    $controller = env('MVP_CONTROLLER', 'Controller');
+                    if (env('MATCH_ROUTES_TO_CONTROLLERS', false)) {
+                        trigger_error("MVP ROUTING and IMPLICIT ROUTING can not co-exist", E_USER_WARNING);
+                    }
+
+                    Route::csrfVerifier(new WebMiddleware);
+                    Route::all($routePrefix . '{slug?}', $controller . '@show')->where(['slug' => '(.*)']);
+                });
+                
+            }
+        }
+        
     }
 
     /**

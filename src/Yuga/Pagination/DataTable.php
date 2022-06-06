@@ -284,4 +284,5 @@ class DataTable extends Paginator
         // $this->toJsonData();
         return $table;
     }
+    
 }

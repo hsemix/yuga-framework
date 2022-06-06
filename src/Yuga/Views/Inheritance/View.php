@@ -18,7 +18,7 @@ class View
     
     public function setTemplateDirectory($dir = 'resources/views')
     {
-        $this->template_dir = $dir.'/';
+        $this->template_dir = $dir . '/';
         if (!is_dir($directory = path($dir))) {
             mkdir($directory, 0755, true);
         }

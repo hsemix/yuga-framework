@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Http\Input;
 
 use Yuga\Http\Request;
