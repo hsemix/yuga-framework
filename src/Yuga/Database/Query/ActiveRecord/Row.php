@@ -67,6 +67,7 @@ class Row implements ArrayAccess, JsonSerializable
      * 
      * @return void
 	 */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value) 
     {
         if (is_null($offset)) {
@@ -83,6 +84,7 @@ class Row implements ArrayAccess, JsonSerializable
      * 
      * @return boolean
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset) 
     {
         return isset($this->attributes[$offset]);
@@ -95,6 +97,7 @@ class Row implements ArrayAccess, JsonSerializable
      * 
      * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset) 
     {
         unset($this->attributes[$offset]);
@@ -107,6 +110,7 @@ class Row implements ArrayAccess, JsonSerializable
      * 
      * @return mixed
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset) 
     {
         return isset($this->attributes[$offset]) ? $this->attributes[$offset] : null;
@@ -143,13 +147,14 @@ class Row implements ArrayAccess, JsonSerializable
      * 
      * @return array
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         $attributes = (array) $this->attributes;
         $attributes = array_map(function($attribute) {
             if (!is_array($attribute)) {
                 if (!is_object($attribute)) {
-                    $json_attribute = json_decode($attribute, true);
+                    $json_attribute = json_decode($attribute ?? '', true);
                     if (json_last_error() == JSON_ERROR_NONE)
                         return $json_attribute;
                 } else {

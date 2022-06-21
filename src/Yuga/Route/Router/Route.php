@@ -86,8 +86,8 @@ abstract class Route implements IRoute
         $classes = [];
         $app = Application::getInstance();
         foreach ($reflection->getParameters() as $param) {
-            if ($param->getClass() !== null) {
-                $class = $param->getClass()->name;
+            if ($param->getType() !== null) {
+                $class = $param->getType()->getName();
                 if (array_key_exists($param->name, $params)) {
                     $modelBindingSettings = $this->processBindings($request);
                     $field = $dependency::getPrimaryKey();
@@ -100,7 +100,8 @@ abstract class Route implements IRoute
 
                     if ($modelBound) {
                         $dependecies[$param->name] = $modelBound;
-                        $dependecies[$param->name . '_var'] = $params[$param->name];
+                        if (env('MODEL_BIND_VAR', false))
+                            $dependecies[$param->name . '_var'] = $params[$param->name];
                     } else
                         throw new ModelNotFoundException("Model $dependency with $field = '$value' not found");
 
@@ -118,7 +119,7 @@ abstract class Route implements IRoute
             }
             
         }
-        $classes[] = $app;
+        // $classes[] = $app;
 
         return $classes;
     }
@@ -263,6 +264,12 @@ abstract class Route implements IRoute
                 return ($var !== null);
             });
         }
+
+
+        // echo '<pre>';
+
+        // print_r($parameters);
+        // die();
         
         $result = call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters, $request));
         if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View ) {
@@ -313,9 +320,10 @@ abstract class Route implements IRoute
             $reflectionParameters = $reflectionMethod->getParameters();
             $dependecies = [];
 
+            
             foreach ($reflectionParameters as $parameter) {
-                if (!is_null($parameter->getClass())) {
-                    $dependency = $parameter->getClass()->name;
+                if (!is_null($parameter->getType())) {
+                    $dependency = $parameter->getType()->getName();
                     if (array_key_exists($parameter->name, $params)) {
                         $dependencyObject = new $dependency;
                         $modelBindingSettings = $this->processBindings($request);
@@ -332,15 +340,16 @@ abstract class Route implements IRoute
 
                         if ($modelBound) {
                             $dependecies[$parameter->name] = $modelBound;
-                            $dependecies[$parameter->name . '_var'] = $params[$parameter->name];
+                            if (env('MODEL_BIND_VAR', false))
+                                $dependecies[$parameter->name . '_var'] = $params[$parameter->name];
                         } else
                             throw new ModelNotFoundException("Model $dependency with $field = '$value' not found");
 
                     } else {
                         if($binding = $this->isSingleton($app, $dependency)) {
-                            $dependecies[] = $binding;
+                            $dependecies[$parameter->name] = $binding;
                         } else {
-                            $dependecies[] = $app->resolve($dependency);
+                            $dependecies[$parameter->name] = $app->resolve($dependency);
                         }
                     }
                 } else {
@@ -349,7 +358,8 @@ abstract class Route implements IRoute
                     }
                 } 
             }
-            $dependecies[] = $app;
+
+            // $dependecies[] = $app;
             
         }
         //$parameters = array_merge($dependecies, $params);

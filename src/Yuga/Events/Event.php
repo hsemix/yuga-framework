@@ -148,7 +148,7 @@ class Event implements IDispatcher
         $event->setAttributes($this->attributes);
         $event->setAttribute('dispatcher', $this);
         
-        $params = array_merge($params ?:[], [$event]);
+        $params = array_merge([$event], $params ?:[]);
         if (false !== strpos($event->getName(), ':')) {
             $namespace = substr($event->getName(), 0, strpos($event->getName(), ':'));
             if (isset($this->listeners[$namespace])) {
@@ -173,6 +173,9 @@ class Event implements IDispatcher
      */
     public function trigger($event = null, $parameters = null, $callback = null)
     {
+        if (count(func_get_args()) == 2) {
+            return $this->dispatch($event, $parameters);
+        }
         return $this->dispatch($event, $parameters, $callback);
     }
 
@@ -183,7 +186,7 @@ class Event implements IDispatcher
      * 
      * @return array $items
      */
-    protected function getparameters($parameters = null)
+    protected function getParameters($parameters = null)
     {
         $items = [];
         if ($parameters instanceof Closure) {
@@ -208,8 +211,9 @@ class Event implements IDispatcher
      * @return void
      */
     protected function fire($listeners, $event, array $params = [], $callback = null)
-    {
+    {        
         ksort($listeners);
+
         foreach ($listeners as $list) {
             foreach ($list as $listener) {
                 $eventParams = $params;
@@ -223,10 +227,11 @@ class Event implements IDispatcher
                         if (array_values($params) !== $params) {
                             $event->setAttributes($params);
                             $eventParams = [$event];
-                        }
+                        } 
                     }
                 }
-                call_user_func_array($eventListener, $eventParams);
+
+                call_user_func_array($eventListener, array_values($eventParams));
                 if($callback instanceof Closure)
                     $callback($event);
             }

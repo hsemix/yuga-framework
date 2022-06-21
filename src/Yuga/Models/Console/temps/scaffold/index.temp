@@ -28,5 +28,5 @@
             </tbody>
         </table>
         {{ ${route}->links() }}
-    <div class="container">
+    </div>
 @endsection

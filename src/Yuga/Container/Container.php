@@ -6,6 +6,7 @@ use ArrayAccess;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionFunction;
+use ReflectionNamedType;
 use ReflectionParameter;
 use InvalidArgumentException;
 use Yuga\Container\Support\ClassNotInstantiableException;
@@ -126,9 +127,15 @@ class Container implements ArrayAccess
             $class = $key;
         }
 
+        
+
         if ($this->isSingleton($key) && $this->singletonResolved($key)) {
             return $this->getSingletonInstance($key);
         }
+
+        // echo '<pre>';
+        // print_r($arguments);
+        // die();
         
         $object = $this->buildObject($class, $arguments);
         return $this->prepareObject($key, $object);
@@ -146,18 +153,57 @@ class Container implements ArrayAccess
 
     protected function buildDependencies($arguments, $dependencies, $className)
     {
+        
         foreach ($dependencies as $dependency) {
-            if ($dependency->isOptional()) continue;
-            if ($dependency->isArray()) continue;
 
-            $class = $dependency->getClass();
-            if ($class === null) continue;
+            $name = $dependency->getName();
+            
+            $type = $dependency->getType();
 
-            if (get_class($this) === $class->name) {
-                $arguments[] = $this;
-                continue;
+            if ($dependency->isOptional()) continue;    
+            
+            if ($dependency->getType() === null) continue;
+
+            if ($type->isBuiltIn()) continue;
+
+            if (!$type) continue;
+
+            if ($type instanceof ReflectionUnionType) {
+                throw new Exception('Failed to resolve class "' . $dependency . '" because of a union type');
             }
-            $arguments[] = $this->resolve($class->name);
+
+            if ($type && $type instanceof ReflectionNamedType) {
+
+                if (get_class($this) === $type->getName()) {
+                    $arguments[] = $this;
+                    continue;
+                }
+                // make instance of this class :
+                $paramInstance = $this->resolve($type->getName());
+
+                // push to $dependencies array
+                $arguments[]  = $paramInstance;
+
+            } else {
+
+                $name = $dependency->getName(); // get the name of param
+
+                // check this param value exist in $parameters
+                if (array_key_exists($name, $arguments)) { // if exist
+
+                    // push  value to $dependencies sequencially
+                    $dependencies[] = $arguments[$name];
+
+                } else { // if not exist
+
+                    if (!$dependency->isOptional()) { // check if not optional
+                        throw new Exception("Class {$name} cannot be Instantiated");
+                    }
+
+                }
+
+            }
+
         }
 
         return $arguments;
@@ -167,7 +213,7 @@ class Container implements ArrayAccess
     protected function buildObject($class, array $arguments = [])
     {
         
-        $className = isset($class['value']) ? $class['value'] : $class;
+        $className = is_array($class) ? $class['value'] : $class;
         
         $reflector = new ReflectionClass($className);
         
@@ -175,12 +221,15 @@ class Container implements ArrayAccess
             throw new ClassNotInstantiableException("Class {$className} cannot be Instantiated");
         }
 
-        if ($reflector->getConstructor() !== null) {
+       
+        
+        if (!is_null($reflector->getConstructor())) {
             $constructor = $reflector->getConstructor();
             $dependencies = $constructor->getParameters();
 
             $arguments = $this->buildDependencies($arguments, $dependencies, $class); 
-            $object = $reflector->newInstanceArgs($arguments);           
+            $object = $reflector->newInstanceArgs($arguments);    
+            
         } else {
             $object = new $reflector->name;
         }
@@ -321,12 +370,15 @@ class Container implements ArrayAccess
             $dependencies[] = $parameters[$parameter->name];
 
             unset($parameters[$parameter->name]);
-        } else if ($parameter->getClass()) {
-            $dependencies[] = $this->buildObject($parameter->getClass()->name);
+        } else if ($parameter->getType()) {
+            $class = $parameter->getType() ? $parameter->getType()->getName() : null;
+
+            if (!$parameter->isOptional()) {
+                if (!\is_null($class))
+                    $dependencies[] = $this->buildObject($class);
+            }
         } else if ($parameter->isDefaultValueAvailable()) {
             $dependencies[] = $parameter->getDefaultValue();
         }
     }
-
-
 }

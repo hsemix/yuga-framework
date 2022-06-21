@@ -38,12 +38,12 @@ class Input
         /* Parse get requests */
         if (count($_GET) > 0) {
             // $this->get = $this->handleGetPost($_GET);
-            $this->get = $this->handleGetPost(filter_var_array($_GET, FILTER_SANITIZE_STRING));
+            $this->get = $this->handleGetPost(filter_var_array($_GET, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
         }
 
         /* Parse post requests */
         // $postVars = $_POST;
-        $postVars = filter_var_array($_POST, FILTER_SANITIZE_STRING);
+        $postVars = filter_var_array($_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
         if (in_array($this->request->getMethod(), ['put', 'patch', 'delete'], false) === true) {
             parse_str(file_get_contents('php://input'), $postVars);
@@ -184,7 +184,7 @@ class Input
     {
         $input = $this->post;
         if ($string = file_get_contents("php://input")) {
-            $input = array_merge($this->post, filter_var_array((array)json_decode($string, true), FILTER_SANITIZE_STRING));
+            $input = array_merge($this->post, filter_var_array((array)json_decode($string, true), FILTER_SANITIZE_FULL_SPECIAL_CHARS));
         }
         return isset($input[$index]) ? $input[$index] : $defaultValue;
     }

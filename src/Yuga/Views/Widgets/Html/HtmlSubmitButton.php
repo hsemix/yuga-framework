@@ -6,7 +6,7 @@ class HtmlSubmitButton extends HtmlButton
 
     public $onClick = [];
 
-    public function __construct($type = 'submit', $name, $value = null)
+    public function __construct($type = 'submit', $name = null, $value = null)
     {
         parent::__construct($type, $name, $value);
         $this->type($type);

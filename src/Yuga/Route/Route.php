@@ -176,7 +176,7 @@ class Route
     * @throws \InvalidArgumentException
     * @return RouteGroup
     */
-    public static function group(array $settings = [], \Closure $callback)
+    public static function group(array $settings, \Closure $callback)
     {
         $group = new RouteGroup();
         $group->setCallback($callback);

@@ -86,6 +86,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 	* Make the object act like an array when at access time
 	*
 	*/
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value) 
     {
         if (is_null($offset)) {
@@ -95,44 +96,52 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         }
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset) 
     {
         return isset($this->items[$offset]);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset) 
     {
         unset($this->items[$offset]);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset) 
     {
         return isset($this->items[$offset]) ? $this->items[$offset] : null;
     }
     
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         reset($this->items);
     }
-  
+    
+    #[\ReturnTypeWillChange]
     public function current()
     {
         $var = current($this->items);
         return $var;
     }
-  
+    
+    #[\ReturnTypeWillChange]
     public function key() 
     {
         $var = key($this->items);
         return $var;
     }
-  
+    
+    #[\ReturnTypeWillChange]
     public function next() 
     {
         $var = next($this->items);
         return $var;
     }
-  
+    
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         $key = key($this->items);
@@ -145,6 +154,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
      *
      * @return int
      */
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return count($this->items);
@@ -219,6 +229,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return $this->items;
     }
 
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return $this->items;

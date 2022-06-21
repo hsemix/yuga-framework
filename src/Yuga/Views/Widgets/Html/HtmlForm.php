@@ -311,7 +311,7 @@ class HtmlForm extends Html
                 $buttonControls[] = $controlObject['control'];
             }
         }
-        $buttonsContainer->append($buttonsPadding. " " . (new Html('td'))->append(implode(" ", $buttonControls)));
+        $buttonsContainer->append($buttonsPadding . " " . (new Html('td'))->append(implode(" ", $buttonControls)));
         $layout->append($buttonsContainer);
         
         $this->append($layout);

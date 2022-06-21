@@ -7,7 +7,7 @@ use Yuga\Shared\Controller as SharedController;
 
 class Dispatcher
 {
-    use SharedController;
+    // use SharedController;
     /**
      * @var string event name
      */

@@ -207,6 +207,9 @@ if(!function_exists('route')) {
         if (!is_null(request()->processHost())) {
             if (strpos(request()->getHost(), ':') !== false) {
                 $route = rtrim(Route::getUrl($name, $parameters, $getParams), '/');
+                if (str_contains(request()->getUri(true), 'public')) {
+                    $route = rtrim(request()->processHost().ltrim(Route::getUrl($name, $parameters, $getParams), '/'), '/');
+                }
             } else {
                 if(strpos(request()->processHost(), '/public') !== false) {
                     $route = rtrim(request()->processHost().ltrim(Route::getUrl($name, $parameters, $getParams), '/'), '/');

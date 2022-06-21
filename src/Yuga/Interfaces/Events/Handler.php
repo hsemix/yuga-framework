@@ -1,5 +1,5 @@
 <?php
-namespace Yuga\Intefaces\Events;
+namespace Yuga\Interfaces\Events;
 
 interface Handler
 {

@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\EventHandlers;
 
 use Yuga\Events\Event;

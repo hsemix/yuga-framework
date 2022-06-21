@@ -13,20 +13,21 @@ class Cookie
         return $_COOKIE[$name];
     }
 
-    public static function put($name, $value, $expiry = null, $domain = null, $secure = null, $path = '/')
+    public static function put($name, $value, $expiry = null, $domain = null, $secure = true, $path = '/')
     {
-        $expiry = ($expiry === null) ? time() + 60 * 60 * 24 * 6004 : time() + $expiry;
-        return setcookie($name, $value, (($expiry > 0) ? $expiry : null), $path, $domain, $secure);
+        return self::create($name, $value, $expiry, $domain, $secure, $path);
     }
 
-    public static function create($name, $value, $expiry = null, $domain = null, $secure = null, $path = '/')
+    public static function create($name, $value, $expiry = null, $domain = null, $secure = true, $path = '/')
     {
-        if ($domain === null) {
-            $sub = explode('.', request()->getHost());
-            $domain = (count($sub) > 2) ? request()->getHost() : '.' . request()->getHost();
+        if (!empty($name) && !is_null($name)) {
+            if ($domain === null) {
+                $sub = explode('.', request()->getHost());
+                $domain = (count($sub) > 2) ? request()->getHost() : '.' . request()->getHost();
+            }
+            $expiry = ($expiry === null) ? time() + 60 * 60 * 24 * 6004 : time() + $expiry;
+            return setcookie($name, $value, (($expiry > 0) ? $expiry : null), $path, $domain, $secure);
         }
-        $expiry = ($expiry === null) ? time() + 60 * 60 * 24 * 6004 : time() + $expiry;
-        return setcookie($name, $value, (($expiry > 0) ? $expiry : null), $path, $domain, $secure);
     }
     
     public static function delete($name)
