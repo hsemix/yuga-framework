@@ -284,6 +284,9 @@ if(!function_exists('assets')) {
     {
         if (!is_null(request()->processHost())) {
             if (request()->getServer() != request()->gethost()) {
+                if (str_contains(request()->getUri(true), 'public')) {
+                    return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim($value, '/'));
+                }
                 return '/'.ltrim($value, '/');
             } else if(strpos(request()->processHost(), '/public') !== false) {
                 return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim($value, '/'));
