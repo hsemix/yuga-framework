@@ -16,7 +16,10 @@ class TracyPanel implements HandlerInterface
      */
     public function handle($event)
     {
-        Debugger::getBar()->addPanel(new DatabasePanel);
+        if (!empty(env('DATABASE_NAME'))) {
+            Debugger::getBar()->addPanel(new DatabasePanel);
+        }
+        
         // Debugger::getBar()->addPanel(new HaxExtensionsPanel);
 
         // return $event->trigger('on:yuga-tracy-hax');
