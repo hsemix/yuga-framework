@@ -4,8 +4,6 @@ namespace Yuga\Database\Console;
 
 
 use Yuga\Console\Command;
-
-use Nova\Support\Facades\Config;
 use Yuga\Database\Console\Backup\Console;
 use Yuga\Database\Console\Backup\DatabaseBuilder;
 
@@ -32,9 +30,6 @@ class BaseCommand extends Command
         $database = $database ?: $this->config->get('db.defaultDriver');
 
         $realConfig = $this->config->get('db.' . $database);
-
-        // print_r($realConfig);
-        // die();
         return $this->databaseBuilder->getDatabase($realConfig);
     }
 
