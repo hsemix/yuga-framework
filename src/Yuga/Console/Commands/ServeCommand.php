@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Console\Commands;
 
 use Yuga\Console\Command;
@@ -37,8 +38,19 @@ class ServeCommand extends Command
 
         $public = path('public');
 
+        if ($port == 8000) {
+            for($i = $port; $i < 9001; $i++) {
+                $port = $i;
+                if(!@fsockopen($host, $i, $errono, $message)) {
+                    goto server;
+                } 
+                $this->error("Yuga Framework development Server couldn't start on http://{$host}:{$port}");
+                $this->info("Retrying...");
+            }
+        }
+        
+        server:
         $this->info("Yuga Framework development Server started on http://{$host}:{$port}");
-
         passthru('"'.PHP_BINARY.'"'." -S {$host}:{$port} -t \"{$public}\" server.php");
     }
 
