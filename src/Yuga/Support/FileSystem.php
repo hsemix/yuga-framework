@@ -126,10 +126,10 @@ final class FileSystem
 	 * Writes a string to a file.
 	 * @throws Exception
 	 */
-	public static function write(string $file, string $content, ?int $mode = 0666): void
+	public static function write(string $file, string $content, $flags = 0, ?int $mode = 0666): void
 	{
 		static::createDir(dirname($file));
-		if (@file_put_contents($file, $content) === false) { // @ is escalated to exception
+		if (@file_put_contents($file, $content, $flags) === false) { // @ is escalated to exception
 			throw new Exception("Unable to write file '$file'. " . self::getLastError());
 		}
 		if ($mode !== null && !@chmod($file, $mode)) { // @ is escalated to exception

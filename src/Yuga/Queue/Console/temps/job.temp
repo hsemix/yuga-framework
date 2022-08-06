@@ -1,0 +1,33 @@
+<?php
+
+namespace {{namespace}}\Jobs;
+
+use Yuga\Queue\QueueableTrait;
+use Yuga\Queue\DispatchableTrait;
+
+
+class {{className}}
+{
+    use DispatchableTrait, QueueableTrait;
+
+
+    /**
+     * Create a new job instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //
+    }
+
+    /**
+     * Run the job.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        //
+    }
+}

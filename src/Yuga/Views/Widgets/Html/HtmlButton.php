@@ -59,10 +59,6 @@ class HtmlButton extends Html
 	public function isClicked()
 	{
         $value = $this->getValue();
-
-        // echo '<pre>';
-        // print_r($this->getParent());
-        // die();
 		return $value !== null && $value !== [];
     }
     

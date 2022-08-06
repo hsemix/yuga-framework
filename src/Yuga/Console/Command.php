@@ -11,7 +11,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Command\Command as ConsoleCommand;
 
-class Command extends ConsoleCommand
+abstract class Command extends ConsoleCommand
 {
     /**
      * The Yuga application instance.
@@ -59,6 +59,11 @@ class Command extends ConsoleCommand
     protected $path;
 
     /**
+     * Container
+     */
+    protected $yuga;
+
+    /**
      * Create a new console command instance.
      *
      * @return void
@@ -89,11 +94,11 @@ class Command extends ConsoleCommand
         // set them all on the base command instance. This specifies what can get
         // passed into these commands as "parameters" to control the execution.
         foreach ($this->getArguments() as $arguments) {
-            call_user_func_array(array($this, 'addArgument'), $arguments);
+            call_user_func_array([$this, 'addArgument'], $arguments);
         }
 
         foreach ($this->getOptions() as $options) {
-            call_user_func_array(array($this, 'addOption'), $options);
+            call_user_func_array([$this, 'addOption'], $options);
         }
     }
 
@@ -132,7 +137,7 @@ class Command extends ConsoleCommand
      * @param  array   $arguments
      * @return int
      */
-    public function call($command, array $arguments = array())
+    public function call($command, array $arguments = [])
     {
         $instance = $this->getApplication()->find($command);
 
@@ -148,7 +153,7 @@ class Command extends ConsoleCommand
      * @param  array   $arguments
      * @return int
      */
-    public function callSilent($command, array $arguments = array())
+    public function callSilent($command, array $arguments = [])
     {
         $instance = $this->getApplication()->find($command);
 
@@ -354,7 +359,7 @@ class Command extends ConsoleCommand
      */
     protected function getArguments()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -364,7 +369,7 @@ class Command extends ConsoleCommand
      */
     protected function getOptions()
     {
-        return array();
+        return [];
     }
 
     /**

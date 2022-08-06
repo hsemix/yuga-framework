@@ -17,7 +17,8 @@
         "symfony/console": "~4.0",
         "symfony/process": "^5.3",
         "symfony/finder": "^5.3",
-        "nette/php-generator": "^3.2"
+        "nette/php-generator": "^3.2",
+        "dragonmantank/cron-expression": "^3.1"
     },
     "require-dev": {
         "phpunit/phpunit": "^7.5|^8.0"
@@ -34,5 +35,8 @@
         "sort-packages": true
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "scripts": {
+        "serve": "php yuga start"
+    }
 }

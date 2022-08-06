@@ -3,6 +3,7 @@
 use Yuga\Support\Arr;
 use Yuga\Support\Str;
 use Yuga\Database\Elegant\Collection;
+use Yuga\Interfaces\Queue\JobDispatcherInterface;
 /**
  * @author Mahad Tech Solutions
  */
@@ -195,8 +196,12 @@ if(!function_exists('env')) {
 if (!function_exists('app')) {
     function app($param = null)
     {
-        if ($param)
-            return \Yuga\Application\Application::getInstance()->make($param);
+        if ($param) {
+            if (class_exists($param))
+                return \Yuga\Application\Application::getInstance()->resolve($param);
+            else
+                return \Yuga\Application\Application::getInstance()->make($param);
+        }            
         return \Yuga\Application\Application::getInstance();
     }
 }
@@ -561,5 +566,19 @@ if (!function_exists('with')) {
     function with($object)
     {
         return $object;
+    }
+}
+
+if (!function_exists('dispatch'))
+{
+    /**
+     * Dispatch a job to its appropriate handler.
+     *
+     * @param  mixed  $job
+     * @return mixed
+     */
+    function dispatch($job)
+    {
+        return app(JobDispatcherInterface::class)->dispatch($job);
     }
 }

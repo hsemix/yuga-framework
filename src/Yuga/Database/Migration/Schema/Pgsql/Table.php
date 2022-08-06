@@ -231,11 +231,6 @@ class Table extends SqlTable
             $result = PDO::getInstance()->doQuery(sprintf('SELECT * FROM information_schema.columns WHERE "table_schema"=\'%s\' AND "table_name"=\'%s\'', env('DATABASE_SCHEMA', 'public'), $this->name));
 
             $columns = $result->fetchAll(\PDO::FETCH_ASSOC);
-
-            // echo '<pre>';
-
-            // print_r($columns);
-            // die();
             foreach ($columns as $column) {
                 $tableColumn = $this->column($column['column_name']);
                 $tableColumn->setType($column['udt_name']);

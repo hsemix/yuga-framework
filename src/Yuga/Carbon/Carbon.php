@@ -18,7 +18,7 @@ class Carbon extends DateTime implements JsonSerializable
     public function __construct($time = null, $tz = null)
     {
         $timezone = static::safeCreateDateTimeZone($tz);
-        parent::__construct($time, $timezone);
+        parent::__construct($time ?? 'now', $timezone);
     }
 
     public function __toString()
@@ -26,6 +26,7 @@ class Carbon extends DateTime implements JsonSerializable
         return $this->format(self::$toStringFormat);
     }
 
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         $carbon = $this;

@@ -93,7 +93,7 @@ class Request
     public function processHost()
     {
         // $scriptName = substr($this->getHeader('php-self'),0,strlen($this->getHeader('php-self'))  - strlen('index.php'));;
-        $scriptName = str_replace('/index.php', '', $this->getHeader('php-self'));
+        $scriptName = str_replace('/' . env('PAGE_CONTROLLER', 'index.php'), '', $this->getHeader('php-self'));
         $segs = explode('/', trim($scriptName, '/'));
         $segs = array_reverse($segs);
         $index = 0;

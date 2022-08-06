@@ -67,9 +67,12 @@ class HaxCompiler extends View
         $this->vars['session'] = App::make('session');
         $this->vars['request'] = new Request;
         $this->vars['errors'] = new Message;
-        if ($this->session->exists('errors')) {
-            $this->vars['errors'] = $this->session->get('errors');
+        if (!app()->runningInConsole()) {
+            if ($this->session->exists('errors')) {
+                $this->vars['errors'] = $this->session->get('errors');
+            }
         }
+        
 
         event('on:hax-instance', ['compiler' => $this]);
     }

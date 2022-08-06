@@ -28,7 +28,7 @@ use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '4.0.1';
+    const VERSION = '4.1.0';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
@@ -331,8 +331,8 @@ class Application extends Container implements IApplication
     {
         if (!$this->providerLoaded($provider)) {
             if (method_exists($provider, 'register')) {
-                $this->bootProvider($provider);
                 $provider->register($this);
+                $this->bootProvider($provider);
             }
             $this->loadedProviders[] = get_class($provider);
             return $this;

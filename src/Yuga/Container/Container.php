@@ -132,10 +132,6 @@ class Container implements ArrayAccess
         if ($this->isSingleton($key) && $this->singletonResolved($key)) {
             return $this->getSingletonInstance($key);
         }
-
-        // echo '<pre>';
-        // print_r($arguments);
-        // die();
         
         $object = $this->buildObject($class, $arguments);
         return $this->prepareObject($key, $object);

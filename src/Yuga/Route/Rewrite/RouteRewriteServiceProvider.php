@@ -19,14 +19,14 @@ class RouteRewriteServiceProvider extends ServiceProvider implements IRouterBoot
 
     public function boot(Request $request) 
     {
-        $rewriteRules = require path('config/RouteRewriteRules.php');
+        // $rewriteRules = require path('config/RouteRewriteRules.php');
 
-        foreach($rewriteRules as $url => $rule) {
+        // foreach($rewriteRules as $url => $rule) {
 
-            if($request->getUri() === $url) {
-                $request->setRewriteUrl($rule);
-                return $request;
-            }
-        }
+        //     if($request->getUri() === $url) {
+        //         $request->setRewriteUrl($rule);
+        //         return $request;
+        //     }
+        // }
     }
 }

@@ -6,12 +6,25 @@ use Yuga\Console\Commands\ServeCommand;
 use Yuga\Console\Commands\MakeAppCommand;
 use Yuga\Events\Console\MakeEventCommand;
 use Yuga\Models\Console\MakeModelCommand;
+use Yuga\Scheduler\Console\MakeRunCommand;
+use Yuga\Queue\Console\MakeQueueJobCommand;
 use Yuga\View\Console\MakeViewModelCommand;
 use Yuga\Http\Console\MakeMiddlewareCommand;
 use Yuga\Interfaces\Application\Application;
 use Yuga\Models\Console\MakeScaffoldCommand;
+use Yuga\Queue\Console\MakeQueueWorkCommand;
+use Yuga\Queue\Console\MakeQueueFlushCommand;
+use Yuga\Queue\Console\MakeQueueRetryCommand;
+use Yuga\Queue\Console\MakeQueueTableCommand;
+use Yuga\Scheduler\Console\MakeEnableCommand;
+use Yuga\Scheduler\Console\MakeListerCommand;
 use Yuga\Authenticate\Console\MakeAuthCommand;
+use Yuga\Queue\Console\MakeQueueForgetCommand;
+use Yuga\Scheduler\Console\MakeDisableCommand;
+use Yuga\Scheduler\Console\MakePublishCommand;
 use Yuga\Database\Console\MakeMigrationCommand;
+use Yuga\Queue\Console\MakeQueueMonitorCommand;
+use Yuga\Queue\Console\MakeQueueRestartCommand;
 use Yuga\Events\Console\MakeEventHandlerCommand;
 use Yuga\Database\Console\MakeMigrationUpCommand;
 use Yuga\Controllers\Console\MakeControllerCommand;
@@ -38,7 +51,7 @@ class YugaServiceProvider extends ServiceProvider
         'MakeController'        => 'yuga.command.controller',
         'MakeViewModel'         => 'yuga.command.viewmodel',
         'MakeDatabaseBackup'    => 'yuga.command.backup',
-        'MakeDatabaseRestore'    => 'yuga.command.restore',
+        'MakeDatabaseRestore'   => 'yuga.command.restore',
         'MigrationUp'           => 'yuga.command.up',
         'MigrationMake'         => 'yuga.command.make',
         'MakeServiceProvider'   => 'yuga.command.provider.make',
@@ -46,7 +59,20 @@ class YugaServiceProvider extends ServiceProvider
         'MakeEventHandler'      => 'yuga.command.event.handler.make',
         'MigrationSeed'         => 'yuga.command.seed',
         'Scaffold'              => 'yuga.command.scaffold',
-        'MakeApp'               => 'yuga.command.appcommand'
+        'MakeApp'               => 'yuga.command.appcommand',
+        'MakeSchedulerEnable'   => 'yuga.command.scheduler.enable',
+        'MakeSchedulerDisable'  => 'yuga.command.scheduler.disable',
+        'MakeSchedulerLister'   => 'yuga.command.scheduler.lister',
+        'MakeSchedulerRun'      => 'yuga.command.scheduler.run',
+        'MakeSchedulerPublish'  => 'yuga.command.scheduler.publish',
+        'MakeQueueTable'        => 'yuga.command.queue.table.make',
+        'MakeQueueWork'         => 'yuga.command.queue.work.make',
+        'MakeQueueFlush'        => 'yuga.command.queue.flush.make',
+        'MakeQueueForget'       => 'yuga.command.queue.forget.make',
+        // 'MakeQueueMonitor'      => 'yuga.command.queue.monitor.make',
+        // 'MakeQueueRestart'      => 'yuga.command.queue.restart.make',
+        // 'MakeQueueRetry'        => 'yuga.command.queue.retry.make',
+        'MakeQueueJob'        => 'yuga.command.queue.job.make',
     ];
 
     public function __construct(Application $app)
@@ -324,6 +350,97 @@ class YugaServiceProvider extends ServiceProvider
     {
         $app->singleton($command, function () {
             return new MakeAppCommand;
+        });
+    }
+
+    protected function registerMakeSchedulerEnableCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeEnableCommand;
+        });
+    }
+
+    protected function registerMakeSchedulerDisableCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeDisableCommand;
+        });
+    }
+
+    protected function registerMakeSchedulerListerCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeListerCommand;
+        });
+    }
+
+    protected function registerMakeSchedulerRunCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeRunCommand;
+        });
+    }
+
+    protected function registerMakeSchedulerPublishCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakePublishCommand;
+        });
+    }
+
+    protected function registerMakeQueueTableCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeQueueTableCommand;
+        });
+    }
+
+    protected function registerMakeQueueWorkCommand($command, $app)
+    {
+        $app->singleton($command, MakeQueueWorkCommand::class);
+        $app->resolve($command);
+    }
+
+
+    protected function registerMakeQueueFlushCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeQueueFlushCommand;
+        });
+    }
+
+    protected function registerMakeQueueForgetCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeQueueForgetCommand;
+        });
+    }
+
+    protected function registerMakeQueueMonitorCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeQueueMonitorCommand;
+        });
+    }
+
+    protected function registerMakeQueueRestartCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeQueueRestartCommand;
+        });
+    }
+
+    protected function registerMakeQueueRetryCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeQueueRetryCommand;
+        });
+    }
+
+    protected function registerMakeQueueJobCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new MakeQueueJobCommand;
         });
     }
 
