@@ -152,7 +152,6 @@ class Router
         $exceptionHandlers = [];
 
         $url = ($this->request->getRewriteUrl() !== null) ? $this->request->getRewriteUrl() : $this->request->getUri();
-
         /* @var $route IRoute */
         for ($i = $max; $i >= 0; $i--) {
 

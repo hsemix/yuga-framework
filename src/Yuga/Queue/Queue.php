@@ -60,13 +60,13 @@ class Queue implements QueueInterface
 	/**
 	 * connecting queueing system.
 	 *
-	 * @return CodeIgniter\Queue\Handlers\BaseHandler
+	 * @return Yuga\Queue\Handlers\BaseHandler
 	 */
 	public function connect()
 	{
 		return app()->resolve(
 			'\\Yuga\\Queue\\Connectors\\' . ucfirst($this->connectionConfig['driver']) . 'Connector', 
 			[$this->connectionConfig, $this->config]
-		);//->connect($this->connectionConfig);
+		);
 	}
 }

@@ -2,28 +2,19 @@
 
 namespace Yuga\Queue\Console;
 
-// use CodeIgniter\CLI\BaseCommand;
-// use CodeIgniter\CLI\CLI;
-
 use Yuga\Console\CLI;
 use Yuga\Carbon\Carbon;
 use Yuga\Console\Command;
 use Yuga\Queue\Exceptions\QueueException;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
+use Yuga\Database\Query\Exceptions\DatabaseQueryException;
 
 /**
  * Generates a skeleton migration file.
  */
 class MakeQueueWorkCommand extends Command
 {
-	/**
-	 * The Command's Group
-	 *
-	 * @var string
-	 */
-	protected $group = 'Queue';
-
 	/**
 	 * The Command's Name
 	 *
@@ -38,54 +29,13 @@ class MakeQueueWorkCommand extends Command
 	 */
 	protected $description = 'Works the queue.';
 
-	/**
-	 * The Command's Usage
-	 *
-	 * @var string
-	 */
-	protected $usage = 'queue:work';
-
-	/**
-	 * The Command's Options
-	 *
-	 * @var array
-	 */
-	protected $options = [
-		'--queue' => 'The name of the queue to work, if not specified it will work the default queue',
-	];
+	protected $startTime;
 
 	/**
 	 * Actually execute a command.
 	 *
 	 * @param array $params
 	 */
-    public function handlex()
-    {
-        $cli = new CLI;
-        $queue = $this->option('queue') ?? config('queue')['default'];
-        $cli->writeLine('Working Queue: ' . $queue, 'yellow');
-
-        $response      = true;
-		$jobsProcessed = 0;
-		$startTime     = time();
-
-        do {
-			try {
-				$this->stopIfNecessary($startTime, $jobsProcessed);
-
-				$response = $this->yuga['queue']->fetch([$this, 'fire'], $queue);
-
-				$jobsProcessed++;
-			} catch (\Throwable $e) {
-				$cli->writeLine('Failed', 'red');
-				$cli->writeLine("Exception: {$e->getCode()} - {$e->getMessage()}\nfile: {$e->getFile()}:{$e->getLine()}");
-			}
-		}
-		while($response === true);
-
-		$cli->writeLine('Completed Working Queue', 'green');
-    }
-
 	public function handle()
     {
         $cli = new CLI;
@@ -95,23 +45,35 @@ class MakeQueueWorkCommand extends Command
         $response      = true;
 		$jobsProcessed = 0;
 		$startTime     = time();
+		$this->yuga['queue']->startTime();
+		if ($queue != 'wait') {
+			$maxTries = 5;
+			do {
+				retry:
+				try {
+					// $this->stopIfNecessary($startTime, $jobsProcessed);
+	
+					$response = $this->yuga['queue']->fetch([$this, 'fire'], $queue);
+	
+					// echo $response;
+					$jobsProcessed++;
 
-        // while(true) {
-		do {
-			try {
-				// $this->stopIfNecessary($startTime, $jobsProcessed);
-
-				$response = $this->yuga['queue']->fetch([$this, 'fire'], $queue);
-
-				// echo $response;
-				$jobsProcessed++;
-			} catch (\Throwable $e) {
-				$cli->writeLine('Failed', 'red');
-				$cli->writeLine("Exception: {$e->getCode()} - {$e->getMessage()}\nfile: {$e->getFile()}:{$e->getLine()}");
-			}
+					// After working, sleep
+					$this->yuga['queue']->sleep();
+				} catch (DatabaseQueryException $e) {
+					usleep(5 * 1000000);
+					$response = false;
+				} catch (\Exception $e) {
+					$cli->writeLine('Failed', 'red');
+					$cli->writeLine("Exception: {$e->getCode()} - {$e->getMessage()}\nfile: {$e->getFile()}:{$e->getLine()}");
+					usleep(5 * 1000000);
+				} finally {
+					usleep(5 * 1000000);
+					// usleep($this->yuga['queue']->getTimeout() * 1000000);
+				}
+			} while($response === true);
 		}
-		while($response === true);
-
+        
 		$cli->writeLine('Completed Working Queue', 'green');
     }
 
@@ -131,6 +93,7 @@ class MakeQueueWorkCommand extends Command
 			$job = unserialize($data['data']['job']);
 			$cli->writeLine('Running Job #' . $data['data']['jobName'], 'yellow');
 			$app = app()->call([$job, 'run']);
+			$cli->writeLine();
 			$cli->writeLine('Finished Job #' . $data['data']['jobName'], 'green');
 		} else {
 			$cli->writeLine('Failed to run Job', 'red');
@@ -173,7 +136,7 @@ class MakeQueueWorkCommand extends Command
 			$cli->writeLine('Exiting Worker: ' . $reason, 'yellow');
 		}
 
-		return true;
+		return $shouldQuit;
 	}
 	/**
 	 * calculate the memory limit
@@ -234,4 +197,5 @@ class MakeQueueWorkCommand extends Command
             ['queue',  null, InputOption::VALUE_OPTIONAL, 'The queue to listen on'],
         ];
     }
+
 }

@@ -15,12 +15,12 @@ class JobLog
 	protected $output;
 
 	/**
-	 * @var \CodeIgniter\I18n\Time
+	 * @var \DateTime
 	 */
 	protected $runStart;
 
 	/**
-	 * @var \CodeIgniter\I18n\Time
+	 * @var \DateTime
 	 */
 	protected $runEnd;
 

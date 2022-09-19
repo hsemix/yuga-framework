@@ -199,9 +199,6 @@ class JobRunner
     protected function cliWrite( String $text, String $foreground = null )
     {
         // Skip writing to cli in tests
-        // if( defined( "ENVIRONMENT" ) && ENVIRONMENT === "testing" ) {
-        //     return ;
-        // }
 
         if (!$this->scheduler->app->runningInConsole()) {
             return ;

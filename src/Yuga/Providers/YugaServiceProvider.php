@@ -69,9 +69,9 @@ class YugaServiceProvider extends ServiceProvider
         'MakeQueueWork'         => 'yuga.command.queue.work.make',
         'MakeQueueFlush'        => 'yuga.command.queue.flush.make',
         'MakeQueueForget'       => 'yuga.command.queue.forget.make',
-        // 'MakeQueueMonitor'      => 'yuga.command.queue.monitor.make',
-        // 'MakeQueueRestart'      => 'yuga.command.queue.restart.make',
-        // 'MakeQueueRetry'        => 'yuga.command.queue.retry.make',
+        'MakeQueueMonitor'      => 'yuga.command.queue.monitor.make',
+        'MakeQueueRestart'      => 'yuga.command.queue.restart.make',
+        'MakeQueueRetry'        => 'yuga.command.queue.retry.make',
         'MakeQueueJob'        => 'yuga.command.queue.job.make',
     ];
 

@@ -92,20 +92,31 @@ class Request
 
     public function processHost()
     {
-        // $scriptName = substr($this->getHeader('php-self'),0,strlen($this->getHeader('php-self'))  - strlen('index.php'));;
-        $scriptName = str_replace('/' . env('PAGE_CONTROLLER', 'index.php'), '', $this->getHeader('php-self'));
+        $scriptName = $this->getHeader('php-self');
+
+        if (env('PAGE_CONTROLLER', 'index.php') == 'index.php') {
+            $scriptName = str_replace('/index.php', '', $this->getHeader('php-self'));
+        }
+        
         $segs = explode('/', trim($scriptName, '/'));
         $segs = array_reverse($segs);
         $index = 0;
         $last = count($segs);
         $baseUrl = '';
+
         do {
             $seg = $segs[$index];
-            $baseUrl = '/'.$seg.rtrim($baseUrl, '/') ;
+            $baseUrl = '/' . $seg . rtrim($baseUrl, '/') ;
             ++$index;
         } while ($last > $index && (false !== $pos = strpos($scriptName, $baseUrl)) && 0 != $pos);
 
         return $baseUrl . '/';
+    }
+
+    public function formatUrl($url)
+    {
+        echo $this->uri;
+        die();
     }
 
     /**

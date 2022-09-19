@@ -10,6 +10,29 @@ use Yuga\Carbon\Carbon;
 abstract class BaseConnector
 {
 	/**
+     * Run every 5 seconds by default
+     */
+    const DEFAULT_INTERVAL = 5;
+
+	/**
+     * Run every X seconds
+     *
+     * @var int
+     */
+    protected $interval = self::DEFAULT_INTERVAL;
+
+	/**
+     *
+     * @var float
+     */
+    protected $startTime;
+
+    /**
+     *
+     * @var float
+     */
+    protected $passedTime;
+	/**
 	 * @var string
 	 */
 	protected $defaultQueue;
@@ -182,5 +205,60 @@ abstract class BaseConnector
 		]);
 
 		return true;
+    }
+
+	/**
+     *
+     * @return int
+     */
+    public function getInterval()
+    {
+        return $this->interval;
+    }
+
+	/**
+     *
+     * @param int $interval
+     *
+     * @return static
+     */
+    public function setInterval($interval)
+    {
+        $this->interval = $interval;
+
+        return $this;
+    }
+
+	/**
+     * Start timing
+     */
+    public function startTime()
+    {
+        $this->startTime = microtime(true);
+    }
+
+    /**
+     * Get passed time
+     *
+     * @return float
+     */
+    public function getPassedTime()
+    {
+        return abs(microtime(true) - $this->startTime);
+    }
+
+    /**
+     * Sleep
+     *
+     * @return null
+     */
+    public function sleep()
+    {
+        // Time ... enough
+        if ($this->getPassedTime() <= $this->interval) {
+
+            $remainder = ($this->interval) - $this->getPassedTime();
+            usleep($remainder * 1000000);
+        } // Task took more than the interval, don't sleep
     }
 }

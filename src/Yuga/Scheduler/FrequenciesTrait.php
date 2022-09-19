@@ -46,14 +46,13 @@ trait FrequenciesTrait
 	 *
 	 * @return $this
 	 */
-	public function cron( string $expression )
+	public function cron(string $expression)
 	{
-		if( !\Cron\CronExpression::isValidExpression( $expression ) )
-		{
+		if (!\Cron\CronExpression::isValidExpression($expression)) {
 			throw CronJobException::forInvalidExpression();
 		}
 
-		$this->expression = \Cron\CronExpression::factory( $expression )->getExpression();
+		$this->expression = \Cron\CronExpression::factory($expression)->getExpression();
 
 		return $this;
 	}
@@ -69,15 +68,14 @@ trait FrequenciesTrait
 	public function daily(string $time = null)
 	{
 		$min = $hour = 0;
-		if( !empty( $time ) )
-		{
-			[ $min, $hour ] = $this->parseTime( $time );
+		if (!empty($time)) {
+			[$min, $hour] = $this->parseTime( $time );
 		}
 
 		$cron = \Cron\CronExpression::factory( $this->expression );
 
-		$cron->setPart( 0, $min );
-		$cron->setPart( 1, $hour );
+		$cron->setPart(0, $min);
+		$cron->setPart(1, $hour);
 
 		$this->expression = $cron->getExpression();
 

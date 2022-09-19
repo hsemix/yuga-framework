@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# a shell script that keeps looping until an exit code is given
+# if it does an exit(0), restart after a second - or if it's a declared error
+# if we've restarted in a planned fashion, we don't bother with any pause
+# and for one particular code, exit the script entirely.
+# The numbers 97, 98, 99 must match what is returned from the PHP script
+
+nice php -q -f {command} -- $@
+ERR=$?
+
+## Possibilities
+# 97    - planned pause/restart `exit 97;`
+# 98    - planned restart (immediate, no sleep)
+# 99    - planned stop, exit.
+# 0     - unplanned restart (as returned by "exit;" or exceptions)
+#        - Anything else is also unplanned paused/restart
+
+if [ $ERR -eq 97 ]
+then
+   # a planned pause, then restart
+   echo "97: PLANNED_PAUSE - wait 2";
+   sleep 2;
+   exec $0 $@;
+fi
+# ... other choices to potentially pause, or exit the shell script
+
+# unplanned exit, pause, and restart
+echo "unplanned restart: err:" $ERR;
+echo "sleeping for 5 secs"
+sleep 5
+
+# rerun this shell script, replacing itself
+exec $0 $@

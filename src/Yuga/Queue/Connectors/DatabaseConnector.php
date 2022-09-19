@@ -89,6 +89,11 @@ class DatabaseConnector extends BaseConnector
 		// return true;
 	}
 
+	public function getTimeout()
+	{
+		return $this->timeout;
+	}
+
 	/**
 	 * Fetch message from queueing system.
 	 * When there are no message, this method will return (won't wait).
@@ -111,7 +116,7 @@ class DatabaseConnector extends BaseConnector
 		//if there is nothing else to run at the moment return false.
 		if (!$row) {
 			$this->housekeeping();
-
+			usleep($this->timeout * 1000000);
 			return true;
 		}
 
@@ -132,6 +137,8 @@ class DatabaseConnector extends BaseConnector
 		try {
 			$callback($data);
 
+			// print_r($ddd);
+			// die();
 			$this->db->table($this->table)
 				->where('id', $row->id)
 				->update([
@@ -150,9 +157,9 @@ class DatabaseConnector extends BaseConnector
 			$this->db->table($this->table)
 				->where('id', $row->id)
 				->update(['error' => 'error: ' . $error]);
-
+				echo 'here';
 			$this->fireOnFailure($e, $data);
-
+			
 			throw $e;
 		}
 

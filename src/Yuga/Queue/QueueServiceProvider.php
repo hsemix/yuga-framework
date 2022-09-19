@@ -21,8 +21,28 @@ class QueueServiceProvider extends ServiceProvider
 
     public function load(Application $app)
     {
-        $app->singleton('queue', function () use($app) {
-            return (new Queue(config('queue')))->connect();
-        });
-    }    
+        // if ($app->runningInConsole()) {
+
+            $app->singleton('queue', function () use($app) {
+                return (new Queue(config('queue')))->connect();
+            });
+        // }
+        // $this->commands(array_keys($this->queueCommands()));
+    }
+
+    public function boot()
+    {
+        
+    }
+
+    protected function queueCommands()
+    {
+        return [
+            'command.queue.flush' => $this->app->singleton('command.queue.flush', function () {
+                return new MakeQueueFlushCommand;
+            }),
+        ];
+    }
+
+    
 }

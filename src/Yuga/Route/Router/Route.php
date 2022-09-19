@@ -211,6 +211,10 @@ abstract class Route implements IRoute
 
         }
 
+        // echo '<pre>';
+        // print_r($callback);
+        // die();
+
         if (is_object($callback) === true) {
             if ($callback instanceof ViewModel) {
                 echo $callback;
@@ -264,12 +268,6 @@ abstract class Route implements IRoute
                 return ($var !== null);
             });
         }
-
-
-        // echo '<pre>';
-
-        // print_r($parameters);
-        // die();
         
         $result = call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters, $request));
         if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View ) {
@@ -290,6 +288,8 @@ abstract class Route implements IRoute
         if (\file_exists(path('config/AppRouteModelBinding.php'))) {
             $modelBindingSettings = require path('config/AppRouteModelBinding.php');
         }
+        // echo 'stopped here';
+        // die();
         if (count($modelBindingSettings) > 0) {
             $routeBindings = [];
             foreach ($modelBindingSettings as $routeBinding => $fields) {
