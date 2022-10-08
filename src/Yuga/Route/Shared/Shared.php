@@ -2,7 +2,9 @@
 namespace Yuga\Route\Shared;
 
 use ReflectionClass;
+use Yuga\Database\Elegant\Model;
 use Yuga\Application\Application;
+use Yuga\Database\Elegant\Exceptions\ModelNotFoundException;
 
 /**
  * Share some methods to Route classes
@@ -19,7 +21,7 @@ trait Shared
         return false;
     }
 
-    protected function methodInjection($class, $method, $params)
+    protected function methodInjection($class, $method, $params, $request = null)
     {
         $parameters = null;
         $app = Application::getInstance();
@@ -29,15 +31,17 @@ trait Shared
             $reflectionParameters = $reflectionMethod->getParameters();
             $dependecies = [];
             foreach ($reflectionParameters as $parameter) {
-                if (!is_null($parameter->getClass())) {
-                    $dependency = $parameter->getClass()->name;
+                $name = $parameter->getType() && !$parameter->getType()->isBuiltin() ? $parameter->getType()->getName() : null;
+                
+                if (!is_null($name)) {
+                    $dependency = $name;
                     if($binding = $this->isSingleton($app, $dependency)) {
                         $dependecies[] = $binding;
                     } else {
                         $dependecies[] = $app->resolve($dependency);
                     }
                 }
-            }
+            } 
             foreach ($params as $paramVal) {
                 $dependecies[] = $paramVal;
             }

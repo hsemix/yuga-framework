@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Providers\Console;
 
 use Yuga\Console\Command;

@@ -3,6 +3,7 @@
 namespace Yuga\Queue\Connectors;
 
 use Yuga\Carbon\Carbon;
+use Yuga\Queue\CanFailInterface;
 
 /**
  * Base Queue handler.
@@ -86,6 +87,8 @@ abstract class BaseConnector
 	 */
 	abstract public function receive(callable $callback, string $queue = '') : bool;
 
+	abstract public function reset();
+
 	/**
 	 * Set the delay in minutes
 	 *
@@ -154,9 +157,13 @@ abstract class BaseConnector
 	 * @param string $job  the job to run
 	 * @param array  $data data for the job
 	 */
-	protected function fireOnFailure(\Throwable $e, $data)
+	protected function fireOnFailure(\Throwable $exception, $data, $queueJob)
 	{
-		
+		$job = unserialize($data['data']['job']);
+		if ($job instanceof CanFailInterface) {
+			$job->onFailure($queueJob, $exception->getMessage());
+		}
+		event('queue:failure', compact('job', 'queueJob', 'exception'));
 	}
 
 	/**
@@ -165,9 +172,10 @@ abstract class BaseConnector
 	 * @param string $job  the job to run
 	 * @param array  $data data for the job
 	 */
-	protected function fireOnSuccess($data)
+	protected function fireOnSuccess($data, $queueJob)
 	{
-		
+		$job = unserialize($data['data']['job']);
+		event('queue:successful', compact('job', 'queueJob'));
 	}
 
 	/**

@@ -137,8 +137,6 @@ class DatabaseConnector extends BaseConnector
 		try {
 			$callback($data);
 
-			// print_r($ddd);
-			// die();
 			$this->db->table($this->table)
 				->where('id', $row->id)
 				->update([
@@ -146,7 +144,7 @@ class DatabaseConnector extends BaseConnector
 					'updated_at' => date('Y-m-d H:i:s'),
 				]);
 
-			$this->fireOnSuccess($data);
+			$this->fireOnSuccess($data, $row);
 		} catch (\Throwable $e) {
 			//track any exceptions into the database for easier troubleshooting.
 			$error = (new \DateTime)->format('Y-m-d H:i:s') . "\n" .
@@ -157,8 +155,7 @@ class DatabaseConnector extends BaseConnector
 			$this->db->table($this->table)
 				->where('id', $row->id)
 				->update(['error' => 'error: ' . $error]);
-				echo 'here';
-			$this->fireOnFailure($e, $data);
+			$this->fireOnFailure($e, $data, $row);
 			
 			throw $e;
 		}
@@ -220,5 +217,20 @@ class DatabaseConnector extends BaseConnector
 				->where('updated_at', '<', date('Y-m-d H:i:s', time() - $this->deleteDoneMessagesAfter))
 				->delete();
 		}
+	}
+
+	/**
+	 * Reset all the failed jobs
+	 */
+	public function reset()
+	{
+		//set the status to executing if it hasn't already been taken.
+		$this->db->table($this->table)
+			->where('status', (int) self::STATUS_FAILED)
+			->update([
+				'status'     => self::STATUS_WAITING,
+				'attempts' => 0,
+				'updated_at' => date('Y-m-d H:i:s'),
+			]);
 	}
 }

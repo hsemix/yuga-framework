@@ -22,8 +22,8 @@ class Session implements ISession
 			@session_start();
 		}
 		// $this->app = $app;
-		// $config = $this->app->config->load('config.Settings');
-		// $this->sessionName = $config->get('session.name');
+		$config = $app->config->load('config.Settings');
+		$this->sessionName = $config->get('session.name');
 		$this->check_login();
 	}
 
@@ -81,6 +81,7 @@ class Session implements ISession
         $data = Guid::encrypt(static::getSecret(), implode('|', $data));
         return $_SESSION[$name] = $data;
 	}
+	
 	public static function exists($name)
 	{
 		return (isset($_SESSION[$name])) ? true : false;
@@ -128,6 +129,7 @@ class Session implements ISession
 
         return $defaultValue;
 	}
+
 	public static function flash($name, $string = null)
 	{
 		if (self::exists($name)) {

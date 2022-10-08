@@ -21,8 +21,6 @@ class ElegantServiceProvider extends ServiceProvider
             $config = $app->config->load('config.Config');
             $connection = $app->singleton('connection', Connection::class);
 
-            // print_r($connection);
-            // die();
             $app->resolve('connection', [
                 $config->get('db.'.$config->get('db.defaultDriver'))
             ]);

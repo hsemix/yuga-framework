@@ -52,6 +52,15 @@ if (! function_exists('session')) {
     }
 }
 
+if (! function_exists('db')) {
+    function db($param = null)
+    {
+        if ($param)
+            return app('db')->table($param);
+        return app('db');
+    }
+}
+
 if (! function_exists('cookie')) {
     function cookie()
     {

@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Container\Support;
 
 use Exception;

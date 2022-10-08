@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Application;
 
 use Yuga\Debug;
@@ -99,7 +100,6 @@ class Application extends Container implements IApplication
         $this->site = new UI;
         $this->basePath = $root;
         $this->charset = static::CHARSET_UTF8;
-        // $this->run();
     }
 
     public function run()
@@ -199,6 +199,7 @@ class Application extends Container implements IApplication
         $this->singleton('app', $this);
         $this->singleton(Container::class, $this);
         $this->bind('base_path', $this->basePath);
+        $this->bind('Yuga\Interfaces\Application\Application', self::class);
     }
 
     /**

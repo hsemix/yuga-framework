@@ -2,6 +2,7 @@
 
 namespace Yuga\Queue\Console;
 
+use Yuga\Console\CLI;
 use Yuga\Console\Command;
 
 /**
@@ -29,6 +30,13 @@ class MakeQueueRetryCommand extends Command
 	 */
 	public function handle()
 	{
-        
+		$cli = new CLI;
+        $cli->writeLine('Resetting Failed Jobs Queue...', 'yellow');
+
+        $queue = $this->yuga['queue'];
+
+		$queue->reset();
+
+		$cli->writeLine('Completed Resetting Failed Jobs the queue can now retry them', 'green');
 	}
 }

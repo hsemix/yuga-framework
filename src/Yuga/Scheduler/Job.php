@@ -76,6 +76,13 @@ class Job
 	protected $app;
 
 	/**
+     * Indicates if the command should run in background.
+     *
+     * @var bool
+     */
+    public $runInBackground = false;
+
+	/**
 	 * @param mixed  $action
 	 * @param string $type
 	 *
@@ -143,7 +150,15 @@ class Job
 	 * @throws SchedulerException
 	 */
 	public function run()
-	{
+	{	
+
+		$mutex = new \SyncMutex("UniqueName");
+
+		echo 'kdkdkdd';
+		// print_r($mutex);
+		die();
+		// print_r($this->type);
+		// die();
 		$method = 'run' . ucfirst($this->type);
 		if (!method_exists($this, $method)) {
 			throw SchedulerException::forInvalidTaskType( $this->type );
@@ -160,17 +175,24 @@ class Job
 	 */
 	public function shouldRun( \Datetime $testTime = null ) : bool
 	{
-		// Are we restricting to environments?
-		// if (!empty( $this->environments) && !$this->runsInEnvironment(ENVIRONMENT)) {
-		// 	return false;
-		// }
-
 		$cron = \Cron\CronExpression::factory( $this->getExpression() );
 
 		$testTime = ( $testTime ) ? $testTime : 'now';
 		
 		return $cron->isDue( $testTime );
 	}
+
+	/**
+     * State that the command should run in background.
+     *
+     * @return $this
+     */
+    public function runInBackground()
+    {
+        $this->runInBackground = true;
+
+        return $this;
+    }
 
 	/**
 	 * Restricts this task to run within only
@@ -233,8 +255,13 @@ class Job
 	 * @return mixed The result of the closure
 	 */
 	protected function runClosure()
-	{
-		return $this->getAction()->__invoke();
+	{	
+		
+		// $sem = sem_get(1234, 1);
+		// if (sem_acquire($sem)) {
+			return $this->getAction()->__invoke();
+		// }
+		
 	}
 
 	/**

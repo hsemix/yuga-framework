@@ -17,7 +17,13 @@ class Container implements ArrayAccess
 
     protected $instances = [];
 
-    private static $thisInstances 		= [];
+    private static $thisInstances = [];
+    /**
+     * An array of the types that have been resolved.
+     *
+     * @var array
+     */
+    protected $resolved = [];
 
     public function bind($key, $value, $singleton = false)
     {
@@ -33,6 +39,28 @@ class Container implements ArrayAccess
         
     }
 
+    /**
+     * Determine if the given abstract type has been bound.
+     *
+     * @param  string  $abstract
+     * @return bool
+     */
+    public function bound($abstract)
+    {
+        return isset($this->bindings[$abstract]) || isset($this->instances[$abstract]);
+    }
+
+    /**
+     * Determine if the given abstract type has been resolved.
+     *
+     * @param  string  $abstract
+     * @return bool
+     */
+    public function resolved($abstract)
+    {
+        return isset($this->resolved[$abstract]) || isset($this->instances[$abstract]);
+    }
+
     public function has($key)
     {
         if (array_key_exists($key, $this->instances) || array_key_exists($key, $this->bindings)) {
@@ -45,6 +73,7 @@ class Container implements ArrayAccess
     {
         return $this->bind($key, $value, true);
     }
+    
     public function getBinding($key)
     {
         $key = ltrim($key, '\\');
@@ -233,21 +262,25 @@ class Container implements ArrayAccess
         return $object;
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetGet($key)
     {
         return $this->make($key);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetSet($key, $value)
     {
         $this->bind($key, $value);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetExists($key)
     {
         return array_key_exists($key, $this->bindings);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetUnset($key)
     {
         unset($this->bindings[$key]);

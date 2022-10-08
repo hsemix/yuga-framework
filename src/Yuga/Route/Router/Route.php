@@ -8,6 +8,7 @@ use ReflectionFunction;
 use Yuga\Http\Redirect;
 use Yuga\View\ViewModel;
 use Yuga\Container\Container;
+use Yuga\Route\Shared\Shared;
 use Yuga\Route\Support\IRoute;
 use Yuga\Application\Application;
 use Yuga\Route\Support\IGroupRoute;
@@ -324,7 +325,12 @@ abstract class Route implements IRoute
             foreach ($reflectionParameters as $parameter) {
                 if (!is_null($parameter->getType())) {
                     $dependency = $parameter->getType()->getName();
-                    if (array_key_exists($parameter->name, $params)) {
+
+                    // print_r($parameter->name);
+                    // die();
+                    $type = $parameter->getType();
+                    if (array_key_exists($parameter->name, $params) && !$type->isBuiltIn()) {
+
                         $dependencyObject = new $dependency;
                         $modelBindingSettings = $this->processBindings($request);
                         $field = $dependencyObject->getPrimaryKey();
@@ -346,10 +352,14 @@ abstract class Route implements IRoute
                             throw new ModelNotFoundException("Model $dependency with $field = '$value' not found");
 
                     } else {
-                        if($binding = $this->isSingleton($app, $dependency)) {
-                            $dependecies[$parameter->name] = $binding;
+                        if (!$type->isBuiltIn()) {
+                            if($binding = $this->isSingleton($app, $dependency)) {
+                                $dependecies[$parameter->name] = $binding;
+                            } else {
+                                $dependecies[$parameter->name] = $app->resolve($dependency);
+                            }
                         } else {
-                            $dependecies[$parameter->name] = $app->resolve($dependency);
+                            $dependecies[$parameter->name] = $params[$parameter->name];
                         }
                     }
                 } else {
@@ -358,7 +368,7 @@ abstract class Route implements IRoute
                     }
                 } 
             }
-
+            
             // $dependecies[] = $app;
             
         }

@@ -52,7 +52,7 @@ class MakeQueueMonitorCommand extends Command
 			))
 		);
 
-		proc_open(path("queue.sh") . $logger, [STDIN, STDOUT, STDOUT], $pipes);
+		proc_open(path("queue.sh &"), [STDIN, STDOUT, STDOUT], $pipes);
 
 		$this->info('Watcher Started');
 	}
