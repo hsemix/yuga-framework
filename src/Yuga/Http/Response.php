@@ -52,7 +52,7 @@ class Response
         return view($args, $data);
     }
 
-    public function jsonResponse($value, $options = null, $code = 200, $dept = 512)
+    public function jsonResponse($value, $options = 0, $code = 200, $dept = 512)
     {
         return $this->json($value, $options, $code, $dept);
     }
@@ -103,7 +103,7 @@ class Response
      * Json encode array
      * @param array $value
      */
-    public function json($value, $options = null, $code = 200, $dept = 512)
+    public function json($value, $options = 0, $code = 200, $dept = 512)
     {
         if (($value instanceof \JsonSerializable) === false && \is_array($value) === false) {
             throw new InvalidArgumentException('Invalid type for parameter "value". Must be of type array or object implementing the \JsonSerializable interface.');
