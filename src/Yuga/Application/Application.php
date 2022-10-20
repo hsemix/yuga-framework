@@ -29,7 +29,7 @@ use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '4.2.0';
+    const VERSION = '4.2.1';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
@@ -94,6 +94,11 @@ class Application extends Container implements IApplication
     protected $debuggerStarted = false;
 
     protected $booted = false;
+
+    /**
+     * composer vendor directory
+     */
+    protected $vendorDir;
     
     public function __construct($root = null)
     {
@@ -123,7 +128,20 @@ class Application extends Container implements IApplication
         if (!$this->runningInConsole()) {
             $this->make('session')->delete('errors');
         }
+
+        $this->setVendorDir($this->basePath . DIRECTORY_SEPARATOR . 'vendor');
         return $this;
+    }
+
+    public function setVendorDir($vendorDir)
+    {
+        $this->vendorDir = $vendorDir;
+        return $this;
+    }
+
+    public function getVendorDir()
+    {
+        return $this->vendorDir;
     }
 
 
@@ -200,6 +218,7 @@ class Application extends Container implements IApplication
         $this->singleton(Container::class, $this);
         $this->bind('base_path', $this->basePath);
         $this->bind('Yuga\Interfaces\Application\Application', self::class);
+        $this->bind('vendor_path', $this->vendorDir);
     }
 
     /**
