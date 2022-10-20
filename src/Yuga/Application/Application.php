@@ -29,7 +29,7 @@ use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '4.2.1';
+    const VERSION = '4.2.2';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
@@ -112,7 +112,7 @@ class Application extends Container implements IApplication
         $this->singleton('config', Config::class);
         $this->config = $this->resolve('config');
         // load default class alias here
-        
+        $this->setVendorDir($this->basePath . DIRECTORY_SEPARATOR . 'vendor');
         if (!$this->runningInConsole()) {
             $this->setDebugEnabled(env('DEBUG_MODE', false)); 
             $this->initTracy();  
@@ -124,12 +124,12 @@ class Application extends Container implements IApplication
         $this->registerBaseBindings($this);
         $this->registerDefaultProviders();
         $this['events']->dispatch('on:app-start');
-
+        
         if (!$this->runningInConsole()) {
             $this->make('session')->delete('errors');
         }
 
-        $this->setVendorDir($this->basePath . DIRECTORY_SEPARATOR . 'vendor');
+        
         return $this;
     }
 
