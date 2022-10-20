@@ -42,7 +42,7 @@ class Request
         $this->uri = $this->getHeader('request-uri');
         $this->input = new Input($this);
         $this->method = strtolower($this->input->get('_method', $this->getHeader('request-method'), 'post'));
-        $this->app = Application::getInstance();
+        // $this->app = Application::getInstance();
         $this->data = $this->except(['_token']);
     }
 
@@ -479,12 +479,12 @@ class Request
 
     public function addOld()
     {
-        $this->app->make('session')->put('old-data', $this->getInput()->all());
+        app()->make('session')->put('old-data', $this->getInput()->all());
         return $this;
     }
     public function old($key = null)
     {
-        $data = $this->app->make('session')->get('old-data');
+        $data = app()->make('session')->get('old-data');
         if ($key && !is_null($data)) {
             return isset($data[$key]) ? $data[$key]: null;
         }
@@ -507,18 +507,18 @@ class Request
         if (isset($fields['_token']))
             unset($fields['_token']);
         
-        $validation = $this->app->get('validate')->check($this->all(), $rules);
+        $validation = app()->get('validate')->check($this->all(), $rules);
         if ($validation->failed()) {
             if ($this->isAjax()) {
                 return $validation->errors();
             } else {
-                $this->app->get('validate')->getSession()->put('errors', $validation->errors());
+                app()->get('validate')->getSession()->put('errors', $validation->errors());
                 $this->addOld();
-                return $this->app->get('validate')->getResponse()->redirect->back();
+                return app()->get('validate')->getResponse()->redirect->back();
             } 
         }
         if ($clearOldData) {
-            $this->app->get('validate')->getSession()->delete('old-data');
+            app()->get('validate')->getSession()->delete('old-data');
         }
         if ($this->isAjax() || $this->getHeader('http-accept') == 'application/json' || $this->getHeader('http-content-type') == 'text/plain') {
             return $validation;
