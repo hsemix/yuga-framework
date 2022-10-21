@@ -45,9 +45,6 @@ class View
 	 */
 	public function __toString()
 	{
-		// echo '<pre>';
-		// print_r($this->viewEngine);
-		// die();
 		try {
 			return $this->viewEngine->display($this->viewFile);
 		} catch (\Throwable $e) {

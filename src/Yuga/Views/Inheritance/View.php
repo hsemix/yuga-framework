@@ -20,7 +20,7 @@ class View
     {
         $this->template_dir = $dir . '/';
         if (!is_dir($directory = $dir)) {
-            mkdir($directory, 0755, true);
+            @mkdir($directory, 0755, true);
         }
         return $this;
     }
