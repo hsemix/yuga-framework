@@ -18,6 +18,12 @@ trait Collection
     protected $items = [];
     protected $pagination;
     protected static $instances = [];
+
+    public function __construct($items = [], $query = null)
+    {
+        $this->items = $items;
+        $this->query = $query;
+    }
     
     public function __toString()
     {
@@ -611,5 +617,48 @@ trait Collection
         $this->items = array_values($this->items);
 
         return $this;
+    }
+
+    public function mapWithKeys(callable $callback)
+    {
+        $result = [];
+
+        foreach ($this->items as $key => $value) {
+            $assoc = $callback($value, $key);
+
+            foreach ($assoc as $mapKey => $mapValue) {
+                $result[$mapKey] = $mapValue;
+            }
+        }
+
+        return new static($result);
+    }
+
+    /**
+     * Create a collection of all elements that do not pass a given truth test.
+     *
+     * @param  (callable(TValue, TKey): bool)|bool  $callback
+     * @return static
+     */
+    public function reject($callback = true)
+    {
+        $useAsCallable = $this->useAsCallable($callback);
+
+        return $this->filter(function ($value, $key) use ($callback, $useAsCallable) {
+            return $useAsCallable
+                ? ! $callback($value, $key)
+                : $value != $callback;
+        });
+    }
+
+    /**
+     * Determine if the given value is callable, but not a string.
+     *
+     * @param  mixed  $value
+     * @return bool
+     */
+    protected function useAsCallable($value)
+    {
+        return ! is_string($value) && is_callable($value);
     }
 }

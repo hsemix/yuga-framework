@@ -25,6 +25,14 @@ final class FileSystem
 		}
 	}
 
+	/**
+	 * Checks if a file exists
+	 */
+	public static function exists(string $path): bool
+	{
+		return @file_exists($path);
+	}
+
 
 	/**
 	 * Copies a file or directory.

@@ -33,6 +33,7 @@ use Yuga\Database\Console\MakeMigrationSeedCommand;
 use Yuga\Database\Console\MakeDatabaseBackupCommand;
 use Yuga\Database\Console\MakeDatabaseRestoreCommand;
 use Yuga\Providers\Console\MakeServiceProviderCommand;
+use Yuga\Providers\Composer\Console\DiscoverPackageCommand;
 
 class YugaServiceProvider extends ServiceProvider
 {
@@ -72,7 +73,8 @@ class YugaServiceProvider extends ServiceProvider
         'MakeQueueMonitor'      => 'yuga.command.queue.monitor.make',
         'MakeQueueRestart'      => 'yuga.command.queue.restart.make',
         'MakeQueueRetry'        => 'yuga.command.queue.retry.make',
-        'MakeQueueJob'        => 'yuga.command.queue.job.make',
+        'MakeQueueJob'          => 'yuga.command.queue.job.make',
+        'DiscoverPackage'       => 'yuga.command.module.discover',
     ];
 
     public function __construct(Application $app)
@@ -441,6 +443,21 @@ class YugaServiceProvider extends ServiceProvider
     {
         $app->singleton($command, function () {
             return new MakeQueueJobCommand;
+        });
+    }
+
+    /**
+     * Make Auth command i.e all classes responsible for the authentication of a user (login, register, forgot password, remember me, reset password)
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
+    protected function registerDiscoverPackageCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new DiscoverPackageCommand;
         });
     }
 

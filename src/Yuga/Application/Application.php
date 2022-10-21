@@ -5,7 +5,9 @@ namespace Yuga\Application;
 use Yuga\Debug;
 use Yuga\Boolean;
 use Tracy\Debugger;
+use Yuga\Providers\Composer\PackageManager;
 use Yuga\Route\Route;
+use Yuga\Support\Str;
 use Yuga\Http\Request;
 use Yuga\Http\Redirect;
 use Yuga\Http\Response;
@@ -95,10 +97,19 @@ class Application extends Container implements IApplication
 
     protected $booted = false;
 
+    protected $charset;
+
     /**
      * composer vendor directory
      */
     protected $vendorDir;
+
+    /**
+     * The prefixes of absolute cache paths for use during normalization.
+     *
+     * @var string[]
+     */
+    protected $absoluteCachePathPrefixes = ['/', '\\'];
     
     public function __construct($root = null)
     {
@@ -107,12 +118,96 @@ class Application extends Container implements IApplication
         $this->charset = static::CHARSET_UTF8;
     }
 
+    /**
+     * Get the base path of the Laravel installation.
+     *
+     * @param  string  $path
+     * @return string
+     */
+    public function basePath($path = '')
+    {
+        return $this->basePath.($path != '' ? DIRECTORY_SEPARATOR.$path : '');
+    }
+
+    /**
+     * Get the path to the boot directory.
+     *
+     * @param  string  $path
+     * @return string
+     */
+    public function bootPath($path = '')
+    {
+        return $this->basePath.DIRECTORY_SEPARATOR.'boot'.($path != '' ? DIRECTORY_SEPARATOR.$path : '');
+    }
+
+    /**
+     * Get the path to the application configuration files.
+     *
+     * @param  string  $path
+     * @return string
+     */
+    public function configPath($path = '')
+    {
+        return $this->basePath.DIRECTORY_SEPARATOR.'config'.($path != '' ? DIRECTORY_SEPARATOR.$path : '');
+    }
+
+    /**
+     * Get the path to the configuration cache file.
+     *
+     * @return string
+     */
+    public function getCachedConfigPath()
+    {
+        return $this->normalizeCachePath('APP_CONFIG_CACHE', 'cache/config.php');
+    }
+
+    /**
+     * Get the path to the cached services.php file.
+     *
+     * @return string
+     */
+    public function getCachedServicesPath()
+    {
+        return $this->normalizeCachePath('APP_SERVICES_CACHE', 'cache/services.php');
+    }
+
+    /**
+     * Get the path to the cached packages.php file.
+     *
+     * @return string
+     */
+    public function getCachedPackagesPath()
+    {
+        return $this->normalizeCachePath('APP_PACKAGES_CACHE', 'cache/packages.php');
+    }
+
+    /**
+     * Normalize a relative or absolute path to a cache file.
+     *
+     * @param  string  $key
+     * @param  string  $default
+     * @return string
+     */
+    protected function normalizeCachePath($key, $default)
+    {
+        if (is_null($env = env($key))) {
+            return $this->bootPath($default);
+        }
+
+        return Str::startsWith($env, $this->absoluteCachePathPrefixes)
+                ? $env
+                : $this->basePath($env);
+    }
+
+    /**
+     * Run the Yuga application
+     */
     public function run()
     {
         $this->singleton('config', Config::class);
         $this->config = $this->resolve('config');
         // load default class alias here
-        $this->setVendorDir($this->basePath . DIRECTORY_SEPARATOR . 'vendor');
+        $this->setVendorDir($this->basePath.DIRECTORY_SEPARATOR.'vendor');
         if (!$this->runningInConsole()) {
             $this->setDebugEnabled(env('DEBUG_MODE', false)); 
             $this->initTracy();  
@@ -219,6 +314,13 @@ class Application extends Container implements IApplication
         $this->bind('base_path', $this->basePath);
         $this->bind('Yuga\Interfaces\Application\Application', self::class);
         $this->bind('vendor_path', $this->vendorDir);
+        $this->singleton(PackageManager::class, function () {
+            return new PackageManager(
+                $this->basePath, 
+                env('COMPOSER_VENDOR_DIR', $this->vendorDir),
+                path('config'.DIRECTORY_SEPARATOR.'ServiceProviders.php')
+            );
+        });
     }
 
     /**
