@@ -86,9 +86,12 @@ class PackageManager extends ModuleInstaller
         $providers = include $this->providersPath;
 
         
-        foreach ($providersToInclude as $moduleProvider) {
-            if (!in_array($moduleProvider, $providers))
-                $providers[] = $moduleProvider;
+        foreach ($providersToInclude as $moduleProviders) {
+            foreach ($moduleProviders as $moduleProvider) 
+            {
+                if (!in_array($moduleProvider, $providers))
+                    $providers[] = $moduleProvider;
+            }
         }
 
         $generatedProviders = '[';
