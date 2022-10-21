@@ -85,9 +85,6 @@ class PackageManager extends ModuleInstaller
 
         $providers = include $this->providersPath;
 
-        file_put_contents(
-            dirname($this->providersPath).'/test.txt', \json_encode($providersToInclude));
-
         foreach ($providersToInclude as $moduleProviders) {
             foreach ($moduleProviders['providers'] as $moduleProvider) {
                 if (!in_array($moduleProvider, $providers))
