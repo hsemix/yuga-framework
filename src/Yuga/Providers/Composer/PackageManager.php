@@ -33,14 +33,6 @@ class PackageManager extends ModuleInstaller
 
         $toBeIgnored = in_array('*', $ignore = $this->ignore());
 
-
-        // $collection = new Collection($packages);
-
-        // echo '<pre>';
-        // print_r($collection);
-
-        // die();
-
         $this->write((new Collection($packages))->mapWithKeys(function ($package) {
             return [$this->format($package['name']) => $package['extra']['yuga'] ?? []];
         })->each(function ($configuration) use (&$ignore) {
@@ -96,7 +88,7 @@ class PackageManager extends ModuleInstaller
         
         foreach ($providersToInclude as $moduleProvider) {
             if (!in_array($moduleProvider, $providers))
-                $providers[] = '$moduleProvider';
+                $providers[] = $moduleProvider;
         }
 
         $generatedProviders = '[';
