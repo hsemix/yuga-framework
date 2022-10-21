@@ -1,10 +1,11 @@
 <?php
+
 namespace Yuga\Database\Query;
 
 class JoinBuilder extends Builder
 {
     /**
-     * @param string $key
+     * @param string       $key
      * @param string|mixed $operator
      * @param string|mixed $value
      *
@@ -16,7 +17,7 @@ class JoinBuilder extends Builder
     }
 
     /**
-     * @param string $key
+     * @param string       $key
      * @param string|mixed $operator
      * @param string|mixed $value
      *
@@ -31,7 +32,7 @@ class JoinBuilder extends Builder
      * @param string$key
      * @param string|mixed|null $operator
      * @param string|mixed|null $value
-     * @param string $joiner
+     * @param string            $joiner
      *
      * @return static
      */

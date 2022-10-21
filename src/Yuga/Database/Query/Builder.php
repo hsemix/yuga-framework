@@ -2,15 +2,15 @@
 
 namespace Yuga\Database\Query;
 
-use PDO;
 use Closure;
 use Exception;
-use Traversable;
 use IteratorAggregate;
-use Yuga\Database\Elegant\Collection;
+use PDO;
+use Traversable;
 use Yuga\Database\Connection\Connection;
-use Yuga\Database\Query\ActiveRecord\Row;
+use Yuga\Database\Elegant\Collection;
 use Yuga\Database\Query\ActiveRecord\ResultSet;
+use Yuga\Database\Query\ActiveRecord\Row;
 use Yuga\Database\Query\Exceptions\DatabaseQueryException;
 use Yuga\Database\Query\Exceptions\TransactionHaltException;
 
@@ -30,7 +30,7 @@ class Builder implements IteratorAggregate
     protected $acceptableTypes = ['select', 'insert', 'insertignore', 'replace', 'delete', 'update', 'criteriaonly'];
 
     protected static $builder;
-    
+
     public function __construct(Connection $connection = null)
     {
         if ($connection === null && ($connection = Connection::getStoredConnection()) === false) {
@@ -46,7 +46,7 @@ class Builder implements IteratorAggregate
         }
         // Query builder grammar instance
         $this->grammarInstance = $this->container->resolve(
-            '\Yuga\Database\Query\Grammar\\' . ucfirst($this->adapter),
+            '\Yuga\Database\Query\Grammar\\'.ucfirst($this->adapter),
             [$this->connection]
         );
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -74,6 +74,7 @@ class Builder implements IteratorAggregate
     public function setConnection(Connection $connection)
     {
         $this->connection = $connection;
+
         return $this;
     }
 
@@ -86,7 +87,7 @@ class Builder implements IteratorAggregate
     {
         return $this->activeRecordTable;
     }
-    
+
     public function table($tables)
     {
         if (is_string($tables)) {
@@ -100,6 +101,7 @@ class Builder implements IteratorAggregate
         $instance = new static($this->connection);
         $tables = $this->addTablePrefix($tables, false);
         $instance->addStatement('tables', $tables);
+
         return $instance;
     }
 
@@ -110,7 +112,7 @@ class Builder implements IteratorAggregate
 
     protected function addTablePrefix($values, $tableFieldMix = true)
     {
-        if($this->tablePrefix === null) {
+        if ($this->tablePrefix === null) {
             return $values;
         }
         $single = false;
@@ -134,42 +136,46 @@ class Builder implements IteratorAggregate
                 $target = &$key;
             }
             if ($tableFieldMix === false || ($tableFieldMix && strpos($target, '.') !== false)) {
-                $target = $this->tablePrefix . $target;
+                $target = $this->tablePrefix.$target;
             }
             $return[$key] = $value;
         }
         // If we had single value then we should return a single value (end value of the array)
         return $single ? end($return) : $return;
     }
+
     protected function addStatement($key, $value)
     {
-        if(!array_key_exists($key, $this->statements)){
-            $this->statements[$key] = (array)$value;
-        }else{
-            $this->statements[$key] = array_merge($this->statements[$key], (array)$value);
+        if (!array_key_exists($key, $this->statements)) {
+            $this->statements[$key] = (array) $value;
+        } else {
+            $this->statements[$key] = array_merge($this->statements[$key], (array) $value);
         }
     }
 
     /**
      * @param Builder $builder
-     * @param null $alias
+     * @param null    $alias
+     *
      * @throws Exception
+     *
      * @return Raw
      */
     public function subQuery(Builder $builder, $alias = null)
     {
-        $sql = '(' . $builder->getQuery()->getRawSql() . ')';
+        $sql = '('.$builder->getQuery()->getRawSql().')';
         if ($alias) {
-            $sql = $sql . ' as ' . $alias;
+            $sql = $sql.' as '.$alias;
         }
+
         return $builder->raw($sql);
     }
 
     /**
-     * Add a raw query
+     * Add a raw query.
      *
      * @param string $value
-     * @param array $bindings
+     * @param array  $bindings
      *
      * @return Raw
      */
@@ -185,6 +191,7 @@ class Builder implements IteratorAggregate
         }
         $fields = $this->addTablePrefix($fields);
         $this->addStatement('selects', $fields);
+
         return $this;
     }
 
@@ -192,6 +199,7 @@ class Builder implements IteratorAggregate
     {
         $this->select($fields);
         $this->addStatement('distinct', true);
+
         return $this;
     }
 
@@ -212,6 +220,7 @@ class Builder implements IteratorAggregate
             }
             $this->statements['orderBys'][] = compact('field', 'type');
         }
+
         return $this;
     }
 
@@ -219,29 +228,34 @@ class Builder implements IteratorAggregate
     {
         $field = $this->addTablePrefix($field);
         $this->addStatement('groupBys', $field);
+
         return $this;
     }
 
     public function limit($lower, $upper = null)
     {
-        if(!is_null($upper))
-            $this->statements['limit'] = $lower .', '. $upper;
-        else
+        if (!is_null($upper)) {
+            $this->statements['limit'] = $lower.', '.$upper;
+        } else {
             $this->statements['limit'] = $lower;
+        }
+
         return $this;
     }
 
     public function take($number)
     {
         $this->limit($number);
+
         return $this;
     }
 
     /**
      * Set the limit and offset for a given page.
      *
-     * @param  int  $page
-     * @param  int  $perPage
+     * @param int $page
+     * @param int $perPage
+     *
      * @return \Yuga\Database\Query\Builder|static
      */
     public function getPage($page, $perPage = 15)
@@ -252,7 +266,8 @@ class Builder implements IteratorAggregate
     /**
      * Alias to set the "offset" value of the query.
      *
-     * @param  int  $value
+     * @param int $value
+     *
      * @return \Yuga\Database\Query\Builder|static
      */
     public function skip($value)
@@ -263,6 +278,7 @@ class Builder implements IteratorAggregate
     public function offSet($offset)
     {
         $this->statements['offset'] = $offset;
+
         return $this;
     }
 
@@ -275,6 +291,7 @@ class Builder implements IteratorAggregate
     {
         $key = $this->addTablePrefix($column);
         $this->statements['wheres'][] = compact('column', 'operator', 'value', 'type');
+
         return $this;
     }
 
@@ -286,8 +303,9 @@ class Builder implements IteratorAggregate
             $operator = '=';
         }
         if (is_bool($value)) {
-            $value = (int)$value;
+            $value = (int) $value;
         }
+
         return $this->whereHandler($column, $operator, $value);
     }
 
@@ -298,15 +316,17 @@ class Builder implements IteratorAggregate
             $value = $operator;
             $operator = '=';
         }
+
         return $this->whereHandler($column, $operator, $value, 'or');
     }
 
     public function getQuery($type = 'select', $dataToBePassed = [])
     {
         if (in_array(strtolower($type), $this->acceptableTypes, true) === false) {
-            throw new Exception($type . ' is not a known type.', 2);
+            throw new Exception($type.' is not a known type.', 2);
         }
         $queryArr = $this->grammarInstance->$type($this->statements, $dataToBePassed);
+
         return $this->container->resolve(
             QueryObject::class,
             [$queryArr['sql'], $queryArr['bindings'], $this->getConnection()]
@@ -316,9 +336,9 @@ class Builder implements IteratorAggregate
     /**
      * Adds WHERE NOT statement to the current query.
      *
-     * @param string|Raw|\Closure $key
+     * @param string|Raw|\Closure            $key
      * @param string|array|Raw|\Closure|null $operator
-     * @param mixed|Raw|\Closure|null $value
+     * @param mixed|Raw|\Closure|null        $value
      *
      * @return static
      */
@@ -336,8 +356,8 @@ class Builder implements IteratorAggregate
     /**
      * Adds OR WHERE NOT statement to the current query.
      *
-     * @param string|Raw|\Closure $key
-     * @param string|null $operator
+     * @param string|Raw|\Closure     $key
+     * @param string|null             $operator
      * @param mixed|Raw|\Closure|null $value
      *
      * @return static
@@ -355,49 +375,53 @@ class Builder implements IteratorAggregate
 
     public function whereIn($key, $values)
     {
-        if(!is_array($values)){
-			$values = [0];
-		}
+        if (!is_array($values)) {
+            $values = [0];
+        }
 
-		if(count($values) < 1){
-			$values = [0];
-		}
+        if (count($values) < 1) {
+            $values = [0];
+        }
+
         return $this->whereHandler($key, 'IN', $values, 'and');
     }
 
     public function whereNotIn($key, $values)
     {
-        if(!is_array($values)){
-			$values = [0];
-		}
+        if (!is_array($values)) {
+            $values = [0];
+        }
 
-		if(count($values) < 1){
-			$values = [0];
-		}
+        if (count($values) < 1) {
+            $values = [0];
+        }
+
         return $this->whereHandler($key, 'NOT IN', $values, 'and');
     }
 
     public function orWhereIn($key, $values)
     {
-        if(!is_array($values)){
-			$values = [0];
-		}
+        if (!is_array($values)) {
+            $values = [0];
+        }
 
-		if(count($values) < 1){
-			$values = [0];
-		}
+        if (count($values) < 1) {
+            $values = [0];
+        }
+
         return $this->whereHandler($key, 'IN', $values, 'or');
     }
 
     public function orWhereNotIn($key, $values)
     {
-        if(!is_array($values)){
-			$values = [0];
-		}
+        if (!is_array($values)) {
+            $values = [0];
+        }
 
-		if(count($values) < 1){
-			$values = [0];
-		}
+        if (count($values) < 1) {
+            $values = [0];
+        }
+
         return $this->whereHandler($key, 'NOT IN', $values, 'or');
     }
 
@@ -434,13 +458,15 @@ class Builder implements IteratorAggregate
     protected function whereNullHandler($key, $prefix = '', $operator = '')
     {
         $key = $this->grammarInstance->wrapSanitizer($this->addTablePrefix($key));
-        return $this->{$operator . 'Where'}($this->raw("{$key} IS {$prefix} NULL"));
+
+        return $this->{$operator.'Where'}($this->raw("{$key} IS {$prefix} NULL"));
     }
 
     public function having($column, $operator, $value, $type = 'and')
     {
         $column = $this->addTablePrefix($column);
         $this->statements['havings'][] = compact('column', 'operator', 'value', 'type');
+
         return $this;
     }
 
@@ -455,22 +481,25 @@ class Builder implements IteratorAggregate
     }
 
     /**
-     * Set the fetch mode
+     * Set the fetch mode.
      *
      * @param string $mode
+     *
      * @return static
      */
-     public function setFetchMode($mode)
-     {
-         $this->fetchParameters = func_get_args();
-         return $this;
-     }
+    public function setFetchMode($mode)
+    {
+        $this->fetchParameters = func_get_args();
+
+        return $this;
+    }
 
     public function newQuery(Connection $connection = null)
     {
         if ($connection === null) {
             $connection = $this->connection;
         }
+
         return new static($connection);
     }
 
@@ -479,12 +508,14 @@ class Builder implements IteratorAggregate
         $queryObject = new QueryObject($sql, $bindings, $this->getConnection());
         $this->connection->setLastQuery($queryObject);
         list($this->pdoStatement) = $this->statement($sql, $bindings);
+
         return $this;
     }
 
     public function alias($table, $alias)
     {
-        $this->statements['tables'][$this->tablePrefix . $table] =  strtolower($alias);
+        $this->statements['tables'][$this->tablePrefix.$table] = strtolower($alias);
+
         return $this;
     }
 
@@ -504,6 +535,7 @@ class Builder implements IteratorAggregate
         $table = $this->addTablePrefix($table, false);
         // Get the criteria only query from the joinBuilder object
         $this->statements['joins'][] = compact('joinType', 'table', 'joinBuilder');
+
         return $this;
     }
 
@@ -531,7 +563,7 @@ class Builder implements IteratorAggregate
     public function statement($sql, $bindings = [])
     {
         try {
-            $pdoStatement = $this->pdo->prepare($sql); 
+            $pdoStatement = $this->pdo->prepare($sql);
             foreach ($bindings as $key => $value) {
                 $pdoStatement->bindValue(
                     is_int($key) ? $key + 1 : $key,
@@ -540,6 +572,7 @@ class Builder implements IteratorAggregate
                 );
             }
             $pdoStatement->execute();
+
             return [$pdoStatement];
         } catch (\PDOException $ex) {
             throw DatabaseQueryException::create($ex, $this->getConnection()->getAdapterInstance()->getQueryAdapterClass(), $this->getLastQuery());
@@ -557,14 +590,18 @@ class Builder implements IteratorAggregate
     }
 
     /**
-     * Get all rows
+     * Get all rows.
+     *
      * @throws Exception
+     *
      * @return \stdClass|array|null
      */
     public function get($columns = null)
     {
-        if (env('DATABASE_DB_API_ACTIVE_RECORD', false) == true)
+        if (env('DATABASE_DB_API_ACTIVE_RECORD', false) == true) {
             return new ResultSet($this->getAll($columns));
+        }
+
         return new Collection($this->getAll($columns));
     }
 
@@ -574,64 +611,77 @@ class Builder implements IteratorAggregate
             if (env('DATABASE_DB_API_ACTIVE_RECORD', false) == true) {
                 $this->asObject(Row::class);
             }
-            if($columns)
+            if ($columns) {
                 $this->select($columns);
+            }
             $queryObject = $this->getQuery('select');
             $this->connection->setLastQuery($queryObject);
             list($this->pdoStatement) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
         }
         $result = call_user_func_array([$this->pdoStatement, 'fetchAll'], $this->fetchParameters);
         $this->pdoStatement = null;
+
         return $result;
     }
-    
+
     /**
-     * Alias to get
+     * Alias to get.
      */
     public function all($columns = null)
     {
         return $this->get($columns);
     }
+
     public function first()
     {
         $this->take(1);
         $result = $this->getAll();
+
         return empty($result) ? null : $result[0];
     }
 
     public function last()
     {
         $result = $this->getAll();
+
         return empty($result) ? null : array_pop($result);
     }
 
     /**
      * @param        $value
      * @param string $fieldName
+     *
      * @throws Exception
+     *
      * @return null|\stdClass
      */
     public function findAll($fieldName, $value)
     {
         $this->where($fieldName, '=', $value);
+
         return $this->get();
     }
 
     /**
      * @param        $value
      * @param string $fieldName
+     *
      * @throws Exception
+     *
      * @return null|\stdClass
      */
     public function find($value, $fieldName = 'id')
     {
         $this->where($fieldName, '=', $value);
+
         return $this->first();
     }
 
     /**
-     * Get count of rows
+     * Get count of rows.
+     *
      * @throws Exception
+     *
      * @return int
      */
     public function count()
@@ -641,19 +691,24 @@ class Builder implements IteratorAggregate
         unset($this->statements['orderBys'], $this->statements['limit'], $this->statements['offset']);
         $count = $this->aggregate('count');
         $this->statements = $originalStatements;
+
         return $count;
     }
 
     public function getSelects()
     {
-        if (isset($this->statements['selects']))
+        if (isset($this->statements['selects'])) {
             return $this->statements['selects'];
+        }
+
         return null;
     }
 
     /**
      * @param $type
+     *
      * @throws Exception
+     *
      * @return int
      */
     protected function aggregate($type)
@@ -661,7 +716,7 @@ class Builder implements IteratorAggregate
         // Get the current selects
         $mainSelects = isset($this->statements['selects']) ? $this->statements['selects'] : null;
         // Replace select with a scalar value like `count`
-        $this->statements['selects'] = [$this->raw($type . '(*) as field')];
+        $this->statements['selects'] = [$this->raw($type.'(*) as field')];
         $row = $this->get();
 
         // Set the select as it was
@@ -673,11 +728,12 @@ class Builder implements IteratorAggregate
 
         if (isset($row[0])) {
             if (is_array($row[0])) {
-                return (int)$row[0]['field'];
+                return (int) $row[0]['field'];
             } elseif (is_object($row[0])) {
-                return (int)$row[0]->field;
+                return (int) $row[0]->field;
             }
         }
+
         return 0;
     }
 
@@ -688,7 +744,9 @@ class Builder implements IteratorAggregate
 
     /**
      * @param $data
+     *
      * @throws Exception
+     *
      * @return array|string
      */
     public function insertIgnore($data)
@@ -698,7 +756,9 @@ class Builder implements IteratorAggregate
 
     /**
      * @param $data
+     *
      * @throws Exception
+     *
      * @return array|string
      */
     public function replace($data)
@@ -708,24 +768,27 @@ class Builder implements IteratorAggregate
 
     /**
      * @param string $data
+     *
      * @throws Exception
+     *
      * @return static
      */
     public function update($data)
     {
-
         $queryObject = $this->getQuery('update', $data);
 
         $this->connection->setLastQuery($queryObject);
 
         list($response) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
-        
+
         return $response;
     }
 
     /**
      * @param $data
+     *
      * @throws Exception
+     *
      * @return array|string
      */
     public function updateOrInsert($data)
@@ -739,6 +802,7 @@ class Builder implements IteratorAggregate
 
     /**
      * @param string $data
+     *
      * @return static
      */
     public function onDuplicateKeyUpdate($data)
@@ -761,9 +825,11 @@ class Builder implements IteratorAggregate
     }
 
     /**
-     * @param array $data
+     * @param array  $data
      * @param string $type
+     *
      * @throws Exception
+     *
      * @return array|string
      */
     private function doInsert($data, $type)
@@ -783,38 +849,39 @@ class Builder implements IteratorAggregate
             $return = [];
 
             if ($this->pdo->inTransaction() === false) {
-
                 $this->transaction(function (Transaction $transaction) use (&$return, $data, $type) {
                     foreach ($data as $subData) {
                         $return[] = $transaction->doInsert($subData, $type);
                     }
                 });
-    
+
                 return $return;
             }
-            
+
             foreach ($data as $subData) {
                 $return[] = $this->doInsert($subData, $type);
             }
         }
 
         return $return;
-    } 
-    
+    }
+
     /**
-     * Performs the transaction
+     * Performs the transaction.
      *
      * @param \Closure $callback
      *
      * @throws Exception
+     *
      * @return Transaction
      */
     public function transaction(Closure $callback)
     {
         /**
-         * Get the Transaction class
+         * Get the Transaction class.
          *
          * @var \Yuga\Database\Query\Transaction $queryTransaction
+         *
          * @throws \Exception
          */
         $queryTransaction = new Transaction($this->connection);
@@ -831,12 +898,10 @@ class Builder implements IteratorAggregate
 
             // If no errors have been thrown or the transaction wasn't completed within the closure, commit the changes
             $this->pdo->commit();
-
         } catch (TransactionHaltException $e) {
 
             // Commit or rollback behavior has been triggered in the closure
             return $queryTransaction;
-
         } catch (Exception $e) {
 
             // Something went wrong. Rollback and throw Exception
@@ -849,5 +914,4 @@ class Builder implements IteratorAggregate
 
         return $queryTransaction;
     }
-
 }

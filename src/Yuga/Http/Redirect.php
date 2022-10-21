@@ -2,8 +2,8 @@
 
 namespace Yuga\Http;
 
-use Yuga\Route\Route;
 use Yuga\Application\Application;
+use Yuga\Route\Route;
 
 class Redirect
 {
@@ -19,6 +19,7 @@ class Redirect
     public function setPath(string $path = null)
     {
         $this->path = $path;
+
         return $this;
     }
 
@@ -28,9 +29,10 @@ class Redirect
     }
 
     /**
-     * Set the http status code
+     * Set the http status code.
      *
      * @param int $code
+     *
      * @return static
      */
     public function httpCode($code)
@@ -41,10 +43,10 @@ class Redirect
     }
 
     /**
-     * Redirect the response
+     * Redirect the response.
      *
      * @param string $url
-     * @param int $httpCode
+     * @param int    $httpCode
      */
     public function to($url, $httpCode = null)
     {
@@ -57,6 +59,7 @@ class Redirect
 
         $url = (route($url) == '') ? $url : route($url);
         $this->setPath($url);
+
         return $this;
     }
 
@@ -69,12 +72,12 @@ class Redirect
 
     public function refresh()
     {
-        return header("Refresh:0");
+        return header('Refresh:0');
     }
 
     public function back()
     {
-        $this->header("HTTP/1.1 301 Moved Permanently");
+        $this->header('HTTP/1.1 301 Moved Permanently');
         $this->to($this->request->getReferer());
         exit();
     }
@@ -88,8 +91,8 @@ class Redirect
                 $route = rtrim(request()->processHost().Route::getUrl($name, $parameters, $getParams), '/');
             }
         }
-        $this->header('location: ' . $route);
-        die();
+        $this->header('location: '.$route);
+        exit();
     }
 
     protected function isValidUri($uri)
@@ -99,19 +102,20 @@ class Redirect
 
     protected function cleanUrl($uri)
     {
-        $firstSection = explode("://", $uri);
+        $firstSection = explode('://', $uri);
         $http = $firstSection[0];
         $secondSection = explode('/', $firstSection[1]);
 
         $url = array_map(function ($element) {
             return (strpos($element, ':') !== false) ? $element : urlencode($element);
         }, $secondSection);
-        return $http."://".implode("/", $url);
+
+        return $http.'://'.implode('/', $url);
     }
 
     public function httpUrl($url)
     {
-        header("HTTP/1.1 301 Moved Permanently");
+        header('HTTP/1.1 301 Moved Permanently');
         $url = $this->cleanUrl($url);
         header("Location: {$url}");
         exit;
@@ -122,7 +126,7 @@ class Redirect
         if ($key) {
             if (is_array($value)) {
                 foreach ($value as $var => $value) {
-                    $this->with($var, $value);	
+                    $this->with($var, $value);
                 }
             } else {
                 Application::getInstance()->get('session')->flash($key, $value);
@@ -133,12 +137,14 @@ class Redirect
     }
 
     public function __call($method, $parameters)
-	{
+    {
         if (preg_match('/^with(.+)$/', $method, $matches)) {
-			$decamelized = \Str::deCamelize($matches[1]);
-			$camelized = \Str::camelize($decamelized);
-			return $this->with($camelized, $parameters[0]);
+            $decamelized = \Str::deCamelize($matches[1]);
+            $camelized = \Str::camelize($decamelized);
+
+            return $this->with($camelized, $parameters[0]);
         }
-		return call_user_func_array([$this, $method], $parameters);
-	}
+
+        return call_user_func_array([$this, $method], $parameters);
+    }
 }

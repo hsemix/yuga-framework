@@ -1,14 +1,14 @@
 <?php
+
 namespace Yuga\Database\Console;
 
 use Yuga\Console\Command;
-use Symfony\Component\Console\Input\InputOption;
 use Yuga\Database\Migration\MigrationServiceProvider;
 
 class MakeMigrationSeedCommand extends Command
 {
     protected $name = 'migration:seed';
-    
+
     /**
      * The console command description.
      *

@@ -2,37 +2,37 @@
 
 namespace Yuga\Providers;
 
-use Yuga\Console\Commands\ServeCommand;
-use Yuga\Console\Commands\MakeAppCommand;
-use Yuga\Events\Console\MakeEventCommand;
-use Yuga\Models\Console\MakeModelCommand;
-use Yuga\Scheduler\Console\MakeRunCommand;
-use Yuga\Queue\Console\MakeQueueJobCommand;
-use Yuga\View\Console\MakeViewModelCommand;
-use Yuga\Http\Console\MakeMiddlewareCommand;
-use Yuga\Interfaces\Application\Application;
-use Yuga\Models\Console\MakeScaffoldCommand;
-use Yuga\Queue\Console\MakeQueueWorkCommand;
-use Yuga\Queue\Console\MakeQueueFlushCommand;
-use Yuga\Queue\Console\MakeQueueRetryCommand;
-use Yuga\Queue\Console\MakeQueueTableCommand;
-use Yuga\Scheduler\Console\MakeEnableCommand;
-use Yuga\Scheduler\Console\MakeListerCommand;
 use Yuga\Authenticate\Console\MakeAuthCommand;
-use Yuga\Queue\Console\MakeQueueForgetCommand;
-use Yuga\Scheduler\Console\MakeDisableCommand;
-use Yuga\Scheduler\Console\MakePublishCommand;
-use Yuga\Database\Console\MakeMigrationCommand;
-use Yuga\Queue\Console\MakeQueueMonitorCommand;
-use Yuga\Queue\Console\MakeQueueRestartCommand;
-use Yuga\Events\Console\MakeEventHandlerCommand;
-use Yuga\Database\Console\MakeMigrationUpCommand;
+use Yuga\Console\Commands\MakeAppCommand;
+use Yuga\Console\Commands\ServeCommand;
 use Yuga\Controllers\Console\MakeControllerCommand;
-use Yuga\Database\Console\MakeMigrationDownCommand;
-use Yuga\Database\Console\MakeMigrationSeedCommand;
 use Yuga\Database\Console\MakeDatabaseBackupCommand;
 use Yuga\Database\Console\MakeDatabaseRestoreCommand;
+use Yuga\Database\Console\MakeMigrationCommand;
+use Yuga\Database\Console\MakeMigrationDownCommand;
+use Yuga\Database\Console\MakeMigrationSeedCommand;
+use Yuga\Database\Console\MakeMigrationUpCommand;
+use Yuga\Events\Console\MakeEventCommand;
+use Yuga\Events\Console\MakeEventHandlerCommand;
+use Yuga\Http\Console\MakeMiddlewareCommand;
+use Yuga\Interfaces\Application\Application;
+use Yuga\Models\Console\MakeModelCommand;
+use Yuga\Models\Console\MakeScaffoldCommand;
 use Yuga\Providers\Console\MakeServiceProviderCommand;
+use Yuga\Queue\Console\MakeQueueFlushCommand;
+use Yuga\Queue\Console\MakeQueueForgetCommand;
+use Yuga\Queue\Console\MakeQueueJobCommand;
+use Yuga\Queue\Console\MakeQueueMonitorCommand;
+use Yuga\Queue\Console\MakeQueueRestartCommand;
+use Yuga\Queue\Console\MakeQueueRetryCommand;
+use Yuga\Queue\Console\MakeQueueTableCommand;
+use Yuga\Queue\Console\MakeQueueWorkCommand;
+use Yuga\Scheduler\Console\MakeDisableCommand;
+use Yuga\Scheduler\Console\MakeEnableCommand;
+use Yuga\Scheduler\Console\MakeListerCommand;
+use Yuga\Scheduler\Console\MakePublishCommand;
+use Yuga\Scheduler\Console\MakeRunCommand;
+use Yuga\View\Console\MakeViewModelCommand;
 
 class YugaServiceProvider extends ServiceProvider
 {
@@ -72,7 +72,7 @@ class YugaServiceProvider extends ServiceProvider
         'MakeQueueMonitor'      => 'yuga.command.queue.monitor.make',
         'MakeQueueRestart'      => 'yuga.command.queue.restart.make',
         'MakeQueueRetry'        => 'yuga.command.queue.retry.make',
-        'MakeQueueJob'        => 'yuga.command.queue.job.make',
+        'MakeQueueJob'          => 'yuga.command.queue.job.make',
     ];
 
     public function __construct(Application $app)
@@ -117,7 +117,7 @@ class YugaServiceProvider extends ServiceProvider
     protected function registerMakeMiddlewareCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeMiddlewareCommand;
+            return new MakeMiddlewareCommand();
         });
     }
 
@@ -129,76 +129,76 @@ class YugaServiceProvider extends ServiceProvider
     protected function registerServeCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new ServeCommand;
+            return new ServeCommand();
         });
     }
 
     /**
-     * Make Auth command i.e all classes responsible for the authentication of a user (login, register, forgot password, remember me, reset password)
-     * 
+     * Make Auth command i.e all classes responsible for the authentication of a user (login, register, forgot password, remember me, reset password).
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeAuthCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeAuthCommand;
+            return new MakeAuthCommand();
         });
     }
 
     /**
-     * Make Model command
-     * 
+     * Make Model command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeModelCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeModelCommand;
+            return new MakeModelCommand();
         });
     }
 
     /**
-     * Make Controller command
-     * 
+     * Make Controller command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeControllerCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeControllerCommand;
+            return new MakeControllerCommand();
         });
     }
 
     /**
-     * Make ViewModel command
-     * 
+     * Make ViewModel command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeViewModelCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeViewModelCommand;
+            return new MakeViewModelCommand();
         });
     }
 
     /**
-     * Make Database Backup command
-     * 
+     * Make Database Backup command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeDatabaseBackupCommand($command, $app)
@@ -209,11 +209,11 @@ class YugaServiceProvider extends ServiceProvider
     }
 
     /**
-     * Make Database Backup command
-     * 
+     * Make Database Backup command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeDatabaseRestoreCommand($command, $app)
@@ -224,174 +224,174 @@ class YugaServiceProvider extends ServiceProvider
     }
 
     /**
-     * Make Migration Up command
-     * 
+     * Make Migration Up command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMigrationUpCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeMigrationUpCommand;
+            return new MakeMigrationUpCommand();
         });
     }
 
     /**
-     * Make Migration Down command
-     * 
+     * Make Migration Down command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMigrationDownCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeMigrationDownCommand;
+            return new MakeMigrationDownCommand();
         });
     }
 
     /**
-     * Make Migration command
-     * 
+     * Make Migration command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMigrationMakeCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeMigrationCommand;
+            return new MakeMigrationCommand();
         });
     }
 
     /**
-     * Make ServiceProvider command
-     * 
+     * Make ServiceProvider command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeServiceProviderCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeServiceProviderCommand;
+            return new MakeServiceProviderCommand();
         });
     }
 
     /**
-     * Make event command
-     * 
+     * Make event command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeEventCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeEventCommand;
+            return new MakeEventCommand();
         });
     }
 
     /**
-     * Make event handler command
-     * 
+     * Make event handler command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMakeEventHandlerCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeEventHandlerCommand;
+            return new MakeEventHandlerCommand();
         });
     }
 
     /**
-     * Migration seed command
-     * 
+     * Migration seed command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerMigrationSeedCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeMigrationSeedCommand;
+            return new MakeMigrationSeedCommand();
         });
     }
 
     /**
-     * Scaffold command
-     * 
+     * Scaffold command.
+     *
      * @param string command
      * @param Application $app
-     * 
+     *
      * @return void
      */
     protected function registerScaffoldCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeScaffoldCommand;
+            return new MakeScaffoldCommand();
         });
     }
 
     /**
-     * App commands
+     * App commands.
      */
     protected function registerMakeAppCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeAppCommand;
+            return new MakeAppCommand();
         });
     }
 
     protected function registerMakeSchedulerEnableCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeEnableCommand;
+            return new MakeEnableCommand();
         });
     }
 
     protected function registerMakeSchedulerDisableCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeDisableCommand;
+            return new MakeDisableCommand();
         });
     }
 
     protected function registerMakeSchedulerListerCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeListerCommand;
+            return new MakeListerCommand();
         });
     }
 
     protected function registerMakeSchedulerRunCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeRunCommand;
+            return new MakeRunCommand();
         });
     }
 
     protected function registerMakeSchedulerPublishCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakePublishCommand;
+            return new MakePublishCommand();
         });
     }
 
     protected function registerMakeQueueTableCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeQueueTableCommand;
+            return new MakeQueueTableCommand();
         });
     }
 
@@ -401,46 +401,45 @@ class YugaServiceProvider extends ServiceProvider
         $app->resolve($command);
     }
 
-
     protected function registerMakeQueueFlushCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeQueueFlushCommand;
+            return new MakeQueueFlushCommand();
         });
     }
 
     protected function registerMakeQueueForgetCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeQueueForgetCommand;
+            return new MakeQueueForgetCommand();
         });
     }
 
     protected function registerMakeQueueMonitorCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeQueueMonitorCommand;
+            return new MakeQueueMonitorCommand();
         });
     }
 
     protected function registerMakeQueueRestartCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeQueueRestartCommand;
+            return new MakeQueueRestartCommand();
         });
     }
 
     protected function registerMakeQueueRetryCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeQueueRetryCommand;
+            return new MakeQueueRetryCommand();
         });
     }
 
     protected function registerMakeQueueJobCommand($command, $app)
     {
         $app->singleton($command, function () {
-            return new MakeQueueJobCommand;
+            return new MakeQueueJobCommand();
         });
     }
 

@@ -2,10 +2,10 @@
 
 namespace Yuga\Cache;
 
-use Yuga\Support\FileSystem;
-use Yuga\Providers\ServiceProvider;
 use Yuga\Interfaces\Application\Application;
+use Yuga\Providers\ServiceProvider;
 use Yuga\Providers\Shared\MakesCommandsTrait;
+use Yuga\Support\FileSystem;
 
 class CacheServiceProvider extends ServiceProvider
 {
@@ -18,6 +18,7 @@ class CacheServiceProvider extends ServiceProvider
             $cache = new CacheManager($app);
             $cache->registerDriver('cache.default', new FileCache(storage('cache')));
             $cache->setDefaultStoreName('cache.default');
+
             return $cache;
         });
 

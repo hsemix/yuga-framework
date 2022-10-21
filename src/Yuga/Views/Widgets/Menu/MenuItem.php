@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\Widgets\Menu;
 
 class MenuItem
@@ -21,8 +22,10 @@ class MenuItem
     }
 
     /**
-     * Add menu
+     * Add menu.
+     *
      * @param \Yuga\Views\Widgets\Menu\Menu $menu
+     *
      * @return static
      */
     public function addMenu(Menu $menu)
@@ -64,9 +67,10 @@ class MenuItem
         return $this;
     }
 
-    public function setLinkIcon($html) 
+    public function setLinkIcon($html)
     {
         $this->linkIcon = $html;
+
         return $this;
     }
 
@@ -93,7 +97,8 @@ class MenuItem
      *
      * @param string $name
      * @param string $value
-     * @param bool $replace
+     * @param bool   $replace
+     *
      * @return static
      */
     public function addAttribute($name, $value, $replace = false)
@@ -117,7 +122,8 @@ class MenuItem
     }
 
     /**
-     * Get attributes
+     * Get attributes.
+     *
      * @return array
      */
     public function getAttributes()
@@ -126,7 +132,8 @@ class MenuItem
     }
 
     /**
-     * Get link attributes
+     * Get link attributes.
+     *
      * @return array
      */
     public function getLinkAttributes()
@@ -139,6 +146,7 @@ class MenuItem
      *
      * @param string $name
      * @param string $value
+     *
      * @return static
      */
     public function addLinkAttribute($name, $value)
@@ -162,7 +170,8 @@ class MenuItem
     }
 
     /**
-     * Get parent menu
+     * Get parent menu.
+     *
      * @return Menu
      */
     public function getParent()
@@ -171,8 +180,10 @@ class MenuItem
     }
 
     /**
-     * Set parent menu
+     * Set parent menu.
+     *
      * @param Menu $menu
+     *
      * @return static
      */
     public function setParent(Menu $menu)
@@ -183,8 +194,10 @@ class MenuItem
     }
 
     /**
-     * Add class to item
+     * Add class to item.
+     *
      * @param string $name
+     *
      * @return static
      */
     public function addClass($name)
@@ -197,6 +210,7 @@ class MenuItem
     public function setReturnHtml($html = false)
     {
         $this->isHtml = $html;
+
         return $this;
     }
 
@@ -204,5 +218,4 @@ class MenuItem
     {
         return $this->isHtml;
     }
-
 }

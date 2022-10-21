@@ -1,13 +1,14 @@
 <?php
+
 namespace Yuga\Models\Console;
 
-use Yuga\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Yuga\Console\Command;
 
 class MakeModelCommand extends Command
 {
     protected $name = 'make:model';
-    
+
     /**
      * The console command description.
      *
@@ -34,6 +35,7 @@ class MakeModelCommand extends Command
     protected function compileModelTemp($modelName)
     {
         $model = str_replace('{namespace}', env('APP_NAMESPACE', 'App'), file_get_contents(__DIR__.'/temps/Model.temp'));
+
         return str_replace(
             '{class}',
             $modelName,
@@ -53,8 +55,6 @@ class MakeModelCommand extends Command
         }
     }
 
-    
-    
     /**
      * Get the console command arguments.
      *

@@ -1,11 +1,11 @@
 <?php
+
 namespace Yuga\Views\Widgets\Html;
 
 use Yuga\Http\Middleware\BaseCsrfVerifier;
 
 class HtmlForm extends Html
 {
-
     const ENCTYPE_APPLICATION_URLENCODED = 'application/x-www-form-urlencoded';
     const ENCTYPE_FORM_DATA = 'multipart/form-data';
     const ENCTYPE_TEXT_PLAIN = 'text/plain';
@@ -29,7 +29,7 @@ class HtmlForm extends Html
         if ($name) {
             $this->name($name);
         }
-        
+
         $this->enctype($encoding);
         $this->method($method);
         $this->action(($action === null) ? route() : $action);
@@ -89,12 +89,12 @@ class HtmlForm extends Html
     }
 
     /**
-     * Add a submit button
-     * 
-     * @param string $name
-     * @param string $type
+     * Add a submit button.
+     *
+     * @param string      $name
+     * @param string      $type
      * @param string|null $value
-     * @param bool $saveValue
+     * @param bool        $saveValue
      */
     public function submitButton($name, $type = 'submit', $value = null, $saveValue = true)
     {
@@ -106,9 +106,11 @@ class HtmlForm extends Html
     }
 
     /**
-     * Creates new label
+     * Creates new label.
+     *
      * @param string|null $inner
      * @param string|null $for
+     *
      * @return \Yuga\Views\Widgets\Html\Html
      */
     public function label($inner, $for = null)
@@ -122,6 +124,7 @@ class HtmlForm extends Html
         if ($for !== null) {
             $label->attr('for', $for);
         }
+
         return $label;
     }
 
@@ -137,15 +140,17 @@ class HtmlForm extends Html
     public function submit($name, $value)
     {
         $this->except[] = $name;
+
         return $this->submitButton($name, 'submit', $value);
     }
 
     /**
-	 * Renders form to string.
-	 * @param can throw exceptions? (hidden parameter)
-	 */
-	public function __toString(): string
-	{
+     * Renders form to string.
+     *
+     * @param can throw exceptions? (hidden parameter)
+     */
+    public function __toString(): string
+    {
         try {
             if (request()->getMethod() == 'post') {
                 // do onClick events and onSubmit events
@@ -154,15 +159,15 @@ class HtmlForm extends Html
             if ($this->make === true) {
                 // $this->buildOutput();
                 $this->buildFormWithTable();
-            } 
+            }
             // else {
             //     $this->buildOutput('div');
             // }
             return parent::__toString();
         } catch (\Throwable $e) {
-            trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
+            trigger_error('Exception in '.__METHOD__."(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
         }
-	}
+    }
 
     public function fireFormEvents(HtmlForm $form)
     {
@@ -172,10 +177,12 @@ class HtmlForm extends Html
     }
 
     /**
-     * Add an input to a form
+     * Add an input to a form.
+     *
      * @param string $name
      * @param string $label
      * @param string $type
+     *
      * @return Html $control
      */
     public function addInput($name, $label, $type)
@@ -190,7 +197,7 @@ class HtmlForm extends Html
 
     /**
      * Add a text input to this form
-     * Alias to addInput
+     * Alias to addInput.
      */
     public function addTextInput($name, $label)
     {
@@ -198,10 +205,12 @@ class HtmlForm extends Html
     }
 
     /**
-     * Add a textarea to a form
+     * Add a textarea to a form.
+     *
      * @param string $name
      * @param string $label
      * @param string $type
+     *
      * @return Html $control
      */
     public function addTextarea($name, $label)
@@ -214,10 +223,12 @@ class HtmlForm extends Html
     }
 
     /**
-     * Add submit buttons
+     * Add submit buttons.
+     *
      * @param string $name
      * @param string $label
      * @param string $type
+     *
      * @return Html $control
      */
     public function addSubmit($name, $label)
@@ -225,16 +236,20 @@ class HtmlForm extends Html
         $control = $this->submit($name, $label);
         $this->controls[$name] = compact('control');
         $this->buttons[] = $name;
+
         return $control;
     }
 
     /**
-     * Creates new HTML Select element
-     * @param string $name
+     * Creates new HTML Select element.
+     *
+     * @param string             $name
      * @param array|Dataset|null $data
-     * @param string|null $value
-     * @param bool $saveValue
+     * @param string|null        $value
+     * @param bool               $saveValue
+     *
      * @throws \InvalidArgumentException
+     *
      * @return \Yuga\Views\Widgets\Html\HtmlSelect
      */
     public function selectStart($name, $data = null, $value = null, $saveValue = true)
@@ -244,18 +259,19 @@ class HtmlForm extends Html
             if ($data instanceof Collection) {
                 foreach ($data->getData() as $item) {
                     $val = isset($item['value']) ? $item['value'] : $item['name'];
-                    $selected = (input()->get($name) !== null && (string)input()->get($name) === (string)$val || input()->exists($name) === false && (string)$value === (string)$val || (isset($item['selected']) && $item['selected']) || $saveValue === false && (string)$value === (string)$val);
+                    $selected = (input()->get($name) !== null && (string) input()->get($name) === (string) $val || input()->exists($name) === false && (string) $value === (string) $val || (isset($item['selected']) && $item['selected']) || $saveValue === false && (string) $value === (string) $val);
                     $element->addOption(new HtmlSelectOption($val, $item['name'], $selected));
                 }
             } elseif (is_array($data) === true) {
                 foreach ($data as $val => $key) {
-                    $selected = (input()->get($name) !== null && (string)input()->get($name) === (string)$val || input()->exists($name) === false && (string)$value === (string)$val || $saveValue === false && (string)$value === (string)$val);
+                    $selected = (input()->get($name) !== null && (string) input()->get($name) === (string) $val || input()->exists($name) === false && (string) $value === (string) $val || $saveValue === false && (string) $value === (string) $val);
                     $element->addOption(new HtmlSelectOption($val, $key, $selected));
                 }
             } else {
                 throw new \InvalidArgumentException('Data must be either instance of Collection or array.');
             }
         }
+
         return $element;
     }
 
@@ -270,10 +286,11 @@ class HtmlForm extends Html
 
     public function buildOutput($formParent = 'table')
     {
-        if ($formParent == 'table')
+        if ($formParent == 'table') {
             return $this->buildFormWithTable();
-        else
+        } else {
             return $this->buildFormWithParent($formParent);
+        }
     }
 
     protected function buildFormWithParent(?string $formParent = null)
@@ -288,7 +305,7 @@ class HtmlForm extends Html
     protected function buildFormWithTable()
     {
         $layout = '';
-        
+
         $layout = new Html('table');
         $layout->addClass('table');
         $buttonsContainer = new Html('tr');
@@ -311,20 +328,21 @@ class HtmlForm extends Html
                 $buttonControls[] = $controlObject['control'];
             }
         }
-        $buttonsContainer->append($buttonsPadding . " " . (new Html('td'))->append(implode(" ", $buttonControls)));
+        $buttonsContainer->append($buttonsPadding.' '.(new Html('td'))->append(implode(' ', $buttonControls)));
         $layout->append($buttonsContainer);
-        
+
         $this->append($layout);
+
         return $this;
     }
 
     /**
-	 * Returns form's action.
-	 * @return mixed
-	 */
-	public function getAction()
-	{
-		return $this->getFormAction()[0];
-	}
-
+     * Returns form's action.
+     *
+     * @return mixed
+     */
+    public function getAction()
+    {
+        return $this->getFormAction()[0];
+    }
 }

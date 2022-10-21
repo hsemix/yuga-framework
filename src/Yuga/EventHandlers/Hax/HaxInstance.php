@@ -11,10 +11,9 @@ class HaxInstance implements HandlerInterface
      * ---------------------------------------------------------------------------
      * Change the views directory, Change views Cache directory.                 |
      * ---------------------------------------------------------------------------
-     * Do much more
+     * Do much more.
      */
     public function handle($event)
     {
-        
     }
 }

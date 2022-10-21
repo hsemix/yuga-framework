@@ -1,13 +1,14 @@
 <?php
+
 namespace Yuga\Controllers\Console;
 
-use Yuga\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Yuga\Console\Command;
 
 class MakeControllerCommand extends Command
 {
     protected $name = 'make:controller';
-    
+
     /**
      * The console command description.
      *
@@ -34,6 +35,7 @@ class MakeControllerCommand extends Command
     protected function compileControllerTemp($controllerName)
     {
         $controller = str_replace('{namespace}', env('APP_NAMESPACE', 'App'), file_get_contents(__DIR__.'/temps/Controller.temp'));
+
         return str_replace(
             '{class}',
             $controllerName,

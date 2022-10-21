@@ -1,46 +1,47 @@
 <?php
+
 namespace Yuga\View\Client;
+
 /**
- * Element - class for work with jQuery framework
+ * Element - class for work with jQuery framework.
  *
  * @author Hamidouh Semix
- * @access   public
- * @package  jQuery
  */
 class Element
 {
     /**
-     * selector path
+     * selector path.
+     *
      * @var string
      */
     public $selector;
-    
+
     /**
-     * methods
+     * methods.
+     *
      * @var array
      */
     public $method = [];
-    
+
     /**
-     * args
+     * args.
+     *
      * @var array
      */
     public $params = [];
-    
+
     /**
      * __construct
-     * contructor of jQuery
-     *
-     * 
+     * contructor of jQuery.
      */
     public function __construct($selector)
     {
-        Jquery::addElement($this); 
+        Jquery::addElement($this);
         $this->selector = $selector;
     }
-    
+
     /**
-     * __call
+     * __call.
      *
      * @return static
      */
@@ -48,13 +49,13 @@ class Element
     {
         $this->method[] = $method;
         $this->params[] = $args;
-        
+
         return $this;
     }
-    
+
     /**
      * end
-     * need to create new jQuery
+     * need to create new jQuery.
      *
      * @return static
      */

@@ -10,16 +10,16 @@ use Yuga\Views\Tracy\HaxExtensionsPanel;
 class TracyPanel implements HandlerInterface
 {
     /**
-     * Hook into the tracy Debugger
-     * 
+     * Hook into the tracy Debugger.
+     *
      * @param \Yuga\Events\Event $event
      */
     public function handle($event)
     {
         if (!empty(env('DATABASE_NAME'))) {
-            Debugger::getBar()->addPanel(new DatabasePanel);
+            Debugger::getBar()->addPanel(new DatabasePanel());
         }
-        
+
         // Debugger::getBar()->addPanel(new HaxExtensionsPanel);
 
         // return $event->trigger('on:yuga-tracy-hax');

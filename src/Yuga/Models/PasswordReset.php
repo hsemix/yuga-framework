@@ -2,8 +2,8 @@
 /**
  * @author Mahad Tech Solutions
  */
-namespace Yuga\Models;
 
+namespace Yuga\Models;
 
 class PasswordReset extends ElegantModel
 {

@@ -1,14 +1,11 @@
-<?php 
+<?php
 
 namespace Yuga\Scheduler;
 
-use Config\Services;
-use CodeIgniter\Events\Events;
 use Yuga\Exceptions\SchedulerException;
-use Symfony\Component\Console\Input\ArgvInput;
 
 /**
- * Class Job
+ * Class Job.
  *
  * Represents a single task that should be scheduled
  * and run periodically.
@@ -21,168 +18,169 @@ use Symfony\Component\Console\Input\ArgvInput;
  */
 class Job
 {
-	use FrequenciesTrait;
+    use FrequenciesTrait;
 
-	/**
-	 * Supported action types.
-	 *
-	 * @var string[]
-	 */
-	protected $types = [
-		'command',
-		'shell',
-		'closure',
-		'event',
-		'url',
-	];
+    /**
+     * Supported action types.
+     *
+     * @var string[]
+     */
+    protected $types = [
+        'command',
+        'shell',
+        'closure',
+        'event',
+        'url',
+    ];
 
-	/**
-	 * The type of action.
-	 *
-	 * @var string
-	 */
-	protected $type;
+    /**
+     * The type of action.
+     *
+     * @var string
+     */
+    protected $type;
 
-	/**
-	 * The actual content that should be run.
-	 *
-	 * @var mixed
-	 */
-	protected $action;
+    /**
+     * The actual content that should be run.
+     *
+     * @var mixed
+     */
+    protected $action;
 
-	/**
-	 * If not empty, lists the allowed environments
-	 * this can run in.
-	 *
-	 * @var array
-	 */
-	protected $environments = [];
+    /**
+     * If not empty, lists the allowed environments
+     * this can run in.
+     *
+     * @var array
+     */
+    protected $environments = [];
 
-	/**
-	 * The alias this task can be run by
-	 *
-	 * @var string
-	 */
-	protected $name;
+    /**
+     * The alias this task can be run by.
+     *
+     * @var string
+     */
+    protected $name;
 
-	/**
-	 * Console Application
-	 */
-	protected $console;
-	
-	/**
-	 * Yuga Application
-	 */
-	protected $app;
+    /**
+     * Console Application.
+     */
+    protected $console;
 
-	/**
+    /**
+     * Yuga Application.
+     */
+    protected $app;
+
+    /**
      * Indicates if the command should run in background.
      *
      * @var bool
      */
     public $runInBackground = false;
 
-	/**
-	 * @param mixed  $action
-	 * @param string $type
-	 *
-	 * @throws SchedulerException
-	 */
-	public function __construct(String $type, $action)
-	{
-		if (!in_array($type, $this->types, true)) {
-			throw SchedulerException::forInvalidTaskType( $type );
-		}
+    /**
+     * @param mixed  $action
+     * @param string $type
+     *
+     * @throws SchedulerException
+     */
+    public function __construct(string $type, $action)
+    {
+        if (!in_array($type, $this->types, true)) {
+            throw SchedulerException::forInvalidTaskType($type);
+        }
 
-		$this->type   = $type;
-		$this->action = $action;
-	}
+        $this->type = $type;
+        $this->action = $action;
+    }
 
-	public function setApplication($app)
-	{
-		$this->app = $app;
-		return $this;
-	}
+    public function setApplication($app)
+    {
+        $this->app = $app;
 
-	public function setConsole($console)
-	{
-		$this->console = $console;
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * Set the name to reference this task by
-	 *
-	 * @param string $name
-	 *
-	 * @return $this
-	 */
-	public function named( String $name ) : Job
-	{
-		$this->name = $name;
+    public function setConsole($console)
+    {
+        $this->console = $console;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * Returns the type.
-	 *
-	 * @return string
-	 */
-	public function getType(): String
-	{
-		return $this->type;
-	}
+    /**
+     * Set the name to reference this task by.
+     *
+     * @param string $name
+     *
+     * @return $this
+     */
+    public function named(string $name): Job
+    {
+        $this->name = $name;
 
-	/**
-	 * Returns the saved action.
-	 *
-	 * @return mixed
-	 */
-	public function getAction()
-	{
-		return $this->action;
-	}
+        return $this;
+    }
 
-	/**
-	 * Runs this Task's action.
-	 *
-	 * @throws SchedulerException
-	 */
-	public function run()
-	{	
+    /**
+     * Returns the type.
+     *
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
 
-		$mutex = new \SyncMutex("UniqueName");
+    /**
+     * Returns the saved action.
+     *
+     * @return mixed
+     */
+    public function getAction()
+    {
+        return $this->action;
+    }
 
-		echo 'kdkdkdd';
-		// print_r($mutex);
-		die();
-		// print_r($this->type);
-		// die();
-		$method = 'run' . ucfirst($this->type);
-		if (!method_exists($this, $method)) {
-			throw SchedulerException::forInvalidTaskType( $this->type );
-		}
+    /**
+     * Runs this Task's action.
+     *
+     * @throws SchedulerException
+     */
+    public function run()
+    {
+        $mutex = new \SyncMutex('UniqueName');
 
-		return $this->$method();
-	}
+        echo 'kdkdkdd';
+        // print_r($mutex);
+        exit();
+        // print_r($this->type);
+        // die();
+        $method = 'run'.ucfirst($this->type);
+        if (!method_exists($this, $method)) {
+            throw SchedulerException::forInvalidTaskType($this->type);
+        }
 
-	/**
-	 * Determines whether this task should be run now
-	 * according to its schedule and environment.
-	 *
-	 * @return boolean
-	 */
-	public function shouldRun( \Datetime $testTime = null ) : bool
-	{
-		$cron = \Cron\CronExpression::factory( $this->getExpression() );
+        return $this->$method();
+    }
 
-		$testTime = ( $testTime ) ? $testTime : 'now';
-		
-		return $cron->isDue( $testTime );
-	}
+    /**
+     * Determines whether this task should be run now
+     * according to its schedule and environment.
+     *
+     * @return bool
+     */
+    public function shouldRun(\DateTime $testTime = null): bool
+    {
+        $cron = \Cron\CronExpression::factory($this->getExpression());
 
-	/**
+        $testTime = ($testTime) ? $testTime : 'now';
+
+        return $cron->isDue($testTime);
+    }
+
+    /**
      * State that the command should run in background.
      *
      * @return $this
@@ -194,109 +192,109 @@ class Job
         return $this;
     }
 
-	/**
-	 * Restricts this task to run within only
-	 * specified environements.
-	 *
-	 * @param mixed ...$environments
-	 *
-	 * @return $this
-	 */
-	public function environments(...$environments)
-	{
-		$this->environments = $environments;
+    /**
+     * Restricts this task to run within only
+     * specified environements.
+     *
+     * @param mixed ...$environments
+     *
+     * @return $this
+     */
+    public function environments(...$environments)
+    {
+        $this->environments = $environments;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * Checks if it runs within the specified environment.
-	 *
-	 * @param string $environment
-	 *
-	 * @return boolean
-	 */
-	protected function runsInEnvironment(string $environment): bool
-	{
-		// If nothing is specified then it should run
-		if (empty($this->environments)) {
-			return true;
-		}
+    /**
+     * Checks if it runs within the specified environment.
+     *
+     * @param string $environment
+     *
+     * @return bool
+     */
+    protected function runsInEnvironment(string $environment): bool
+    {
+        // If nothing is specified then it should run
+        if (empty($this->environments)) {
+            return true;
+        }
 
-		return in_array( $environment, $this->environments, true );
-	}
+        return in_array($environment, $this->environments, true);
+    }
 
-	/**
-	 * Runs a framework Command.
-	 *
-	 * @return mixed Buffered output from the Command
-	 * @throws \InvalidArgumentException
-	 */
-	protected function runCommand()
-	{
-		return exec(PHP_BINARY . " yuga {$this->getAction()}");
-	}
+    /**
+     * Runs a framework Command.
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return mixed Buffered output from the Command
+     */
+    protected function runCommand()
+    {
+        return exec(PHP_BINARY." yuga {$this->getAction()}");
+    }
 
-	/**
-	 * Executes a shell script.
-	 *
-	 * @return array Lines of output from exec
-	 */
-	protected function runShell(): Array
-	{
-		exec($this->getAction(), $output);
+    /**
+     * Executes a shell script.
+     *
+     * @return array Lines of output from exec
+     */
+    protected function runShell(): array
+    {
+        exec($this->getAction(), $output);
 
-		return $output;
-	}
+        return $output;
+    }
 
-	/**
-	 * Calls a Closure.
-	 *
-	 * @return mixed The result of the closure
-	 */
-	protected function runClosure()
-	{	
-		
-		// $sem = sem_get(1234, 1);
-		// if (sem_acquire($sem)) {
-			return $this->getAction()->__invoke();
-		// }
-		
-	}
+    /**
+     * Calls a Closure.
+     *
+     * @return mixed The result of the closure
+     */
+    protected function runClosure()
+    {
 
-	/**
-	 * Triggers an Event.
-	 *
-	 * @return mixed Result of the trigger
-	 */
-	protected function runEvent()
-	{
-		return $this->app['events']->dispatch($this->getAction());
-	}
+        // $sem = sem_get(1234, 1);
+        // if (sem_acquire($sem)) {
+        return $this->getAction()->__invoke();
+        // }
+    }
 
-	/**
-	 * Queries a URL.
-	 *
-	 * @return mixed|string Body of the Response
-	 */
-	protected function runUrl()
-	{
-		
-	}
+    /**
+     * Triggers an Event.
+     *
+     * @return mixed Result of the trigger
+     */
+    protected function runEvent()
+    {
+        return $this->app['events']->dispatch($this->getAction());
+    }
 
-	/**
+    /**
+     * Queries a URL.
+     *
+     * @return mixed|string Body of the Response
+     */
+    protected function runUrl()
+    {
+    }
+
+    /**
      * Builds a unique name for the task.
      * Used when an existing name doesn't exist.
      *
-     * @return string
      * @throws \ReflectionException
+     *
+     * @return string
      */
     protected function buildName()
     {
         // Get a hash based on the action
         // Closures cannot be serialized so do it the hard way
         if ($this->getType() === 'closure') {
-            $ref  = new \ReflectionFunction($this->getAction());
+            $ref = new \ReflectionFunction($this->getAction());
             $file = new \SplFileObject($ref->getFileName());
             $file->seek($ref->getStartLine() - 1);
             $content = '';
@@ -307,34 +305,33 @@ class Job
             }
             $actionString = json_encode([
                 $content,
-                $ref->getStaticVariables()
+                $ref->getStaticVariables(),
             ]);
-
         } else {
-            $actionString = serialize( $this->getAction() );
+            $actionString = serialize($this->getAction());
         }
 
         // Get a hash based on the expression
         $expHash = $this->getExpression();
 
-        return  $this->getType() . '_' . md5( $actionString . '_' . $expHash );
+        return  $this->getType().'_'.md5($actionString.'_'.$expHash);
     }
 
-	/**
-	 * Magic getter
-	 *
-	 * @param string $key
-	 *
-	 * @return mixed
-	 */
-	public function __get( String $key )
-	{
-		if ($key === 'name' && empty($this->name)) {
+    /**
+     * Magic getter.
+     *
+     * @param string $key
+     *
+     * @return mixed
+     */
+    public function __get(string $key)
+    {
+        if ($key === 'name' && empty($this->name)) {
             return $this->buildName();
         }
 
-		if (property_exists($this, $key)) {
-			return $this->{ $key };
-		}
-	}
+        if (property_exists($this, $key)) {
+            return $this->{ $key };
+        }
+    }
 }

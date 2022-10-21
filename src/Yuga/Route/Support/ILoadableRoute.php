@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Route\Support;
 
 use Yuga\Http\Request;
@@ -10,14 +11,15 @@ interface ILoadableRoute extends IRoute
      * Used when calling the url() helper.
      *
      * @param string|null $method
-     * @param array|null $parameters
+     * @param array|null  $parameters
      * @param string|null $name
+     *
      * @return string
      */
     public function findUrl($method = null, $parameters = null, $name = null);
 
     /**
-     * Loads and renders middlewares-classes
+     * Loads and renders middlewares-classes.
      *
      * @param Request $request
      */
@@ -38,6 +40,7 @@ interface ILoadableRoute extends IRoute
      * Check if route has given name.
      *
      * @param string $name
+     *
      * @return bool
      */
     public function hasName($name);
@@ -46,6 +49,7 @@ interface ILoadableRoute extends IRoute
      * Sets the router name, which makes it easier to obtain the url or router at a later point.
      *
      * @param string $name
+     *
      * @return static $this
      */
     public function setName($name);
@@ -61,8 +65,8 @@ interface ILoadableRoute extends IRoute
      * Add regular expression match for the entire route.
      *
      * @param string $regex
+     *
      * @return static
      */
     public function setMatch($regex);
-
 }

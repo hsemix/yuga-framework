@@ -1,35 +1,38 @@
 <?php
+
 namespace Yuga\Authenticate;
 
 use Closure;
-use Yuga\Http\Request;
-use Yuga\Validate\Message;
-use Yuga\Shared\Controller;
-use Yuga\Http\Middleware\IMiddleware;
-use Yuga\Authenticate\Shared\CanLogin;
-use Yuga\Authenticate\LoginWithRemember;
 use Yuga\Authenticate\Shared\CanBeRemembered;
+use Yuga\Authenticate\Shared\CanLogin;
 use Yuga\Authenticate\Shared\CanResetPassword;
 use Yuga\Controllers\Controller as BaseController;
+use Yuga\Http\Middleware\IMiddleware;
+use Yuga\Http\Request;
+use Yuga\Shared\Controller;
 
 class Authenticate extends BaseController implements IMiddleware
 {
-    use Controller, CanLogin, CanBeRemembered, CanResetPassword;
+    use Controller;
+    use CanLogin;
+    use CanBeRemembered;
+    use CanResetPassword;
     protected $model;
     protected $settings;
+
     public function __construct()
     {
         $model = env('AUTH_MODEL', \Yuga\Models\User::class);
-        $this->model = new $model;
+        $this->model = new $model();
         $this->init();
         $this->settings = $this->app->config->load('config.Settings');
     }
 
     /**
-     * Run only the routes provided
-     * 
+     * Run only the routes provided.
+     *
      * @param array | [] $routes
-     * 
+     *
      * @return static
      */
     public function except(array $routes = [])
@@ -47,29 +50,30 @@ class Authenticate extends BaseController implements IMiddleware
             if (method_exists($model, 'access')) {
                 try {
                     $token = request()->getBearerToken();
+
                     return $model->access($token);
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     return $model;
                 }
             }
+
             return $model;
         }
     }
 
     public function login($username, $password, $remember = null)
-    {        
+    {
         // form fields
         $loginFormUsernameField = env('AUTH_FORM_USERNAME_FIELD', 'username');
         $loginFormPasswordField = env('AUTH_FORM_PASSWORD_FIELD', 'password');
 
-        
         if ($this->checkLoginFields($loginFormUsernameField, $loginFormPasswordField)) {
             $validation = $this->validate->validator([
                 $loginFormUsernameField => 'required',
                 $loginFormPasswordField => 'required',
             ]);
 
-            return $this->checkValidators($loginFormUsernameField, $loginFormPasswordField, $username, $password, $remember); 
+            return $this->checkValidators($loginFormUsernameField, $loginFormPasswordField, $username, $password, $remember);
         }
     }
 
@@ -78,7 +82,7 @@ class Authenticate extends BaseController implements IMiddleware
         event('on:signout', ['user' => $this->user()]);
         if (!is_null($this->user()->remember_token) && $this->cookie->exists($this->settings->get('remember.name'))) {
             $this->user()->save([
-                'remember_token' => null
+                'remember_token' => null,
             ]);
 
             $this->cookie->delete($this->settings->get('remember.name'));
@@ -94,18 +98,18 @@ class Authenticate extends BaseController implements IMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Yuga\Http\Request  $request
-     * @param  \Closure  $next
+     * @param \Yuga\Http\Request $request
+     * @param \Closure           $next
+     *
      * @return mixed
      */
     public function run(Request $request, Closure $next)
     {
         if ($this->guest()) {
             return (\Auth::authRoutesExist()) ? $this->response->redirect->to('login') : $this->response->redirect->to(env('DEFAULT_LOGIN_REDIRECT', route('login')));
-            die();
+            exit();
         }
 
         return $next($request);
     }
-
 }

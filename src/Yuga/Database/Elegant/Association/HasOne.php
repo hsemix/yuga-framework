@@ -2,8 +2,8 @@
 
 namespace Yuga\Database\Elegant\Association;
 
-use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Builder;
+use Yuga\Database\Elegant\Model;
 
 class HasOne extends Association
 {
@@ -12,7 +12,7 @@ class HasOne extends Association
     private $parent;
     private $otherKey;
     private $foreignKey;
-    
+
     public function __construct(Builder $query, Model $parent, $foreignKey, $otherKey)
     {
         $this->otherKey = $otherKey;
@@ -22,7 +22,7 @@ class HasOne extends Association
         $this->parent = $parent;
         parent::__construct($query, $parent);
     }
-    
+
     public function addConditions()
     {
         $this->query->where($this->foreignKey, '=', $this->getParentIdValue())->limit(1);
@@ -42,10 +42,11 @@ class HasOne extends Association
 
     public function getPlainForeignKey()
     {
-        $foreign = explode(".", $this->foreignKey);
+        $foreign = explode('.', $this->foreignKey);
+
         return end($foreign);
     }
-    
+
     public function saveMany($models)
     {
         foreach ($models as $model) {

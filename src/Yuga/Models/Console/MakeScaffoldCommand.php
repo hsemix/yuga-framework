@@ -1,16 +1,23 @@
 <?php
+
 namespace Yuga\Models\Console;
 
+use Symfony\Component\Console\Input\InputOption;
 use Yuga\Console\Command;
 use Yuga\Support\FileLocator;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
 
 class MakeScaffoldCommand extends Command
 {
-    use CanCreate, CanUpdate, CanShowDetails, CanDelete, CanDisplay, CreateRoutes, CreateControllers, CreateMigrations;
+    use CanCreate;
+    use CanUpdate;
+    use CanShowDetails;
+    use CanDelete;
+    use CanDisplay;
+    use CreateRoutes;
+    use CreateControllers;
+    use CreateMigrations;
     protected $name = 'scaffold';
-    
+
     /**
      * The console command description.
      *
@@ -19,7 +26,7 @@ class MakeScaffoldCommand extends Command
     protected $description = 'Make a scaffold using Elegant Model composition';
 
     /**
-     * The console command Help text
+     * The console command Help text.
      */
     protected $help = "This command creates a number of files for you, they include:\n\t<info>*Views</info>\n\t<info>*Controllers</info>\n\t<info>*Routes</info>\n\t<info>*Migrations</info>\nBased on how you define your model";
 
@@ -33,15 +40,15 @@ class MakeScaffoldCommand extends Command
         $modelStrings = $this->input->getOption('models');
         $directory = $this->input->getOption('dir');
         if ($modelStrings == 'all') {
-            $path = path() . 'app' . DIRECTORY_SEPARATOR . $directory . DIRECTORY_SEPARATOR;
-            foreach (glob($path . '*.php') as $model) {
+            $path = path().'app'.DIRECTORY_SEPARATOR.$directory.DIRECTORY_SEPARATOR;
+            foreach (glob($path.'*.php') as $model) {
                 require_once $model;
             }
-            $models = (new FileLocator)->getClassesOfNamespace(env('APP_NAMESPACE', 'App'). '\\' . $directory);
+            $models = (new FileLocator())->getClassesOfNamespace(env('APP_NAMESPACE', 'App').'\\'.$directory);
         } else {
             $models = \explode(',', $modelStrings);
             $models = array_map(function ($model) {
-                return env('APP_NAMESPACE', 'App') . '\\Models\\' . $model;
+                return env('APP_NAMESPACE', 'App').'\\Models\\'.$model;
             }, $models);
         }
 
@@ -52,7 +59,7 @@ class MakeScaffoldCommand extends Command
     protected function formsCreator(array $models = [])
     {
         foreach ($models as $model) {
-            $modelInstance = new $model;
+            $modelInstance = new $model();
             if (property_exists($modelInstance, 'scaffold')) {
                 // make all the create forms
                 $this->makeCreateForm($modelInstance);
@@ -72,7 +79,6 @@ class MakeScaffoldCommand extends Command
                     // process migrations
                     $this->processMigrations($modelInstance);
                 }
-                
             }
         }
         $this->layoutMvc();
@@ -82,16 +88,16 @@ class MakeScaffoldCommand extends Command
     {
         $temp = 'layouts/app.temp';
         $layout = 'layouts/app.hax.php';
-        
+
         if (!is_dir($directory = path('resources/views/layouts'))) {
             mkdir($directory, 0755, true);
         }
-        if (file_exists($view = path('resources/views/' . $layout)) && !$this->option('force')) {
+        if (file_exists($view = path('resources/views/'.$layout)) && !$this->option('force')) {
             if ($this->confirm("The [{$view}] view already exists. Do you want to replace it?")) {
-                copy(__DIR__.'/temps/scaffold/' . $temp, $view);
+                copy(__DIR__.'/temps/scaffold/'.$temp, $view);
             }
         } else {
-            copy(__DIR__.'/temps/scaffold/' . $temp, $view);
+            copy(__DIR__.'/temps/scaffold/'.$temp, $view);
         }
     }
 
@@ -105,8 +111,8 @@ class MakeScaffoldCommand extends Command
         return [
             ['models', null, InputOption::VALUE_OPTIONAL, 'The names of all models whose scaffold are to be created (separated by commas).', 'all'],
             ['dir', null, InputOption::VALUE_OPTIONAL, 'The name of the folder where your models reside inside of the app folder.', 'Models'],
-            ['force', null, InputOption::VALUE_OPTIONAL, 'Overwrite existing files.', false], 
-            ['migrations', null, InputOption::VALUE_OPTIONAL, 'Whether or not migrations should be created.', 'yes']
+            ['force', null, InputOption::VALUE_OPTIONAL, 'Overwrite existing files.', false],
+            ['migrations', null, InputOption::VALUE_OPTIONAL, 'Whether or not migrations should be created.', 'yes'],
         ];
     }
 }

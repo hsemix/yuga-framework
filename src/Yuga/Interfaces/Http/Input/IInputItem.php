@@ -2,11 +2,11 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Interfaces\Http\Input;
 
 interface IInputItem
 {
-
     public function getIndex();
 
     public function setIndex($index);
@@ -18,5 +18,4 @@ interface IInputItem
     public function getValue();
 
     public function __toString();
-
 }

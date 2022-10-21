@@ -1,23 +1,23 @@
-<?php 
+<?php
 
 namespace Yuga\Queue\Console;
 
-use Yuga\Console\Command;
 use Nette\PhpGenerator\PhpFile;
 use Symfony\Component\Console\Input\InputArgument;
+use Yuga\Console\Command;
 
 /**
  * Queue Table creation.
  */
 class MakeQueueJobCommand extends Command
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
-	protected $name = 'make:job';
-    
+    /**
+     * The Command's name.
+     *
+     * @var string
+     */
+    protected $name = 'make:job';
+
     /**
      * The console command description.
      *
@@ -25,16 +25,16 @@ class MakeQueueJobCommand extends Command
      */
     protected $description = 'Creates a new Job class';
 
-	/**
-	 * Jobs Dir
-	 * 
-	 * @var string
-	 */
-	protected $path = 'app/Jobs';
+    /**
+     * Jobs Dir.
+     *
+     * @var string
+     */
+    protected $path = 'app/Jobs';
 
-	/**
-	 * Creates a queue table
-	 */
+    /**
+     * Creates a queue table.
+     */
     public function handle()
     {
         $name = $this->argument('name');
@@ -44,20 +44,19 @@ class MakeQueueJobCommand extends Command
         $this->info('Job Created Successfully.');
     }
 
-
-	/**
-     * Process The Job Creation 
-     * 
+    /**
+     * Process The Job Creation.
+     *
      * @param string $handler
      * @param string $method
      * @param string $eventName
-     * 
+     *
      * @return void
      */
     protected function processJobCreation(string $name)
     {
         file_put_contents(
-            path($this->path . '/' . trim($name) . '.php'),
+            path($this->path.'/'.trim($name).'.php'),
             $this->generateJob($name)
         );
         // file_put_contents(
@@ -67,35 +66,35 @@ class MakeQueueJobCommand extends Command
     }
 
     /**
-     * Generate Command logic
-     * 
+     * Generate Command logic.
+     *
      * @param string $name
-     * 
+     *
      * @return void
      */
     protected function generateJob($name)
     {
-        $file = new PhpFile;
+        $file = new PhpFile();
         $file->addComment('This file was auto-generated.');
 
-        $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Jobs');
+        $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App').'\\Jobs');
 
         $namespace->addUse('Yuga\Queue\QueueableTrait');
-		$namespace->addUse('Yuga\Queue\DispatchableTrait');
+        $namespace->addUse('Yuga\Queue\DispatchableTrait');
         $namespace->addUse('Yuga\Interfaces\Queue\JobInterface');
 
         $class = $namespace->addClass(trim($name));
 
         $class->addImplement('Yuga\Interfaces\Queue\JobInterface');
-		$class->addTrait('Yuga\Queue\QueueableTrait');
-		$class->addTrait('Yuga\Queue\DispatchableTrait');
+        $class->addTrait('Yuga\Queue\QueueableTrait');
+        $class->addTrait('Yuga\Queue\DispatchableTrait');
 
-		$classConstructor = $class->addMethod('__construct')->setBody('//');
-		$classConstructor->addComment('Create a new job instance.')->addComment('@return void');
-		
+        $classConstructor = $class->addMethod('__construct')->setBody('//');
+        $classConstructor->addComment('Create a new job instance.')->addComment('@return void');
+
         $classRunMethod = $class->addMethod('run')->setBody('//');
-		$classRunMethod->addComment('Run the job.')->addComment('@return void');
-        
+        $classRunMethod->addComment('Run the job.')->addComment('@return void');
+
         return $file;
     }
 

@@ -1,15 +1,16 @@
 <?php
+
 namespace Yuga\Console;
 
+use Symfony\Component\Console\Command\Command as ConsoleCommand;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\NullOutput;
-use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
-use Symfony\Component\Console\Command\Command as ConsoleCommand;
+use Symfony\Component\Console\Question\Question;
 
 abstract class Command extends ConsoleCommand
 {
@@ -49,17 +50,17 @@ abstract class Command extends ConsoleCommand
     protected $description;
 
     /**
-     * The consold command Help text
+     * The consold command Help text.
      */
     protected $help;
 
     /**
-     * The Path to be created
+     * The Path to be created.
      */
     protected $path;
 
     /**
-     * Container
+     * Container.
      */
     protected $yuga;
 
@@ -105,8 +106,9 @@ abstract class Command extends ConsoleCommand
     /**
      * Run the console command.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param \Symfony\Component\Console\Input\InputInterface   $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     *
      * @return int
      */
     public function run(InputInterface $input, OutputInterface $output)
@@ -121,8 +123,9 @@ abstract class Command extends ConsoleCommand
     /**
      * Execute the console command.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param \Symfony\Component\Console\Input\InputInterface   $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     *
      * @return mixed
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -133,8 +136,9 @@ abstract class Command extends ConsoleCommand
     /**
      * Call another console command.
      *
-     * @param  string  $command
-     * @param  array   $arguments
+     * @param string $command
+     * @param array  $arguments
+     *
      * @return int
      */
     public function call($command, array $arguments = [])
@@ -149,8 +153,9 @@ abstract class Command extends ConsoleCommand
     /**
      * Call another console command silently.
      *
-     * @param  string  $command
-     * @param  array   $arguments
+     * @param string $command
+     * @param array  $arguments
+     *
      * @return int
      */
     public function callSilent($command, array $arguments = [])
@@ -159,13 +164,14 @@ abstract class Command extends ConsoleCommand
 
         $arguments['command'] = $command;
 
-        return $instance->run(new ArrayInput($arguments), new NullOutput);
+        return $instance->run(new ArrayInput($arguments), new NullOutput());
     }
 
     /**
      * Get the value of a command argument.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return string|array
      */
     public function argument($key = null)
@@ -180,7 +186,8 @@ abstract class Command extends ConsoleCommand
     /**
      * Get the value of a command option.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return string|array
      */
     public function option($key = null)
@@ -195,8 +202,9 @@ abstract class Command extends ConsoleCommand
     /**
      * Confirm a question with the user.
      *
-     * @param  string  $question
-     * @param  bool    $default
+     * @param string $question
+     * @param bool   $default
+     *
      * @return bool
      */
     public function confirm($question, $default = false)
@@ -211,8 +219,9 @@ abstract class Command extends ConsoleCommand
     /**
      * Prompt the user for input.
      *
-     * @param  string  $question
-     * @param  string  $default
+     * @param string $question
+     * @param string $default
+     *
      * @return string
      */
     public function ask($question, $default = null)
@@ -227,9 +236,10 @@ abstract class Command extends ConsoleCommand
     /**
      * Prompt the user for input with auto completion.
      *
-     * @param  string  $question
-     * @param  array   $choices
-     * @param  string  $default
+     * @param string $question
+     * @param array  $choices
+     * @param string $default
+     *
      * @return string
      */
     public function askWithCompletion($question, array $choices, $default = null)
@@ -246,8 +256,9 @@ abstract class Command extends ConsoleCommand
     /**
      * Prompt the user for input but hide the answer from the console.
      *
-     * @param  string  $question
-     * @param  bool    $fallback
+     * @param string $question
+     * @param bool   $fallback
+     *
      * @return string
      */
     public function secret($question, $fallback = true)
@@ -264,11 +275,12 @@ abstract class Command extends ConsoleCommand
     /**
      * Give the user a single choice from an array of answers.
      *
-     * @param  string  $question
-     * @param  array   $choices
-     * @param  string  $default
-     * @param  mixed   $attempts
-     * @param  bool    $multiple
+     * @param string $question
+     * @param array  $choices
+     * @param string $default
+     * @param mixed  $attempts
+     * @param bool   $multiple
+     *
      * @return bool
      */
     public function choice($question, array $choices, $default = null, $attempts = null, $multiple = null)
@@ -283,11 +295,12 @@ abstract class Command extends ConsoleCommand
     }
 
     /**
-     * Format input to textual table
+     * Format input to textual table.
      *
-     * @param  array   $headers
-     * @param  array   $rows
-     * @param  string  $style
+     * @param array  $headers
+     * @param array  $rows
+     * @param string $style
+     *
      * @return void
      */
     public function table(array $headers, array $rows, $style = 'default')
@@ -300,7 +313,8 @@ abstract class Command extends ConsoleCommand
     /**
      * Write a string as information output.
      *
-     * @param  string  $string
+     * @param string $string
+     *
      * @return void
      */
     public function info($string)
@@ -311,7 +325,8 @@ abstract class Command extends ConsoleCommand
     /**
      * Write a string as standard output.
      *
-     * @param  string  $string
+     * @param string $string
+     *
      * @return void
      */
     public function line($string)
@@ -322,7 +337,8 @@ abstract class Command extends ConsoleCommand
     /**
      * Write a string as comment output.
      *
-     * @param  string  $string
+     * @param string $string
+     *
      * @return void
      */
     public function comment($string)
@@ -333,7 +349,8 @@ abstract class Command extends ConsoleCommand
     /**
      * Write a string as question output.
      *
-     * @param  string  $string
+     * @param string $string
+     *
      * @return void
      */
     public function question($string)
@@ -344,7 +361,8 @@ abstract class Command extends ConsoleCommand
     /**
      * Write a string as error output.
      *
-     * @param  string  $string
+     * @param string $string
+     *
      * @return void
      */
     public function error($string)
@@ -396,6 +414,7 @@ abstract class Command extends ConsoleCommand
      * Set the Yuga application instance.
      *
      * @param  \Yuga\Interfaces\Application\Application
+     *
      * @return void
      */
     public function setContainer($yuga)
@@ -416,5 +435,4 @@ abstract class Command extends ConsoleCommand
             }
         }
     }
-
 }

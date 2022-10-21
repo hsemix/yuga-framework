@@ -1,10 +1,10 @@
 <?php
+
 namespace Yuga\Console\Commands;
 
-use Yuga\Console\Command;
 use Nette\PhpGenerator\PhpFile;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
+use Yuga\Console\Command;
 
 class MakeAppCommand extends Command
 {
@@ -20,7 +20,7 @@ class MakeAppCommand extends Command
      *
      * @var string
      */
-    protected $description = "Make a new Yuga command";
+    protected $description = 'Make a new Yuga command';
 
     protected $path = 'app/Commands';
 
@@ -39,18 +39,18 @@ class MakeAppCommand extends Command
     }
 
     /**
-     * Process The command 
-     * 
+     * Process The command.
+     *
      * @param string $handler
      * @param string $method
      * @param string $eventName
-     * 
+     *
      * @return void
      */
     protected function processCommand(string $name)
     {
         file_put_contents(
-            path($this->path . '/' . trim($name) . '.php'),
+            path($this->path.'/'.trim($name).'.php'),
             $this->generateCommand($name)
         );
         file_put_contents(
@@ -60,32 +60,32 @@ class MakeAppCommand extends Command
     }
 
     /**
-     * Generate Command logic
-     * 
+     * Generate Command logic.
+     *
      * @param string $name
-     * 
+     *
      * @return void
      */
     protected function generateCommand($name)
     {
-        $file = new PhpFile;
+        $file = new PhpFile();
         $file->addComment('This file was auto-generated.');
 
-        $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Commands');
+        $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App').'\\Commands');
 
         $namespace->addUse('Yuga\Console\Command');
         $namespace->addUse('Yuga\Interfaces\Commands\CommandInterface');
         $namespace->addUse('Symfony\Component\Console\Input\InputOption');
         $namespace->addUse('Symfony\Component\Console\Input\InputArgument');
-        
+
         $class = $namespace->addClass(trim($name));
         $class->addImplement('Yuga\Interfaces\Commands\CommandInterface');
         $class->setExtends('Yuga\Console\Command');
         $classMethod = $class->addMethod('handle')->setBody('return $this->info("Successful");');
         $classMethod->addComment('@return mixed');
-        $class->addProperty('name', str_replace('command', '', 'app:' . strtolower($name)))->setProtected()->addComment('@var string');
-        $class->addProperty('description', 'This is a Yuga ' . $name . ' Command')->setProtected()->addComment('The console command description.')->addComment('@var string');
-        $class->addProperty('help', 'This is help for the  Yuga ' . $name . ' Command')->setProtected()->addComment('The console command help info.')->addComment('@var string');
+        $class->addProperty('name', str_replace('command', '', 'app:'.strtolower($name)))->setProtected()->addComment('@var string');
+        $class->addProperty('description', 'This is a Yuga '.$name.' Command')->setProtected()->addComment('The console command description.')->addComment('@var string');
+        $class->addProperty('help', 'This is help for the  Yuga '.$name.' Command')->setProtected()->addComment('The console command help info.')->addComment('@var string');
         $class->addProperty('path')->setProtected()->addComment('@var string');
 
         return $file;
@@ -97,20 +97,21 @@ class MakeAppCommand extends Command
         if (\file_exists(path('config/AppCommands.php'))) {
             $commands = require path('config/AppCommands.php');
         }
-        $commandToMake = env('APP_NAMESPACE', 'App') . '\\Commands\\' . $commandName;
-        if (!in_array($commandToMake, $commands))
+        $commandToMake = env('APP_NAMESPACE', 'App').'\\Commands\\'.$commandName;
+        if (!in_array($commandToMake, $commands)) {
             $commands[] = $commandToMake;
+        }
 
         $generatedCommands = '[';
         foreach ($commands as $command) {
-            $generatedCommands .= "\n\t\\". $command. "::class,";
+            $generatedCommands .= "\n\t\\".$command.'::class,';
         }
         $generatedCommands .= "\n];";
 
         $commandsFile = str_replace(
             '{commands}',
             $generatedCommands,
-            file_get_contents(__DIR__ . '/temps/commands.temp')
+            file_get_contents(__DIR__.'/temps/commands.temp')
         );
 
         return $commandsFile;
@@ -127,5 +128,4 @@ class MakeAppCommand extends Command
             ['name', InputArgument::REQUIRED, 'The name of the class'],
         ];
     }
-
 }

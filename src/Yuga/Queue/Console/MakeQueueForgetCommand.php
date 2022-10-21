@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Yuga\Queue\Console;
 
@@ -9,13 +9,13 @@ use Yuga\Console\Command;
  */
 class MakeQueueForgetCommand extends Command
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
-	protected $name = 'queue:forget';
-    
+    /**
+     * The Command's name.
+     *
+     * @var string
+     */
+    protected $name = 'queue:forget';
+
     /**
      * The console command description.
      *
@@ -23,12 +23,10 @@ class MakeQueueForgetCommand extends Command
      */
     protected $description = 'Deletes a failed queue job';
 
-
-	/**
-	 * Creates a queue table
-	 */
-	public function handle()
-	{
-        
-	}
+    /**
+     * Creates a queue table.
+     */
+    public function handle()
+    {
+    }
 }

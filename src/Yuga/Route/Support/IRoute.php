@@ -7,10 +7,11 @@ use Yuga\Http\Request;
 interface IRoute
 {
     /**
-     * Method called to check if a domain matches
+     * Method called to check if a domain matches.
      *
-     * @param string $route
+     * @param string  $route
      * @param Request $request
+     *
      * @return bool
      */
     public function matchRoute($route, Request $request);
@@ -20,7 +21,9 @@ interface IRoute
      * Returns class to be rendered.
      *
      * @param Request $request
+     *
      * @throws \Pecee\SimpleRouter\Exceptions\NotFoundHttpException
+     *
      * @return void
      */
     public function renderRoute(Request $request);
@@ -35,15 +38,16 @@ interface IRoute
     public function getIdentifier();
 
     /**
-     * Set allowed request methods
+     * Set allowed request methods.
      *
      * @param array $methods
+     *
      * @return static $this
      */
     public function setRequestMethods(array $methods);
 
     /**
-     * Get allowed request methods
+     * Get allowed request methods.
      *
      * @return array
      */
@@ -62,25 +66,28 @@ interface IRoute
     public function getGroup();
 
     /**
-     * Set group
+     * Set group.
      *
      * @param IGroupRoute $group
+     *
      * @return static $this
      */
     public function setGroup(IGroupRoute $group);
 
     /**
-     * Set parent route
+     * Set parent route.
      *
      * @param IRoute $parent
+     *
      * @return static $this
      */
     public function setParent(IRoute $parent);
 
     /**
-     * Set callback
+     * Set callback.
      *
      * @param string $callback
+     *
      * @return static
      */
     public function setCallback($callback);
@@ -98,6 +105,7 @@ interface IRoute
 
     /**
      * @param string $namespace
+     *
      * @return static $this
      */
     public function setNamespace($namespace);
@@ -109,6 +117,7 @@ interface IRoute
 
     /**
      * @param string $namespace
+     *
      * @return static $this
      */
     public function setDefaultNamespace($namespace);
@@ -126,21 +135,23 @@ interface IRoute
      * Set parameter names.
      *
      * @param array $options
+     *
      * @return static
      */
     public function setWhere(array $options);
 
     /**
-     * Get parameters
+     * Get parameters.
      *
      * @return array
      */
     public function getParameters();
 
     /**
-     * Get parameters
+     * Get parameters.
      *
      * @param array $parameters
+     *
      * @return static $this
      */
     public function setParameters(array $parameters);
@@ -149,7 +160,8 @@ interface IRoute
      * Merge with information from another route.
      *
      * @param array $settings
-     * @param bool $merge
+     * @param bool  $merge
+     *
      * @return static $this
      */
     public function setSettings(array $settings, $merge = false);
@@ -162,26 +174,27 @@ interface IRoute
     public function toArray();
 
     /**
-     * Get middlewares array
+     * Get middlewares array.
      *
      * @return array
      */
     public function getMiddlewares();
 
     /**
-     * Set middleware class-name
+     * Set middleware class-name.
      *
      * @param string $middleware
+     *
      * @return static
      */
     public function addMiddleware($middleware);
 
     /**
-     * Set middlewares array
+     * Set middlewares array.
      *
      * @param array $middlewares
+     *
      * @return $this
      */
     public function setMiddlewares(array $middlewares);
-
 }

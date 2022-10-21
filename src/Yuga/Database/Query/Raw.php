@@ -1,9 +1,9 @@
 <?php
+
 namespace Yuga\Database\Query;
 
 class Raw
 {
-
     /**
      * @var string
      */
@@ -16,13 +16,14 @@ class Raw
 
     /**
      * Raw constructor.
-     * @param string $value
+     *
+     * @param string       $value
      * @param array|string $bindings
      */
     public function __construct($value, $bindings = [])
     {
-        $this->value = (string)$value;
-        $this->bindings = (array)$bindings;
+        $this->value = (string) $value;
+        $this->bindings = (array) $bindings;
     }
 
     public function getBindings()
@@ -35,7 +36,7 @@ class Raw
      */
     public function __toString()
     {
-        return (string)$this->value;
+        return (string) $this->value;
     }
 
     public function where()

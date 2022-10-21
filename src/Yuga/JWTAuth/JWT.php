@@ -13,21 +13,21 @@ use Yuga\Application\Application;
 class Jwt
 {
     /**
-     * The JSON Web Token string
+     * The JSON Web Token string.
      *
-     * @var string $token
+     * @var string
      */
     private $token;
 
     /**
-    * The secret used to create the JWT signature
-    *
-    * @var string $secret
-    */
+     * The secret used to create the JWT signature.
+     *
+     * @var string
+     */
     private $secret;
 
     /**
-     * JWT Constructor
+     * JWT Constructor.
      *
      * @param string $token
      * @param string $secret
@@ -38,13 +38,12 @@ class Jwt
         if ($secret) {
             $this->secret = $secret;
         } else {
-            $this->secret = 'Yuga Framework ' . Application::VERSION . ' ' . config('app.name', 'Yuga Framework');
+            $this->secret = 'Yuga Framework '.Application::VERSION.' '.config('app.name', 'Yuga Framework');
         }
-        
     }
 
     /**
-     * Return the JSON Web Token String
+     * Return the JSON Web Token String.
      *
      * @return string
      */
@@ -54,7 +53,7 @@ class Jwt
     }
 
     /**
-     * Return the secret used to encode the JWT signature
+     * Return the secret used to encode the JWT signature.
      *
      * @return string
      */

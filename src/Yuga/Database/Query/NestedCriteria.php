@@ -1,13 +1,15 @@
 <?php
+
 namespace Yuga\Database\Query;
 
 class NestedCriteria extends Builder
 {
     /**
-     * @param string $column
+     * @param string            $column
      * @param string|mixed|null $operator
      * @param string|mixed|null $value
-     * @param string $joiner
+     * @param string            $joiner
+     *
      * @return static
      */
     protected function whereHandler($column, $operator = null, $value = null, $type = 'AND')

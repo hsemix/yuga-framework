@@ -53,24 +53,28 @@ class HtmlButton extends Html
 
         return $this;
     }
+
     /**
-	 * Button clicked
-	 */
-	public function isClicked()
-	{
+     * Button clicked.
+     */
+    public function isClicked()
+    {
         $value = $this->getValue();
-		return $value !== null && $value !== [];
+
+        return $value !== null && $value !== [];
     }
-    
+
     public function getValue()
     {
         $value = $this->getAttribute('value');
+
         return  $value ? $value[0] : null;
     }
 
     public function getName()
     {
         $name = $this->getAttribute('name');
+
         return  $name ? $name[0] : null;
     }
 }

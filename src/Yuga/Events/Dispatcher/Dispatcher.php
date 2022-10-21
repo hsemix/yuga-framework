@@ -12,7 +12,7 @@ class Dispatcher
      * @var string event name
      */
     protected $name;
-    
+
     /**
      * @var array the event parameters
      */
@@ -24,18 +24,18 @@ class Dispatcher
     private $attributes = [];
 
     /**
-     * The event instance is to be stored in this variable
+     * The event instance is to be stored in this variable.
      *
      * @var \Yuga\Events\Dispatcher\Dispatcher
      */
     protected static $event;
 
     public function __construct($name = null, $params = null)
-    {   
+    {
         if ($name) {
             $this->setName($name);
         }
-        
+
         if ($params) {
             $this->setParams($params);
         }
@@ -49,7 +49,7 @@ class Dispatcher
     }
 
     /**
-     * Get event name
+     * Get event name.
      *
      * @return string|null
      */
@@ -57,25 +57,26 @@ class Dispatcher
     {
         return $this->name;
     }
-    
+
     /**
-     * Overwrites parameters
+     * Overwrites parameters.
      *
-     * @param  array|object $params
+     * @param array|object $params
+     *
+     * @throws EventException
      *
      * @return void
-     * @throws EventException
      */
     public function setParams($params)
     {
         if (!is_array($params)) {
-            throw new EventException('Event parameters must be an array; received `' . gettype($params) . '`');
+            throw new EventException('Event parameters must be an array; received `'.gettype($params).'`');
         }
         $this->params = $params;
     }
 
     /**
-     * Get all parameters
+     * Get all parameters.
      *
      * @return array|object
      */
@@ -85,12 +86,12 @@ class Dispatcher
     }
 
     /**
-     * Get an individual parameter
+     * Get an individual parameter.
      *
      * If the parameter does not exist, the $default value will be returned.
      *
-     * @param  string|int $name
-     * @param  mixed      $default
+     * @param string|int $name
+     * @param mixed      $default
      *
      * @return mixed
      */
@@ -106,23 +107,24 @@ class Dispatcher
     }
 
     /**
-     * Set the event name
+     * Set the event name.
      *
-     * @param  string $name
+     * @param string $name
      *
      * @return void
      */
     public function setName($name)
     {
-        $this->name = (string)$name;
+        $this->name = (string) $name;
+
         return $this;
     }
 
     /**
-     * Set an individual parameter to a value
+     * Set an individual parameter to a value.
      *
-     * @param  string|int $name
-     * @param  mixed      $value
+     * @param string|int $name
+     * @param mixed      $value
      *
      * @return void
      */
@@ -138,10 +140,10 @@ class Dispatcher
     {
         return $this->getAttribute($key);
     }
-    
-	/**
-	* Set a variable and make an object point to it
-	*/
+
+    /**
+     * Set a variable and make an object point to it.
+     */
     public function __set($key, $value)
     {
         $this->setAttribute($key, $value);
@@ -150,14 +152,15 @@ class Dispatcher
     public function setAttribute($key, $value)
     {
         $this->attributes[$key] = $value;
-        
+
         return $this;
     }
 
     /**
      * Get an attribute from the event.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return mixed
      */
     public function getAttribute($name)
@@ -167,17 +170,18 @@ class Dispatcher
 
     public function setAttributes(array $attributes = [])
     {
-        foreach ($attributes as $key => $value)
+        foreach ($attributes as $key => $value) {
             $this->attributes[$key] = $value;
-        
+        }
+
         return $this;
     }
 
     /**
-     * Return a static instance of the event instance throught the entire application
-     * 
+     * Return a static instance of the event instance throught the entire application.
+     *
      * @param null
-     * 
+     *
      * @return \Yuga\Events\Dispatcher\Dispatcher
      */
     public static function getInstance()

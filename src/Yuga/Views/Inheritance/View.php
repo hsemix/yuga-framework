@@ -14,14 +14,15 @@ class View
     protected $template_dir = 'resources/views/';
     protected $template_cache_dir = './storage/hax/';
     protected $vars = [];
-    protected $dataView = []; 
-    
+    protected $dataView = [];
+
     public function setTemplateDirectory($dir = 'resources/views')
     {
-        $this->template_dir = $dir . '/';
+        $this->template_dir = $dir.'/';
         if (!is_dir($directory = $dir)) {
             @mkdir($directory, 0755, true);
         }
+
         return $this;
     }
 
@@ -30,7 +31,7 @@ class View
         return $this->template_dir;
     }
 
-    public function renderView($template_file, $data = false) 
+    public function renderView($template_file, $data = false)
     {
         if ($data) {
             $this->dataView = $data;
@@ -38,9 +39,9 @@ class View
                 $this->vars[$index] = $value;
             }
         }
-        
-        $rendered = "";
-        
+
+        $rendered = '';
+
         $exceptionFile = str_replace('.', '/', $template_file);
 
         if (file_exists($this->getTemplateDirectory().$exceptionFile.self::HAX)) {
@@ -49,11 +50,10 @@ class View
             extract($this->vars);
             ob_start();
             require $this->getTemplateDirectory().$exceptionFile.self::EXT;
-            $rendered = ob_get_contents(); 
-            ob_end_flush();  
+            $rendered = ob_get_contents();
+            ob_end_flush();
         } else {
-            
-            throw new Exception('no template file ' . $exceptionFile.self::EXT . ' present in directory ' . $this->template_dir);
+            throw new Exception('no template file '.$exceptionFile.self::EXT.' present in directory '.$this->template_dir);
         }
         $this->dataView = [];
     }
@@ -64,28 +64,30 @@ class View
         if (file_exists($this->getTemplateDirectory().$evaluatedView.self::HAX)) {
             ob_start();
             $this->renderHaxTemplate($evaluatedView, $data);
-            $rendered = ob_get_contents(); 
+            $rendered = ob_get_contents();
             ob_end_clean();
+
             return $rendered;
         } elseif (file_exists($this->getTemplateDirectory().$evaluatedView.self::EXT)) {
             ob_start();
             $this->renderView($view, $data);
-            $rendered = ob_get_contents(); 
+            $rendered = ob_get_contents();
             ob_end_clean();
+
             return $rendered;
         } else {
-            throw new Exception('no template file ' . $this->getTemplateDirectory().$evaluatedView.self::EXT . ' present in directory ' . $this->template_dir);
+            throw new Exception('no template file '.$this->getTemplateDirectory().$evaluatedView.self::EXT.' present in directory '.$this->template_dir);
         }
     }
-    
-    public function __set($name, $value) 
+
+    public function __set($name, $value)
     {
         $this->vars[$name] = $value;
     }
-    
-    public function __get($name) 
+
+    public function __get($name)
     {
-        if (isset($this->dataView[$name])) {  
+        if (isset($this->dataView[$name])) {
             return $this->dataView[$name];
         } else {
             return $this->vars[$name];
@@ -95,61 +97,60 @@ class View
     public function extend($template = null)
     {
         if ($template) {
-            $template = str_replace(".", "/", $template);
+            $template = str_replace('.', '/', $template);
 
             if (file_exists($this->getTemplateDirectory().$template.self::HAX)) {
                 // compile the hax template and include it if exists
                 $file = $this->renderHaxTemplate($template);
             } elseif (file_exists($this->getTemplateDirectory().$template.self::EXT)) {
                 $file = $this->getTemplateDirectory().$template.self::EXT;
-                include_once($file);
+                include_once $file;
             } else {
                 $file = $this->getTemplateDirectory().$template;
-                throw new \Exception("The file {$file} doesnot exist"); 
+
+                throw new \Exception("The file {$file} doesnot exist");
             }
-            
         }
     }
 
-    public function section($name, $filters=null)
+    public function section($name, $filters = null)
     {
         $trace = $this->callingTrace();
         $this->init($trace);
-        $stack =& $GLOBALS['_smx_stack'];
+        $stack = &$GLOBALS['_smx_stack'];
         $stack[] = $this->newSection($name, $filters, $trace);
-        
-    }
-    public function fetch()
-    {
-        
     }
 
-    private function callingTrace() 
+    public function fetch()
+    {
+    }
+
+    private function callingTrace()
     {
         $trace = debug_backtrace();
-    
+
         foreach ($trace as $i => $location) {
             if (isset($location['file'])) {
                 if ($location['file'] !== __FILE__) {
                     return array_slice($trace, $i);
                 }
-            } 
+            }
         }
     }
 
-    private function init($trace) 
+    private function init($trace)
     {
-        $base =& $GLOBALS['_smx_base'];
-        if ($base && ! $this->inBaseOrChild($trace)) {
+        $base = &$GLOBALS['_smx_base'];
+        if ($base && !$this->inBaseOrChild($trace)) {
             $this->flushSections(); // will set $base to null
         }
         if (!$base) {
             $base = [
-                'trace' => $trace,
-                'filters' => null, // purely for compile
+                'trace'    => $trace,
+                'filters'  => null, // purely for compile
                 'children' => [],
-                'start' => 0, // purely for compile
-                'end' => null
+                'start'    => 0, // purely for compile
+                'end'      => null,
             ];
             $GLOBALS['_smx_level'] = ob_get_level();
             $GLOBALS['_smx_stack'] = [];
@@ -160,10 +161,10 @@ class View
         }
     }
 
-    public function newSection($name, $filters, $trace) 
+    public function newSection($name, $filters, $trace)
     {
-        $base =& $GLOBALS['_smx_base'];
-        $stack =& $GLOBALS['_smx_stack'];
+        $base = &$GLOBALS['_smx_base'];
+        $stack = &$GLOBALS['_smx_stack'];
         while ($section = end($stack)) {
             if ($this->isSameFile($section['trace'], $trace)) {
                 break;
@@ -183,15 +184,14 @@ class View
         if ($filters) {
             if (is_string($filters)) {
                 $filters = preg_split('/\s*[,|]\s*/', trim($filters));
-            }
-            else if (!is_array($filters)) {
+            } elseif (!is_array($filters)) {
                 $filters = [$filters];
             }
             foreach ($filters as $i => $f) {
                 if ($f && !is_callable($f)) {
                     $this->warning(
                         is_array($f) ?
-                            "filter " . implode('::', $f) . " is not defined":
+                            'filter '.implode('::', $f).' is not defined' :
                             "filter '$f' is not defined", // TODO: better messaging for methods
                         $trace
                     );
@@ -199,58 +199,59 @@ class View
                 }
             }
         }
+
         return [
-            'name' => $name,
-            'trace' => $trace,
-            'filters' => $filters,
+            'name'     => $name,
+            'trace'    => $trace,
+            'filters'  => $filters,
             'children' => [],
-            'start' => ob_get_length()
+            'start'    => ob_get_length(),
         ];
     }
 
-    public function endSection($name=null) 
+    public function endSection($name = null)
     {
         $trace = $this->callingTrace();
         $this->init($trace);
-        $stack =& $GLOBALS['_smx_stack'];
+        $stack = &$GLOBALS['_smx_stack'];
         if ($stack) {
             $section = array_pop($stack);
-            if($name && $name != $section['name']) {
+            if ($name && $name != $section['name']) {
                 $this->warning("section('{$section['name']}') does not match endSection('$name')", $trace);
             }
             $this->insertSection($section);
         } else {
             $this->warning(
-                $name ? "orphan endSection('$name')" : "orphan endSection()",
+                $name ? "orphan endSection('$name')" : 'orphan endSection()',
                 $trace
             );
         }
     }
 
-    private function insertSection($section) 
-    { 
+    private function insertSection($section)
+    {
         // at this point, $section is done being modified
-        $base =& $GLOBALS['_smx_base'];
-        $stack =& $GLOBALS['_smx_stack'];
-        $hash =& $GLOBALS['_smx_hash'];
-        $end =& $GLOBALS['_smx_end'];
+        $base = &$GLOBALS['_smx_base'];
+        $stack = &$GLOBALS['_smx_stack'];
+        $hash = &$GLOBALS['_smx_hash'];
+        $end = &$GLOBALS['_smx_end'];
         $section['end'] = $end = ob_get_length();
         $name = $section['name'];
         if ($stack || $this->inBase($section['trace'])) {
             $section_anchor = [
-                'start' => $section['start'],
-                'end' => $end,
-                'section' => $section
+                'start'   => $section['start'],
+                'end'     => $end,
+                'section' => $section,
             ];
             if ($stack) {
                 // nested section
-                $stack[count($stack)-1]['children'][] =& $section_anchor;
+                $stack[count($stack) - 1]['children'][] = &$section_anchor;
             } else {
                 // top-level section in base
-                $base['children'][] =& $section_anchor;
+                $base['children'][] = &$section_anchor;
             }
-            $hash[$name] =& $section_anchor; // same reference as children array
-        } else if (isset($hash[$name])) {
+            $hash[$name] = &$section_anchor; // same reference as children array
+        } elseif (isset($hash[$name])) {
             if ($this->isSameFile($hash[$name]['section']['trace'], $section['trace'])) {
                 $this->warning(
                     "cannot define another section called '$name'",
@@ -263,48 +264,53 @@ class View
             }
         }
     }
-    private function inBase($trace) 
+
+    private function inBase($trace)
     {
         return $this->isSameFile($trace, $GLOBALS['_smx_base']['trace']);
     }
 
-    private function isSameFile($trace1, $trace2) 
+    private function isSameFile($trace1, $trace2)
     {
         return
             $trace1 && $trace2 &&
             $trace1[0]['file'] === $trace2[0]['file'] &&
             array_slice($trace1, 1) === array_slice($trace2, 1);
     }
-    private function inBaseOrChild($trace) 
+
+    private function inBaseOrChild($trace)
     {
         $base_trace = $GLOBALS['_smx_base']['trace'];
+
         return
             $trace && $base_trace &&
             $this->isSubtrace(array_slice($trace, 1), $base_trace) &&
-            $trace[0]['file'] === $base_trace[count($base_trace)-count($trace)]['file'];
+            $trace[0]['file'] === $base_trace[count($base_trace) - count($trace)]['file'];
     }
 
-    private function isSubtrace($trace1, $trace2) 
-    { 
+    private function isSubtrace($trace1, $trace2)
+    {
         // is trace1 a subtrace of trace2
         $len1 = count($trace1);
         $len2 = count($trace2);
         if ($len1 > $len2) {
             return false;
         }
-        for ($i=0; $i<$len1; $i++) {
-            if ($trace1[$len1-1-$i] !== $trace2[$len2-1-$i]) {
+        for ($i = 0; $i < $len1; $i++) {
+            if ($trace1[$len1 - 1 - $i] !== $trace2[$len2 - 1 - $i]) {
                 return false;
             }
         }
+
         return true;
     }
-    private function flushSections() 
+
+    private function flushSections()
     {
-        $base =& $GLOBALS['_smx_base'];
+        $base = &$GLOBALS['_smx_base'];
         if ($base) {
-            $stack =& $GLOBALS['_smx_stack'];
-            $level =& $GLOBALS['_smx_level'];
+            $stack = &$GLOBALS['_smx_stack'];
+            $level = &$GLOBALS['_smx_level'];
             while ($section = array_pop($stack)) {
                 $this->warning(
                     "missing endSection() for section('{$section['name']}')",
@@ -320,17 +326,17 @@ class View
         }
     }
 
-
-    private function sectionBase() 
+    private function sectionBase()
     {
         $this->init($this->callingTrace());
     }
-    private function bufferCallback($buffer) 
+
+    private function bufferCallback($buffer)
     {
-        $base =& $GLOBALS['_smx_base'];
-        $stack =& $GLOBALS['_smx_stack'];
-        $end =& $GLOBALS['_smx_end'];
-        $after =& $GLOBALS['_smx_after'];
+        $base = &$GLOBALS['_smx_base'];
+        $stack = &$GLOBALS['_smx_stack'];
+        $end = &$GLOBALS['_smx_end'];
+        $after = &$GLOBALS['_smx_after'];
         if ($base) {
             while ($section = array_pop($stack)) {
                 $this->insertSection($section);
@@ -348,24 +354,26 @@ class View
             $parts = $this->compile($base, $buffer);
             // remove trailing whitespace from end
 
-            if($i = count($parts) - 1){
-                if (isset($parts[$i]))
+            if ($i = count($parts) - 1) {
+                if (isset($parts[$i])) {
                     $parts[$i] = rtrim($parts[$i]);
+                }
             }
-            
+
             // if there are child template sections, preserve output after last one
             if ($end !== null) {
                 $parts[] = substr($buffer, $end);
             }
             // for error messages
             $parts[] = $after;
+
             return implode($parts);
         } else {
             return '';
         }
     }
 
-    private function warning($message, $trace, $warning_trace=null) 
+    private function warning($message, $trace, $warning_trace = null)
     {
         if (error_reporting() & E_USER_WARNING) {
             if (defined('STDIN')) {
@@ -387,7 +395,7 @@ class View
         }
     }
 
-    private function compile($section, $buffer) 
+    private function compile($section, $buffer)
     {
         $parts = [];
         $previ = $section['start'];
@@ -410,10 +418,13 @@ class View
                     $s = call_user_func($filter, $s);
                 }
             }
+
             return [$s];
         }
+
         return $parts;
     }
+
     public function emptySection($name)
     {
         $trace = $this->callingTrace();
@@ -423,7 +434,7 @@ class View
         );
     }
 
-    public function parentSection() 
+    public function parentSection()
     {
         if ($GLOBALS['_smx_stack']) {
             echo $this->getParentSection();
@@ -435,12 +446,11 @@ class View
         }
     }
 
-
-    private function getParentSection() 
+    private function getParentSection()
     {
-        $stack =& $GLOBALS['_smx_stack'];
+        $stack = &$GLOBALS['_smx_stack'];
         if ($stack) {
-            $hash =& $GLOBALS['_smx_hash'];
+            $hash = &$GLOBALS['_smx_hash'];
             $section = end($stack);
             if (isset($hash[$section['name']])) {
                 return implode(
@@ -456,6 +466,7 @@ class View
                 $this->callingTrace()
             );
         }
+
         return null;
     }
 }

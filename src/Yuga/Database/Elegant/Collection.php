@@ -1,27 +1,26 @@
 <?php
 /**
-* All models are collected in this collection class for further manipulation
-*/
+ * All models are collected in this collection class for further manipulation.
+ */
+
 namespace Yuga\Database\Elegant;
 
-use Closure;
-use Iterator;
-use Countable;
 use ArrayAccess;
+use Closure;
+use Countable;
+use Iterator;
 use JsonSerializable;
-use Yuga\Support\Arr;
-use Yuga\Support\Inflect;
 use Yuga\Pagination\Pagination;
 use Yuga\Route\Exceptions\NotFoundHttpException;
+use Yuga\Support\Arr;
 
-class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
+class Collection implements ArrayAccess, Iterator, JsonSerializable, Countable
 {
-    
     protected $query;
     protected $items = [];
     protected $pagination;
     protected static $instances = [];
-        
+
     public function __construct($items = [], $query = null)
     {
         $this->items = $items;
@@ -32,6 +31,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     {
         return $this->toJson();
     }
+
     public function addItem($item)
     {
         $this->items = $item;
@@ -55,8 +55,9 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Find a model in the collection by key.
      *
-     * @param  mixed  $key
-     * @param  mixed  $default
+     * @param mixed $key
+     * @param mixed $default
+     *
      * @return \Yuga\Database\Elegant\Model
      */
     public function find($key, $default = null)
@@ -66,11 +67,11 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         }
 
         return new static(Arr::first($this->items, function ($itemKey) use ($key, $default) {
-
             if ($itemKey instanceof Model) {
                 if ($default == null) {
                     return $itemKey->{$itemKey->getPrimaryKey()} == $key;
                 }
+
                 return $itemKey->{$key} == $default;
             }
 
@@ -83,11 +84,10 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     }
 
     /**
-	* Make the object act like an array when at access time
-	*
-	*/
+     * Make the object act like an array when at access time.
+     */
     #[\ReturnTypeWillChange]
-    public function offsetSet($offset, $value) 
+    public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
             $this->items[] = $value;
@@ -97,55 +97,59 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     }
 
     #[\ReturnTypeWillChange]
-    public function offsetExists($offset) 
+    public function offsetExists($offset)
     {
         return isset($this->items[$offset]);
     }
 
     #[\ReturnTypeWillChange]
-    public function offsetUnset($offset) 
+    public function offsetUnset($offset)
     {
         unset($this->items[$offset]);
     }
 
     #[\ReturnTypeWillChange]
-    public function offsetGet($offset) 
+    public function offsetGet($offset)
     {
         return isset($this->items[$offset]) ? $this->items[$offset] : null;
     }
-    
+
     #[\ReturnTypeWillChange]
     public function rewind()
     {
         reset($this->items);
     }
-    
+
     #[\ReturnTypeWillChange]
     public function current()
     {
         $var = current($this->items);
+
         return $var;
     }
-    
+
     #[\ReturnTypeWillChange]
-    public function key() 
+    public function key()
     {
         $var = key($this->items);
+
         return $var;
     }
-    
+
     #[\ReturnTypeWillChange]
-    public function next() 
+    public function next()
     {
         $var = next($this->items);
+
         return $var;
     }
-    
+
     #[\ReturnTypeWillChange]
     public function valid()
     {
         $key = key($this->items);
-        $var = ($key !== NULL && $key !== FALSE);
+        $var = ($key !== null && $key !== false);
+
         return $var;
     }
 
@@ -163,8 +167,8 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Run a filter over each of the items.
      *
-     * @param  callable|null  $callback
-     * 
+     * @param callable|null $callback
+     *
      * @return static
      */
     public function filter(callable $callback = null)
@@ -187,10 +191,10 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Filter items by the given key value pair.
      *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @param  bool  $strict
-     * 
+     * @param string $key
+     * @param mixed  $value
+     * @param bool   $strict
+     *
      * @return static
      */
     public function where($key, $value, $strict = true)
@@ -213,8 +217,9 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Get an item from the collection by key.
      *
-     * @param  mixed|null  $key
-     * @param  mixed|null  $default
+     * @param mixed|null $key
+     * @param mixed|null $default
+     *
      * @return mixed
      */
     public function get($key = null, $default = null)
@@ -226,6 +231,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
             return value($default);
         }
+
         return $this->items;
     }
 
@@ -250,10 +256,10 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return $this->arrayFlatten($this->toArray(), 0);
     }
 
-    public function arrayFlatten($array, $preserve_keys = 1, $newArray = []) 
+    public function arrayFlatten($array, $preserve_keys = 1, $newArray = [])
     {
         foreach ($array as $key => $child) {
-            if(is_array($child)) {
+            if (is_array($child)) {
                 $newArray = $this->arrayFlatten($child, $preserve_keys, $newArray);
             } elseif ($preserve_keys + is_string($key) > 1) {
                 $newArray[$key] = $child;
@@ -261,24 +267,27 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
                 $newArray[] = $child;
             }
         }
+
         return $newArray;
     }
 
     public function chunk($count = 2, $callback = null)
     {
-        $items = array_map(function($item) {
+        $items = array_map(function ($item) {
             return new static($item);
         }, array_chunk($this->items, $count));
-        
+
         if ($callback) {
             return $callback(new static($items));
         }
+
         return new static($items);
     }
 
     public function map(Closure $callback)
     {
         array_map($callback, $this->items);
+
         return $this;
     }
 
@@ -290,7 +299,8 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Fetch a nested element of the collection.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return Collection
      */
     public function fetch($key)
@@ -306,8 +316,9 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Slice the underlying collection array.
      *
-     * @param  int  $offset
-     * @param  int  $length
+     * @param int $offset
+     * @param int $length
+     *
      * @return static
      */
     public function slice($offset, $length = null)
@@ -318,7 +329,8 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Sort through each item with a callback.
      *
-     * @param  Closure  $callback
+     * @param Closure $callback
+     *
      * @return Collection
      */
     public function sort(Closure $callback)
@@ -331,12 +343,13 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Get a value retrieving callback.
      *
-     * @param  string  $value
+     * @param string $value
+     *
      * @return \Closure
      */
     protected function valueRetriever($value)
     {
-        return function($item) use ($value) {
+        return function ($item) use ($value) {
             return data_get($item, $value);
         };
     }
@@ -344,9 +357,10 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Sort the collection using the given Closure.
      *
-     * @param  \Closure|string  $callback
-     * @param  int              $options
-     * @param  bool             $descending
+     * @param \Closure|string $callback
+     * @param int             $options
+     * @param bool            $descending
+     *
      * @return Collection
      */
     public function sortBy($callback, $options = SORT_REGULAR, $descending = false)
@@ -381,8 +395,9 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Sort the collection in descending order using the given Closure.
      *
-     * @param  \Closure|string  $callback
-     * @param  int              $options
+     * @param \Closure|string $callback
+     * @param int             $options
+     *
      * @return Collection
      */
     public function sortByDesc($callback, $options = SORT_REGULAR)
@@ -393,9 +408,10 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Splice portion of the underlying collection array.
      *
-     * @param  int    $offset
-     * @param  int    $length
-     * @param  mixed  $replacement
+     * @param int   $offset
+     * @param int   $length
+     * @param mixed $replacement
+     *
      * @return Collection
      */
     public function splice($offset, $length = 0, $replacement = [])
@@ -403,7 +419,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return new static(array_splice($this->items, $offset, $length, $replacement));
     }
 
-     /**
+    /**
      * Get and remove the last item from the collection.
      *
      * @return mixed|null
@@ -416,7 +432,8 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Push an item onto the beginning of the collection.
      *
-     * @param  mixed  $value
+     * @param mixed $value
+     *
      * @return void
      */
     public function prepend($value)
@@ -427,7 +444,8 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Push an item onto the end of the collection.
      *
-     * @param  mixed  $value
+     * @param mixed $value
+     *
      * @return void
      */
     public function push($value)
@@ -438,8 +456,9 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Pulls an item from the collection.
      *
-     * @param  mixed  $key
-     * @param  mixed  $default
+     * @param mixed $key
+     * @param mixed $default
+     *
      * @return mixed
      */
     public function pull($key, $default = null)
@@ -450,8 +469,9 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Put an item in the collection by key.
      *
-     * @param  mixed  $key
-     * @param  mixed  $value
+     * @param mixed $key
+     * @param mixed $value
+     *
      * @return void
      */
     public function put($key, $value)
@@ -462,8 +482,9 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Reduce the collection to a single value.
      *
-     * @param  callable  $callback
-     * @param  mixed  $initial
+     * @param callable $callback
+     * @param mixed    $initial
+     *
      * @return mixed
      */
     public function reduce($callback, $initial = null)
@@ -474,7 +495,8 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Get one or more items randomly from the collection.
      *
-     * @param  int $amount
+     * @param int $amount
+     *
      * @return mixed
      */
     public function random($amount = 1)
@@ -503,15 +525,16 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     {
         return array_shift($this->items);
     }
-    
+
     public function paginate($limit)
     {
         $page = 1;
         if ($this->query) {
             $this->pagination = $pagination = new Pagination($page, $limit, $this->query->count());
+
             return $this->query->limit($limit)->offset($pagination->offset())->get();
         } else {
-            throw new NotFoundHttpException("Pagination only works with models");
+            throw new NotFoundHttpException('Pagination only works with models');
         }
     }
 
@@ -529,54 +552,59 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     {
         $order = strtolower($asc);
         if ($this->count() > 0) {
-            if ($order == 'asc') 
+            if ($order == 'asc') {
                 $order = false;
-            elseif ($order == 'desc')
+            } elseif ($order == 'desc') {
                 $order = true;
+            }
 
-            $this->sksort($this->items, $key, $order); 
+            $this->sksort($this->items, $key, $order);
         }
-         
-        return $this;       
+
+        return $this;
     }
 
-    protected function sksort($array, $subkey = "id", $sort_ascending = false) 
+    protected function sksort($array, $subkey = 'id', $sort_ascending = false)
     {
         $temp_array = [];
-        if (count($array))
+        if (count($array)) {
             $temp_array[key($array)] = array_shift($array);
+        }
         foreach ($array as $key => $val) {
             $offset = 0;
             $found = false;
             foreach ($temp_array as $tmp_key => $tmp_val) {
                 if (!$found && strtolower($val[$subkey]) > strtolower($tmp_val[$subkey])) {
-                    $temp_array = array_merge((array)array_slice($temp_array, 0, $offset), [$key => $val], array_slice($temp_array,$offset));
+                    $temp_array = array_merge((array) array_slice($temp_array, 0, $offset), [$key => $val], array_slice($temp_array, $offset));
                     $found = true;
                 }
                 $offset++;
             }
-            if(!$found) 
+            if (!$found) {
                 $temp_array = array_merge($temp_array, [$key => $val]);
+            }
         }
-    
-        if ($sort_ascending) 
+
+        if ($sort_ascending) {
             $array = array_reverse($temp_array);
-        else 
+        } else {
             $array = $temp_array;
+        }
     }
 
     /**
-     * Pluck an array
+     * Pluck an array.
      */
     public function pluck($property)
-	{
-		$out = [];
-		for ($i = 0, $length = count($this->items); $i < $length; $i++) {
-			$out[] = $this->items[$i][$property];
-		}
-		return new static($out);
+    {
+        $out = [];
+        for ($i = 0, $length = count($this->items); $i < $length; $i++) {
+            $out[] = $this->items[$i][$property];
+        }
+
+        return new static($out);
     }
-    
+
     public function getRecordsFilteredCount()
     {
         return 0;
@@ -590,7 +618,8 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Take the first or last {$limit} items.
      *
-     * @param  int  $limit
+     * @param int $limit
+     *
      * @return Collection
      */
     public function take($limit = null)
@@ -633,6 +662,4 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
         return $this;
     }
-
-
 }

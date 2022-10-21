@@ -2,13 +2,10 @@
 
 namespace Yuga\Carbon;
 
-use Closure;
 use DateTime;
-use DatePeriod;
 use DateTimeZone;
-use JsonSerializable;
-use DateTimeInterface;
 use InvalidArgumentException;
+use JsonSerializable;
 
 class Carbon extends DateTime implements JsonSerializable
 {
@@ -37,7 +34,7 @@ class Carbon extends DateTime implements JsonSerializable
     }
 
     /**
-     * Format the instance as date
+     * Format the instance as date.
      *
      * @return string
      */
@@ -47,7 +44,7 @@ class Carbon extends DateTime implements JsonSerializable
     }
 
     /**
-     * Format the instance as a readable date
+     * Format the instance as a readable date.
      *
      * @return string
      */
@@ -57,7 +54,7 @@ class Carbon extends DateTime implements JsonSerializable
     }
 
     /**
-     * Format the instance as time
+     * Format the instance as time.
      *
      * @return string
      */
@@ -67,7 +64,7 @@ class Carbon extends DateTime implements JsonSerializable
     }
 
     /**
-     * Format the instance as date and time
+     * Format the instance as date and time.
      *
      * @return string
      */
@@ -77,7 +74,7 @@ class Carbon extends DateTime implements JsonSerializable
     }
 
     /**
-     * Format the instance with day, date and time
+     * Format the instance with day, date and time.
      *
      * @return string
      */
@@ -115,7 +112,7 @@ class Carbon extends DateTime implements JsonSerializable
 
         return $tz;
     }
-    
+
     /**
      * Get a Carbon instance for the current date and time.
      *
@@ -127,5 +124,4 @@ class Carbon extends DateTime implements JsonSerializable
     {
         return new static(null, $tz);
     }
-
 }

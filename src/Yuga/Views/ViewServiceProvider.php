@@ -2,11 +2,12 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Views;
 
 use Yuga\Http\Request;
-use Yuga\Providers\ServiceProvider;
 use Yuga\Interfaces\Application\Application;
+use Yuga\Providers\ServiceProvider;
 
 class ViewServiceProvider extends ServiceProvider
 {
@@ -14,11 +15,12 @@ class ViewServiceProvider extends ServiceProvider
     {
         $app->singleton('view', HaxCompiler::class);
         $template = $app->resolve('view', [
-            path('resources/views/')
+            path('resources/views/'),
         ]);
         $template->resource = 'resources/assets/';
-        $template->host = (new Request)->getHost();
+        $template->host = (new Request())->getHost();
         event('on:hax-render', ['compiler' => $template]);
+
         return $template;
     }
 }

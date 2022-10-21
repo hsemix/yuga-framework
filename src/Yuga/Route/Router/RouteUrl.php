@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Route\Router;
 
 use Yuga\Http\Request;
@@ -13,9 +14,8 @@ class RouteUrl extends LoadableRoute
 
     public function matchRoute($url, Request $request)
     {
-
         $url = parse_url(urldecode($url), PHP_URL_PATH);
-        $url = rtrim($url, '/') . '/';
+        $url = rtrim($url, '/').'/';
         /* Match global regular-expression for route */
         $regexMatch = $this->matchRegex($request, $url);
 
@@ -32,7 +32,7 @@ class RouteUrl extends LoadableRoute
         }
 
         /* Set the parameters */
-        $this->setParameters((array)$parameters);
+        $this->setParameters((array) $parameters);
 
         return true;
     }

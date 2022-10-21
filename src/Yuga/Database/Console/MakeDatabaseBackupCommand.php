@@ -1,15 +1,15 @@
 <?php
+
 namespace Yuga\Database\Console;
 
-use Yuga\Console\Command;
-use Symfony\Component\Console\Input\InputOption;
-use Yuga\Database\Console\Backup\DatabaseBuilder;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
+use Yuga\Console\Command;
 
 class MakeDatabaseBackupCommand extends BaseCommand
 {
     protected $name = 'db:backup';
-    
+
     /**
      * The console command description.
      *
@@ -38,36 +38,35 @@ class MakeDatabaseBackupCommand extends BaseCommand
 
             $this->fileName = basename($this->filePath);
         } else {
-            $this->fileName = str_replace('_', '-', $database->getDatabase()) .'_' .date('Y-m-d_H-i-s') . '.' . $database->getFileExtension();
+            $this->fileName = str_replace('_', '-', $database->getDatabase()).'_'.date('Y-m-d_H-i-s').'.'.$database->getFileExtension();
 
-            $this->filePath = $this->getDumpsPath() . $this->fileName;
+            $this->filePath = $this->getDumpsPath().$this->fileName;
         }
 
-        
         $status = $database->dump($this->filePath);
 
         if ($status === true) {
             if ($this->isCompressionEnabled()) {
                 $this->compress();
 
-                $this->fileName .= ".gz";
-                $this->filePath .= ".gz";
+                $this->fileName .= '.gz';
+                $this->filePath .= '.gz';
             }
 
-            if (! empty($fileName)) {
-                $this->info('Database backup was successful. Saved to ' . $this->filePath);
+            if (!empty($fileName)) {
+                $this->info('Database backup was successful. Saved to '.$this->filePath);
             } else {
-                $this->info('Database backup was successful. ' . $this->fileName . ' was saved in the dumps folder.');
+                $this->info('Database backup was successful. '.$this->fileName.' was saved in the dumps folder.');
             }
         } else {
-            $this->error('Database backup failed. ' . $status);
+            $this->error('Database backup failed. '.$status);
         }
     }
 
     /**
-     * Perform Gzip compression on file
+     * Perform Gzip compression on file.
      *
-     * @return boolean      Status of command
+     * @return bool Status of command
      */
     protected function compress()
     {

@@ -2,25 +2,24 @@
 
 namespace Yuga\Database\Console\Backup\Databases;
 
-
 interface DatabaseInterface
 {
     /**
-     * Create a database dump
+     * Create a database dump.
      *
-     * @return boolean
+     * @return bool
      */
     public function dump($destinationFile);
 
     /**
-     * Restore a database dump
+     * Restore a database dump.
      *
-     * @return boolean
+     * @return bool
      */
     public function restore($sourceFile);
 
     /**
-     * Return the file extension of a dump file (sql, ...)
+     * Return the file extension of a dump file (sql, ...).
      *
      * @return string
      */

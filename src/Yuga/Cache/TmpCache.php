@@ -70,7 +70,7 @@ class TmpCache extends CacheAbstract
     {
         $file = tmpfile();
 
-        fwrite($file, $this->getExpiresAt($ttl) . PHP_EOL . $this->serialize($value));
+        fwrite($file, $this->getExpiresAt($ttl).PHP_EOL.$this->serialize($value));
 
         $this->storage[$key] = $file;
 

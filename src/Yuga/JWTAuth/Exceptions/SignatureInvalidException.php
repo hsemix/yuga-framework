@@ -6,5 +6,4 @@ use UnexpectedValueException;
 
 class SignatureInvalidException extends UnexpectedValueException
 {
-    
 }

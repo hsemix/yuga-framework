@@ -2,11 +2,9 @@
 
 namespace Yuga\Database\Console;
 
-
 use Yuga\Console\Command;
 use Yuga\Database\Console\Backup\Console;
 use Yuga\Database\Console\Backup\DatabaseBuilder;
-
 
 class BaseCommand extends Command
 {
@@ -15,21 +13,21 @@ class BaseCommand extends Command
     protected $console;
     protected $config;
 
-
     public function __construct(DatabaseBuilder $databaseBuilder, Console $console)
     {
         parent::__construct();
 
         $this->databaseBuilder = $databaseBuilder;
         $this->console = $console;
-        $this->config   = app()->config->load('config.Config');
+        $this->config = app()->config->load('config.Config');
     }
 
     public function getDatabase($database = null)
     {
         $database = $database ?: $this->config->get('db.defaultDriver');
 
-        $realConfig = $this->config->get('db.' . $database);
+        $realConfig = $this->config->get('db.'.$database);
+
         return $this->databaseBuilder->getDatabase($realConfig);
     }
 
@@ -37,7 +35,7 @@ class BaseCommand extends Command
     {
         $path = $this->config->get('db.backup.path');
 
-        return rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
+        return rtrim($path, '\\/').DIRECTORY_SEPARATOR;
     }
 
     public function enableCompression()
@@ -57,6 +55,6 @@ class BaseCommand extends Command
 
     public function isCompressed($fileName)
     {
-        return (pathinfo($fileName, PATHINFO_EXTENSION) === "gz");
+        return pathinfo($fileName, PATHINFO_EXTENSION) === 'gz';
     }
 }

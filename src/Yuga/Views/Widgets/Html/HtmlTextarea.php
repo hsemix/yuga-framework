@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\Widgets\Html;
 
 class HtmlTextarea extends Html
@@ -64,5 +65,4 @@ class HtmlTextarea extends Html
     {
         return $this->required();
     }
-
 }

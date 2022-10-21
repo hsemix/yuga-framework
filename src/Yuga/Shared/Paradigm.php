@@ -1,16 +1,17 @@
 <?php
+
 namespace Yuga\Shared;
 
-use App\ViewModels\Home;
 use App\ViewModels\ForgotPasswordEmail;
+use App\ViewModels\Home;
 
 trait Paradigm
 {
     /**
-     * Get the app's programming style
-     * 
+     * Get the app's programming style.
+     *
      * @param null
-     * 
+     *
      * @return string
      */
     protected function getStyle()
@@ -19,10 +20,10 @@ trait Paradigm
     }
 
     /**
-     * Get the Home page of the applicatino
-     * 
+     * Get the Home page of the applicatino.
+     *
      * @param null
-     * 
+     *
      * @return string|\Yuga\View\ViewModel
      */
     public function getHome()
@@ -30,17 +31,17 @@ trait Paradigm
         if ($this->getStyle() == 'mvc') {
             $home = 'home';
         } else {
-            $home = new Home;
+            $home = new Home();
         }
 
         return $home;
     }
 
     /**
-     * Get the Email file for password resets
-     * 
+     * Get the Email file for password resets.
+     *
      * @param null
-     * 
+     *
      * @return string|\Yuga\View\ViewModel
      */
     public function getMailFile(array $params = null)

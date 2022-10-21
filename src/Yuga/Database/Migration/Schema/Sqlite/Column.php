@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration\Schema\Sqlite;
 
 use Yuga\Database\Migration\PDO;
@@ -109,7 +110,7 @@ class Column
 
         return $this;
     }
-    
+
     public function increment()
     {
         $this->primary()->setIncrement(true);
@@ -235,7 +236,7 @@ class Column
 
     public function drop()
     {
-        Pdo::getInstance()->nonQuery('ALTER TABLE `' . $this->table . '` DROP COLUMN `' . $this->name . '`');
+        Pdo::getInstance()->nonQuery('ALTER TABLE `'.$this->table.'` DROP COLUMN `'.$this->name.'`');
     }
 
     public function change()
@@ -246,7 +247,7 @@ class Column
             $index = sprintf(', ADD %s (%s)', $this->getIndex(), $this->getName());
         }
 
-        $query = 'ALTER TABLE ' . $this->table . ' MODIFY COLUMN ' . $this->getQuery() . $index . ';';
+        $query = 'ALTER TABLE '.$this->table.' MODIFY COLUMN '.$this->getQuery().$index.';';
         Pdo::getInstance()->nonQuery($query);
     }
 
@@ -254,7 +255,7 @@ class Column
     {
         $length = '';
         if ($this->getLength()) {
-            $length = '(' . $this->getLength() . ')';
+            $length = '('.$this->getLength().')';
         }
 
         $query = sprintf('%s %s%s %s', $this->getName(), $this->getType(), $length, $this->getAttributes());
@@ -278,8 +279,6 @@ class Column
         }
 
         if ($includeRelations) {
-
-            
         }
 
         return $query;
@@ -406,5 +405,4 @@ class Column
     {
         return $this->comment;
     }
-
 }

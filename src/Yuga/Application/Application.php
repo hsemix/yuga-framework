@@ -2,59 +2,52 @@
 
 namespace Yuga\Application;
 
-use Yuga\Debug;
-use Yuga\Boolean;
-use Tracy\Debugger;
-use Yuga\Route\Route;
-use Yuga\Http\Request;
-use Yuga\Http\Redirect;
-use Yuga\Http\Response;
-use Yuga\Support\Config;
-use Yuga\View\Client\Jquery;
-use Yuga\Container\Container;
-use Yuga\Views\UI\Site as UI;
 use App\Middleware\WebMiddleware;
-use Yuga\Logger\LogServiceProvider;
-use Yuga\Route\RouteServiceProvider;
-use Yuga\Events\EventServiceProvider;
-use Yuga\Http\Request as HttpRequest;
-use Yuga\Invocation\CallableResolver;
-use Yuga\Database\Tracy\DatabasePanel;
-use Yuga\Providers\YugaServiceProvider;
+use Tracy\Debugger;
+use Yuga\Boolean;
+use Yuga\Container\Container;
 use Yuga\Database\ElegantServiceProvider;
-use Yuga\Providers\ClassAliasServiceProvider;
-use Yuga\Interfaces\Providers\IServiceProvider;
-use Yuga\Route\Exceptions\NotFoundHttpExceptionHandler;
+use Yuga\Debug;
+use Yuga\Events\EventServiceProvider;
+use Yuga\Http\Request;
 use Yuga\Interfaces\Application\Application as IApplication;
+use Yuga\Interfaces\Providers\IServiceProvider;
+use Yuga\Logger\LogServiceProvider;
+use Yuga\Providers\YugaServiceProvider;
+use Yuga\Route\Exceptions\NotFoundHttpExceptionHandler;
+use Yuga\Route\Route;
+use Yuga\Route\RouteServiceProvider;
+use Yuga\Support\Config;
+use Yuga\Views\UI\Site as UI;
 
 class Application extends Container implements IApplication
 {
     const VERSION = '4.2.3';
     const CHARSET_UTF8 = 'UTF-8';
 
-     /**
+    /**
      * Start the mvvm application by defaut
-     * <code>$this->getSite()</code> from a ViewModel returns $this->site
+     * <code>$this->getSite()</code> from a ViewModel returns $this->site.
      */
     public $site;
     /**
      * Store the configuration instance in this variable so we can use it as
-     * <code>$this->app->config->get('db.default.settings')</code> from a controller
+     * <code>$this->app->config->get('db.default.settings')</code> from a controller.
      *
      * @var \Yuga\Support\Config
      */
     public $config;
 
     /**
-     * The base file path of the application so we can install the framework 
-     * in a different directory and access it entiry
+     * The base file path of the application so we can install the framework
+     * in a different directory and access it entiry.
      *
      * @var string
      */
     protected $basePath;
 
     /**
-     * The application instance is to be stored in this variable
+     * The application instance is to be stored in this variable.
      *
      * @var \Yuga\Application\Application
      */
@@ -62,20 +55,20 @@ class Application extends Container implements IApplication
 
     /**
      * The Default Application language we shall use
-     * can be changed
+     * can be changed.
      *
      * @var string
      */
     protected $locale = 'en';
 
     /**
-     * The Application debug mode default is false 
-     * can be changed in the .env file
+     * The Application debug mode default is false
+     * can be changed in the .env file.
      *
-     * @var boolean
+     * @var bool
      */
     protected $debugEnabled = false;
-    
+
     /**
      * The names of the loaded service providers.
      *
@@ -85,7 +78,7 @@ class Application extends Container implements IApplication
 
     /**
      * The encryption method we shall use throught the entire application
-     * can be changed later
+     * can be changed later.
      *
      * @var string
      */
@@ -96,13 +89,13 @@ class Application extends Container implements IApplication
     protected $booted = false;
 
     /**
-     * composer vendor directory
+     * composer vendor directory.
      */
     protected $vendorDir;
-    
+
     public function __construct($root = null)
     {
-        $this->site = new UI;
+        $this->site = new UI();
         $this->basePath = $root;
         $this->charset = static::CHARSET_UTF8;
     }
@@ -112,10 +105,10 @@ class Application extends Container implements IApplication
         $this->singleton('config', Config::class);
         $this->config = $this->resolve('config');
         // load default class alias here
-        $this->setVendorDir($this->basePath . DIRECTORY_SEPARATOR . 'vendor');
+        $this->setVendorDir($this->basePath.DIRECTORY_SEPARATOR.'vendor');
         if (!$this->runningInConsole()) {
-            $this->setDebugEnabled(env('DEBUG_MODE', false)); 
-            $this->initTracy();  
+            $this->setDebugEnabled(env('DEBUG_MODE', false));
+            $this->initTracy();
         }
         $this->registerConfig();
         if ($this->debuggerStarted) {
@@ -124,18 +117,18 @@ class Application extends Container implements IApplication
         $this->registerBaseBindings($this);
         $this->registerDefaultProviders();
         $this['events']->dispatch('on:app-start');
-        
+
         if (!$this->runningInConsole()) {
             $this->make('session')->delete('errors');
         }
 
-        
         return $this;
     }
 
     public function setVendorDir($vendorDir)
     {
         $this->vendorDir = $vendorDir;
+
         return $this;
     }
 
@@ -143,7 +136,6 @@ class Application extends Container implements IApplication
     {
         return $this->vendorDir;
     }
-
 
     /**
      * Determine if we are running in the console.
@@ -156,7 +148,7 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Register the Service providers
+     * Register the Service providers.
      *
      * @return void
      */
@@ -177,29 +169,26 @@ class Application extends Container implements IApplication
 
         if (env('ROUTER_BOOTED', false)) {
             if (env('ENABLE_MVP_ROUTES', false)) {
-                
                 Route::group(['middleware' => 'web', 'namespace' => 'App\Controllers', 'exceptionHandler' => NotFoundHttpExceptionHandler::class], function () {
-                    $routePrefix = '/' . trim(env('PREFIX_MVP_ROUTE', '/'), '/') . '/';
+                    $routePrefix = '/'.trim(env('PREFIX_MVP_ROUTE', '/'), '/').'/';
                     $routePrefix = ($routePrefix == '//') ? '/' : $routePrefix;
                     $controller = env('MVP_CONTROLLER', 'Controller');
                     if (env('MATCH_ROUTES_TO_CONTROLLERS', false)) {
-                        trigger_error("MVP ROUTING and IMPLICIT ROUTING can not co-exist", E_USER_WARNING);
+                        trigger_error('MVP ROUTING and IMPLICIT ROUTING can not co-exist', E_USER_WARNING);
                     }
 
-                    Route::csrfVerifier(new WebMiddleware);
-                    Route::all($routePrefix . '{slug?}', $controller . '@show')->where(['slug' => '(.*)']);
+                    Route::csrfVerifier(new WebMiddleware());
+                    Route::all($routePrefix.'{slug?}', $controller.'@show')->where(['slug' => '(.*)']);
                 });
-                
             }
         }
-        
     }
 
     /**
-     * Return a static instance of the Application instance through out the entire application
-     * 
+     * Return a static instance of the Application instance through out the entire application.
+     *
      * @param null
-     * 
+     *
      * @return \Yuga\Application\Application
      */
     public static function getInstance()
@@ -224,10 +213,10 @@ class Application extends Container implements IApplication
     /**
      * Set the debug mode of the application i.e. it's either true or false
      * If it's set to true, it means the application needs to track all errors and display them in the browser.
-     * Otherwise, errors are logged to a file
-     * 
+     * Otherwise, errors are logged to a file.
+     *
      * @param \boolean $bool
-     * 
+     *
      * @return \Yuga\Appplication\Application $this
      */
     public function setDebugEnabled($bool)
@@ -240,10 +229,10 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Get the debug mode if set
-     * 
+     * Get the debug mode if set.
+     *
      * @param null
-     * 
+     *
      * @return bool
      */
     public function getDebugEnabled()
@@ -252,10 +241,10 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Set the default application's encryption methode
-     * 
+     * Set the default application's encryption methode.
+     *
      * @param string $method
-     * 
+     *
      * @return \Yuga\Application\Application $this
      */
     public function setEncryptionMethod($method)
@@ -266,10 +255,10 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Get the Encryption method
-     * 
+     * Get the Encryption method.
+     *
      * @param null
-     * 
+     *
      * @return string
      */
     public function getEncryptionMethod()
@@ -278,8 +267,8 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Register those providers that need to be loaded before any other providers
-     * 
+     * Register those providers that need to be loaded before any other providers.
+     *
      * @return void
      */
     protected function registerConfigProviders()
@@ -299,7 +288,7 @@ class Application extends Container implements IApplication
         $this->registerProvider(new LogServiceProvider($this));
 
         $this->registerProvider(new RouteServiceProvider($this));
-        
+
         if ($this->runningInConsole()) {
             $this->registerProvider(new YugaServiceProvider($this));
         }
@@ -322,7 +311,8 @@ class Application extends Container implements IApplication
     /**
      * Refresh the bound request instance in the container.
      *
-     * @param  \Yuga\Http\Request  $request
+     * @param \Yuga\Http\Request $request
+     *
      * @return void
      */
     protected function refreshRequest(Request $request)
@@ -333,18 +323,19 @@ class Application extends Container implements IApplication
     /**
      * Call a method on the default request class.
      *
-     * @param  string  $method
-     * @param  array  $parameters
+     * @param string $method
+     * @param array  $parameters
+     *
      * @return mixed
      */
     public static function onRequest($method, $parameters = [])
     {
-        return forward_static_call_array([new Request, $method], $parameters);
+        return forward_static_call_array([new Request(), $method], $parameters);
     }
 
     /**
      * @param \Yuga\Interfaces\Providers\IServiceProvider $provider
-     * 
+     *
      * @return \Yuga\Application\Application $this
      */
     public function registerProvider(IServiceProvider $provider)
@@ -355,6 +346,7 @@ class Application extends Container implements IApplication
                 $this->bootProvider($provider);
             }
             $this->loadedProviders[] = get_class($provider);
+
             return $this;
         }
     }
@@ -366,7 +358,7 @@ class Application extends Container implements IApplication
 
     /**
      * @param \Yuga\Interfaces\Providers\IServiceProvider $provider
-     * 
+     *
      * @return mixed
      */
     protected function bootProvider(IServiceProvider $provider)
@@ -377,10 +369,10 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Determine whether a service provider has been loaded or not
-     * 
+     * Determine whether a service provider has been loaded or not.
+     *
      * @param IServiceProvider $provider
-     * 
+     *
      * @return bool
      */
     protected function providerLoaded(IServiceProvider $provider)
@@ -389,10 +381,10 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Boot Miss Tracy for error debugging and dumping variables
-     * 
+     * Boot Miss Tracy for error debugging and dumping variables.
+     *
      * @param null
-     * 
+     *
      * @return \Yuga\Application\Application
      */
     protected function initTracy()
@@ -402,32 +394,33 @@ class Application extends Container implements IApplication
             $this->debuggerStarted = true;
         } else {
             $logDir = storage('logs');
-            if(!is_dir($logDir)) {
+            if (!is_dir($logDir)) {
                 mkdir($logDir);
             }
             Debugger::enable(Debugger::PRODUCTION, $logDir);
             set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
-        }    
+        }
+
         return $this;
     }
 
     /**
-     * Get the character set
-     * 
+     * Get the character set.
+     *
      * @param null
-     * 
+     *
      * @return string
      */
     public function getCharset()
     {
         return $this->charset;
     }
-    
+
     /**
-     * Get the Application's Locale setting
-     * 
+     * Get the Application's Locale setting.
+     *
      * @param null
-     * 
+     *
      * @return string
      */
     public function getLocale()
@@ -436,45 +429,48 @@ class Application extends Container implements IApplication
     }
 
     /**
-    * @return string $timezone
-    */
+     * @return string $timezone
+     */
     public function getTimezone()
     {
         return $this->timezone;
     }
 
     /**
-     * Set Application Timezone
-     * 
+     * Set Application Timezone.
+     *
      * @param \string $timezone
-     * 
+     *
      * @return \Yuga\Application $this
      */
     public function setTimezone($timezone)
     {
         $this->timezone = $timezone;
         date_default_timezone_set($timezone);
+
         return $this;
     }
 
     /**
-     * Set Application locale (language)
-     * 
+     * Set Application locale (language).
+     *
      * @param \string $timezone
+     *
      * @return \Yuga\Application $this
      */
     public function setLocale($locale)
     {
         $this->locale = strtolower($locale);
         setlocale(LC_ALL, $locale);
+
         return $this;
     }
 
     /**
-     * Get the default Application locale (language=en)
-     * 
+     * Get the default Application locale (language=en).
+     *
      * @param null
-     * 
+     *
      * @return string
      */
     public function getDefaultLocale()
@@ -483,9 +479,10 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Set site locale
+     * Set site locale.
      *
      * @param string $defaultLocale
+     *
      * @return static $this
      */
     public function setDefaultLocale($defaultLocale)
@@ -496,7 +493,7 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * Shutdown the application
+     * Shutdown the application.
      */
     public function terminate()
     {

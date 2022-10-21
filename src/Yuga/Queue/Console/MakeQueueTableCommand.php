@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Yuga\Queue\Console;
 
@@ -9,13 +9,13 @@ use Yuga\Console\Command;
  */
 class MakeQueueTableCommand extends Command
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
-	protected $name = 'queue:table';
-    
+    /**
+     * The Command's name.
+     *
+     * @var string
+     */
+    protected $name = 'queue:table';
+
     /**
      * The console command description.
      *
@@ -23,12 +23,10 @@ class MakeQueueTableCommand extends Command
      */
     protected $description = 'Create a migration for the queue jobs database table';
 
-
-	/**
-	 * Creates a queue table
-	 */
-	public function handle()
-	{
-        
-	}
+    /**
+     * Creates a queue table.
+     */
+    public function handle()
+    {
+    }
 }

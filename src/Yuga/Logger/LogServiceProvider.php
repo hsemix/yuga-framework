@@ -1,9 +1,10 @@
 <?php
+
 namespace Yuga\Logger;
 
-use Yuga\Providers\ServiceProvider;
 use Yuga\Events\EventServiceProvider;
 use Yuga\Interfaces\Application\Application;
+use Yuga\Providers\ServiceProvider;
 
 class LogServiceProvider extends ServiceProvider
 {
@@ -16,13 +17,12 @@ class LogServiceProvider extends ServiceProvider
 
     public function load(Application $app)
     {
-        
     }
 
     public function logErrorToFile($errorNumber, $errorString, $errorFile, $errorLine, $errorContext)
-    {   
-        $message = date("Y-m-d H:i:s - ");
-        $message .= "Error: [" . $errorNumber ."], " . "$errorString in $errorFile on line $errorLine \r\n";
+    {
+        $message = date('Y-m-d H:i:s - ');
+        $message .= 'Error: ['.$errorNumber.'], '."$errorString in $errorFile on line $errorLine \r\n";
         // $message .= "\nVariables: " . print_r($errorContext, true) . "\r\n";
         // $this->app->registerProvider(EventServiceProvider::class);
         // $this->app['events']->dispatch('on:error');

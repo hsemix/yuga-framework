@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Controllers;
 
 use Yuga\Http\Request;

@@ -2,10 +2,11 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Support;
 
-use ReflectionClass;
 use InvalidArgumentException;
+use ReflectionClass;
 
 class FileLocator
 {
@@ -20,6 +21,7 @@ class FileLocator
     public function getNamespaceFromClass($class)
     {
         $reflection = new ReflectionClass($class);
+
         return $reflection->getNameSpaceName() === '' ? $this->defaultNamespace : $reflection->getNameSpaceName();
     }
 
@@ -34,11 +36,13 @@ class FileLocator
 
     public function getClassesOfNamespace($namespace)
     {
-        if(!isset($this->namespaceMap[$namespace]))
+        if (!isset($this->namespaceMap[$namespace])) {
             throw new InvalidArgumentException('The Namespace '.$namespace.' doesnot exist');
-        
+        }
+
         return $this->namespaceMap[$namespace];
     }
+
     public function getNameSpaces()
     {
         return array_keys($this->namespaceMap);

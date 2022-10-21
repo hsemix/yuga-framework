@@ -1,14 +1,14 @@
 <?php
+
 namespace Yuga\View\Console;
 
-use Yuga\Console\Command;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
+use Yuga\Console\Command;
 
 class MakeViewModelCommand extends Command
 {
     protected $name = 'make:viewmodel';
-    
+
     /**
      * The console command description.
      *
@@ -35,6 +35,7 @@ class MakeViewModelCommand extends Command
     protected function compileViewModelTemp($viewModelName)
     {
         $viewModel = str_replace('{namespace}', env('APP_NAMESPACE', 'App'), file_get_contents(__DIR__.'/temps/ViewModel.temp'));
+
         return str_replace(
             '{class}',
             $viewModelName,
@@ -49,10 +50,12 @@ class MakeViewModelCommand extends Command
             $this->compileView(trim($this->argument('name')))
         );
     }
+
     protected function compileView($viewName)
     {
         $view = file_get_contents(__DIR__.'/temps/view.temp');
         $viewName = str_replace('ViewModel', '', $viewName);
+
         return str_replace(
             '{class}',
             strtolower($viewName),

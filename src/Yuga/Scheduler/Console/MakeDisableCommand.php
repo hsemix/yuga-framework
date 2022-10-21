@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Yuga\Scheduler\Console;
 
@@ -9,13 +9,13 @@ use Yuga\Console\Command;
  */
 class MakeDisableCommand extends SchedulerCommand
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
-	protected $name = 'scheduler:disable';
-    
+    /**
+     * The Command's name.
+     *
+     * @var string
+     */
+    protected $name = 'scheduler:disable';
+
     /**
      * The console command description.
      *
@@ -23,17 +23,16 @@ class MakeDisableCommand extends SchedulerCommand
      */
     protected $description = 'Disables the Scheduler runner.';
 
-
-	/**
-	 * Disables task running
-	 */
-	public function handle()
-	{
+    /**
+     * Disables task running.
+     */
+    public function handle()
+    {
         $this->getConfig();
 
-		//delete the file with json content
-		@unlink( $this->config['FilePath'] . '/' . $this->config['FileName'] );
+        //delete the file with json content
+        @unlink($this->config['FilePath'].'/'.$this->config['FileName']);
 
-		$this->disabled();
-	}
+        $this->disabled();
+    }
 }

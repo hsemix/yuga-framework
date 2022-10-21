@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Interfaces\Providers;
 
 use Yuga\Interfaces\Application\Application;

@@ -1,25 +1,28 @@
 <?php
+
 namespace Yuga\Views\Widgets\Form;
 
 use Yuga\Boolean;
 use Yuga\Collection\Collection;
 use Yuga\Views\Widgets\Html\Html;
+use Yuga\Views\Widgets\Html\HtmlCheckbox;
 use Yuga\Views\Widgets\Html\HtmlForm;
 use Yuga\Views\Widgets\Html\HtmlInput;
 use Yuga\Views\Widgets\Html\HtmlSelect;
-use Yuga\Views\Widgets\Html\HtmlCheckbox;
-use Yuga\Views\Widgets\Html\HtmlTextarea;
 use Yuga\Views\Widgets\Html\HtmlSelectOption;
+use Yuga\Views\Widgets\Html\HtmlTextarea;
 
 class Form
 {
-
     protected $htmlForm;
+
     /**
-     * Starts new form
-     * @param string $name
+     * Starts new form.
+     *
+     * @param string      $name
      * @param string|null $method
      * @param string|null $action
+     *
      * @return \Yuga\Views\Widgets\Html\HtmlForm
      */
     public function start($name, $method = HtmlForm::METHOD_POST, $action = null)
@@ -28,15 +31,18 @@ class Form
         $form->setClosingType(HtmlForm::CLOSE_TYPE_NONE);
         $form->make = false;
         $this->htmlForm = $form;
+
         return $this->htmlForm;
     }
 
     /**
-     * Creates new HTML input element
+     * Creates new HTML input element.
+     *
      * @param string $name
      * @param string $type
      * @param string $value
-     * @param bool $saveValue
+     * @param bool   $saveValue
+     *
      * @return \Yuga\Views\Widgets\Html\HtmlInput
      */
     public function input($name, $type = 'text', $value = null, $saveValue = true)
@@ -49,11 +55,12 @@ class Form
     }
 
     /**
-     * Create radio element
+     * Create radio element.
      *
      * @param string $name
      * @param string $value
-     * @param bool $saveValue
+     * @param bool   $saveValue
+     *
      * @return HtmlInput
      */
     public function radio($name, $value, $saveValue = true)
@@ -62,7 +69,7 @@ class Form
 
         $inputValue = input()->get($name);
 
-        if ($saveValue === true && $inputValue !== null && (string)$inputValue === (string)$value) {
+        if ($saveValue === true && $inputValue !== null && (string) $inputValue === (string) $value) {
             $element->checked(true);
         }
 
@@ -70,11 +77,13 @@ class Form
     }
 
     /**
-     * Creates new checkbox input element
+     * Creates new checkbox input element.
+     *
      * @param string $name
-     * @param bool $value
-     * @param bool $defaultValue
-     * @param bool $saveValue
+     * @param bool   $value
+     * @param bool   $defaultValue
+     * @param bool   $saveValue
+     *
      * @return \Yuga\Views\Widgets\Html\HtmlCheckbox
      */
     public function bool($name, $value = true, $defaultValue = null, $saveValue = true)
@@ -100,9 +109,11 @@ class Form
     }
 
     /**
-     * Creates new label
+     * Creates new label.
+     *
      * @param string|null $inner
      * @param string|null $for
+     *
      * @return \Yuga\Views\Widgets\Html\Html
      */
     public function label($inner, $for = null)
@@ -121,12 +132,15 @@ class Form
     }
 
     /**
-     * Creates new HTML Select element
-     * @param string $name
+     * Creates new HTML Select element.
+     *
+     * @param string             $name
      * @param array|Dataset|null $data
-     * @param string|null $value
-     * @param bool $saveValue
+     * @param string|null        $value
+     * @param bool               $saveValue
+     *
      * @throws \InvalidArgumentException
+     *
      * @return \Yuga\Views\Widgets\Html\HtmlSelect
      */
     public function selectStart($name, $data = null, $value = null, $saveValue = true)
@@ -134,20 +148,16 @@ class Form
         $element = new HtmlSelect($name);
         if ($data !== null) {
             if ($data instanceof Collection) {
-
                 foreach ($data->getData() as $item) {
                     $val = isset($item['value']) ? $item['value'] : $item['name'];
-                    $selected = (input()->get($name) !== null && (string)input()->get($name) === (string)$val || input()->exists($name) === false && (string)$value === (string)$val || (isset($item['selected']) && $item['selected']) || $saveValue === false && (string)$value === (string)$val);
+                    $selected = (input()->get($name) !== null && (string) input()->get($name) === (string) $val || input()->exists($name) === false && (string) $value === (string) $val || (isset($item['selected']) && $item['selected']) || $saveValue === false && (string) $value === (string) $val);
                     $element->addOption(new HtmlSelectOption($val, $item['name'], $selected));
                 }
-
             } elseif (is_array($data) === true) {
-
                 foreach ($data as $val => $key) {
-                    $selected = (input()->get($name) !== null && (string)input()->get($name) === (string)$val || input()->exists($name) === false && (string)$value === (string)$val || $saveValue === false && (string)$value === (string)$val);
+                    $selected = (input()->get($name) !== null && (string) input()->get($name) === (string) $val || input()->exists($name) === false && (string) $value === (string) $val || $saveValue === false && (string) $value === (string) $val);
                     $element->addOption(new HtmlSelectOption($val, $key, $selected));
                 }
-
             } else {
                 throw new \InvalidArgumentException('Data must be either instance of Collection or array.');
             }
@@ -157,12 +167,14 @@ class Form
     }
 
     /**
-     * Creates new textarea
+     * Creates new textarea.
+     *
      * @param string $name
-     * @param int $rows
-     * @param int $cols
+     * @param int    $rows
+     * @param int    $cols
      * @param string $value
-     * @param bool $saveValue
+     * @param bool   $saveValue
+     *
      * @return \Yuga\Views\Widgets\Html\HtmlTextarea
      */
     public function textarea($name, $rows, $cols, $value = null, $saveValue = true)
@@ -175,9 +187,11 @@ class Form
     }
 
     /**
-     * Creates submit element
+     * Creates submit element.
+     *
      * @param string $name
      * @param string $value
+     *
      * @return \Yuga\Views\Widgets\Html\HtmlInput
      */
     public function submit($name, $value)
@@ -186,11 +200,13 @@ class Form
     }
 
     /**
-     * Create button element
-     * @param string $text
+     * Create button element.
+     *
+     * @param string      $text
      * @param string|null $type
      * @param string|null $name
      * @param string|null $value
+     *
      * @return Html
      */
     public function button($text, $type = null, $name = null, $value = null)
@@ -213,7 +229,8 @@ class Form
     }
 
     /**
-     * Ends open form
+     * Ends open form.
+     *
      * @return string
      */
     public function end()
@@ -221,22 +238,23 @@ class Form
         return "\n</form>";
     }
 
-    public function __call($method, $args) 
+    public function __call($method, $args)
     {
         return call_user_func_array([$this->htmlForm, $method], $args);
     }
 
     /**
-	 * Renders form to string.
-	 * @param can throw exceptions? (hidden parameter)
-	 */
-	// public function __toString(): string
-	// {
+     * Renders form to string.
+     *
+     * @param can throw exceptions? (hidden parameter)
+     */
+    // public function __toString(): string
+    // {
     //     try {
     //         $this->htmlForm->construct = true;
     //         return $this->htmlForm->__toString();
     //     } catch (\Throwable $e) {
     //         trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
     //     }
-	// }
+    // }
 }

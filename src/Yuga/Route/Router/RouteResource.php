@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Route\Router;
 
 use Yuga\Http\Request;
@@ -40,6 +41,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
      * Check if route has given name.
      *
      * @param string $name
+     *
      * @return bool
      */
     public function hasName($name)
@@ -54,17 +56,17 @@ class RouteResource extends LoadableRoute implements IControllerRoute
 
         /* Remove method/type */
         if (strpos($name, '.') !== false) {
-            $name = (string)substr($name, 0, strrpos($name, '.'));
+            $name = (string) substr($name, 0, strrpos($name, '.'));
         }
 
-        return (strtolower($this->name) === strtolower($name));
+        return strtolower($this->name) === strtolower($name);
     }
 
     public function findUrl($method = null, $parameters = null, $name = null)
     {
         $url = array_search($name, $this->names, false);
         if ($url !== false) {
-            return rtrim($this->url . $this->urls[$url], '/') . '/';
+            return rtrim($this->url.$this->urls[$url], '/').'/';
         }
 
         return $this->url;
@@ -72,7 +74,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
 
     protected function call($method)
     {
-        $this->setCallback($this->controller . '@' . $method);
+        $this->setCallback($this->controller.'@'.$method);
 
         return true;
     }
@@ -80,7 +82,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
     public function matchRoute($url, Request $request)
     {
         $url = parse_url(urldecode($url), PHP_URL_PATH);
-        $url = rtrim($url, '/') . '/';
+        $url = rtrim($url, '/').'/';
 
         /* Match global regular-expression for route */
         $regexMatch = $this->matchRegex($request, $url);
@@ -89,7 +91,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
             return false;
         }
 
-        $route = rtrim($this->url, '/') . '/{id?}/{action?}';
+        $route = rtrim($this->url, '/').'/{id?}/{action?}';
 
         /* Parse parameters from current route */
         $this->parameters = $this->parseParameters($route, $url);
@@ -151,6 +153,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
 
     /**
      * @param string $controller
+     *
      * @return static
      */
     public function setController($controller)
@@ -165,22 +168,23 @@ class RouteResource extends LoadableRoute implements IControllerRoute
         $this->name = $name;
 
         $this->names = [
-            'index'   => $this->name . '.index',
-            'create'  => $this->name . '.create',
-            'store'   => $this->name . '.store',
-            'show'    => $this->name . '.show',
-            'edit'    => $this->name . '.edit',
-            'update'  => $this->name . '.update',
-            'destroy' => $this->name . '.destroy',
+            'index'   => $this->name.'.index',
+            'create'  => $this->name.'.create',
+            'store'   => $this->name.'.store',
+            'show'    => $this->name.'.show',
+            'edit'    => $this->name.'.edit',
+            'update'  => $this->name.'.update',
+            'destroy' => $this->name.'.destroy',
         ];
 
         return $this;
     }
 
     /**
-     * Define custom method name for resource controller
+     * Define custom method name for resource controller.
      *
      * @param array $names
+     *
      * @return static $this
      */
     public function setMethodNames(array $names)
@@ -191,7 +195,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
     }
 
     /**
-     * Get method names
+     * Get method names.
      *
      * @return array $this
      */
@@ -204,7 +208,8 @@ class RouteResource extends LoadableRoute implements IControllerRoute
      * Merge with information from another route.
      *
      * @param array $values
-     * @param bool $merge
+     * @param bool  $merge
+     *
      * @return static
      */
     public function setSettings(array $values, $merge = false)
@@ -221,5 +226,4 @@ class RouteResource extends LoadableRoute implements IControllerRoute
 
         return $this;
     }
-
 }

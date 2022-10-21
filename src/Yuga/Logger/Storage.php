@@ -12,12 +12,13 @@ class Storage implements LoggerInterface
     public static function put($file, $message, $append = true)
     {
         $loggerFile = storage($file);
-        
-        $message = $message . "\r\n";
 
-        if ($append)
+        $message = $message."\r\n";
+
+        if ($append) {
             file_put_contents($loggerFile, $message, FILE_APPEND);
-        else 
+        } else {
             file_put_contents($loggerFile, $message);
+        }
     }
 }

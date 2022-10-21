@@ -1,17 +1,17 @@
 <?php
+
 namespace Yuga\Route\Exceptions;
 
 use Exception;
-use Yuga\Http\Request;
-use Yuga\Route\Router\RouteUrl;
 use Yuga\Exceptions\RouteExceptionHandler;
-use Yuga\Route\Exceptions\NotFoundHttpException;
+use Yuga\Http\Request;
 
 class NotFoundHttpExceptionHandler extends RouteExceptionHandler
 {
     /**
-     * @param Request $request
+     * @param Request    $request
      * @param \Exception $error
+     *
      * @throws \Exception
      */
     public function handleError(Request $request, Exception $error)
@@ -22,8 +22,10 @@ class NotFoundHttpExceptionHandler extends RouteExceptionHandler
         }
         if ($error instanceof NotFoundHttpException && $error->getCode() == 404) {
             $request->setRewriteCallback('Yuga\Controllers\PageController@notFound');
+
             return $request;
         }
+
         throw $error;
     }
 }

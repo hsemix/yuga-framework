@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\ElegantManager;
 
 use Yuga\Container\Container;
@@ -8,7 +9,7 @@ class DatabaseManager
 {
     private $container;
     private $connection;
-    
+
     public function __construct(Connection $connection = null, Container $container = null)
     {
         $this->connection = $connection;
@@ -19,6 +20,7 @@ class DatabaseManager
     {
         return $this->connection;
     }
+
     public function getContainer()
     {
         return $this->container;

@@ -1,17 +1,17 @@
 <?php
+
 namespace Yuga\Events\Console;
 
-use Yuga\Support\Str;
-use Yuga\Console\Command;
 use Nette\PhpGenerator\PhpFile;
-use Yuga\Application\Application;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
+use Yuga\Application\Application;
+use Yuga\Console\Command;
 
 class MakeEventHandlerCommand extends Command
 {
     protected $name = 'event:handler';
-    
+
     /**
      * The console command description.
      *
@@ -37,21 +37,22 @@ class MakeEventHandlerCommand extends Command
     }
 
     /**
-     * Process the name of an event given
-     * 
+     * Process the name of an event given.
+     *
      * @param string $event
-     * 
+     *
      * @return string $eventName
      */
     protected function processEventName($event)
     {
         $eventName = $event;
-        $eventClass = env('APP_NAMESPACE', 'App'). '\\Events\\' . $event;
+        $eventClass = env('APP_NAMESPACE', 'App').'\\Events\\'.$event;
         if (class_exists($eventClass)) {
             $app = Application::getInstance();
             $eventObject = $app->resolve($eventClass);
             $eventName = $eventObject->getName();
         }
+
         return $eventName;
     }
 
@@ -93,12 +94,12 @@ class MakeEventHandlerCommand extends Command
     }
 
     /**
-     * Process an event handler
-     * 
+     * Process an event handler.
+     *
      * @param string $handler
      * @param string $method
      * @param string $eventName
-     * 
+     *
      * @return void
      */
     protected function processHandler($handler, $method, $eventName, $event)
@@ -115,24 +116,25 @@ class MakeEventHandlerCommand extends Command
     }
 
     /**
-     * Generate handler logic
-     * 
+     * Generate handler logic.
+     *
      * @param string $handler
      * @param string $method
      * @param string $eventName
-     * 
+     *
      * @return void
      */
     protected function generateHandler($handler, $method, $eventName, $event)
     {
-        $file = new PhpFile;
+        $file = new PhpFile();
         $file->addComment('This file was auto-generated.');
 
-        $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Handlers');
+        $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App').'\\Handlers');
         $namespace->addUse('Yuga\EventHandlers\HandlerInterface');
         if ($event != 'yuga.auto.events') {
-            if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
-                $namespace->addUse(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+            if (\class_exists(env('APP_NAMESPACE', 'App').'\\Events\\'.$event)) {
+                $namespace->addUse(env('APP_NAMESPACE', 'App').'\\Events\\'.$event);
+            }
         }
 
         $class = $namespace->addClass(trim($handler));
@@ -143,22 +145,24 @@ class MakeEventHandlerCommand extends Command
         $classMethod->addComment('@param \Yuga\Events\Dispatcher $event');
         $classMethod->addComment('@return mixed');
         $paramether = $classMethod->addParameter('event');
-        
+
         if (trim($method) != 'handle') {
             $classMethod = $class->addMethod(trim($method))->setBody('return null;');
             $classMethod->addComment('Your Event Handler Logic in this method');
             if ($event != 'yuga.auto.events') {
-                if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
-                    $classMethod->addComment('@param ' . env('APP_NAMESPACE', 'App') . '\\Events\\' . $event . ' $event');
+                if (\class_exists(env('APP_NAMESPACE', 'App').'\\Events\\'.$event)) {
+                    $classMethod->addComment('@param '.env('APP_NAMESPACE', 'App').'\\Events\\'.$event.' $event');
+                }
             } else {
                 $classMethod->addComment('@param \Yuga\Events\Dispatcher $event');
             }
-            
+
             $classMethod->addComment('@return mixed');
             $paramether = $classMethod->addParameter('event');
             if ($event != 'yuga.auto.events') {
-                if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
-                    $paramether->setType(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+                if (\class_exists(env('APP_NAMESPACE', 'App').'\\Events\\'.$event)) {
+                    $paramether->setType(env('APP_NAMESPACE', 'App').'\\Events\\'.$event);
+                }
             } else {
                 $paramether->setType('\Yuga\Events\Dispatcher');
             }
@@ -168,25 +172,26 @@ class MakeEventHandlerCommand extends Command
     }
 
     /**
-     * Compile strings to produce meaning php
-     * 
+     * Compile strings to produce meaning php.
+     *
      * @param string $handlerName
-     * 
+     *
      * @return string
      */
     protected function compileHandlerTemp($handlerName)
     {
         $handler = str_replace('{namespace}', env('APP_NAMESPACE', 'App'), file_get_contents(__DIR__.'/temps/Handler.temp'));
+
         return str_replace('{class}', $handlerName, $handler);
     }
 
     /**
-     * Process config files for automatic registration of events and handler attachement
-     * 
+     * Process config files for automatic registration of events and handler attachement.
+     *
      * @param string $handler
      * @param string $method
      * @param string $eventName
-     * 
+     *
      * @return void
      */
     protected function processAppConfigFiles($handler, $method, $eventName)
@@ -195,7 +200,7 @@ class MakeEventHandlerCommand extends Command
         if (\file_exists(path('config/AppEvents.php'))) {
             $events = require path('config/AppEvents.php');
         }
-        $sentHandler = env('APP_NAMESPACE', 'App') . '\\Handlers\\' . $handler;
+        $sentHandler = env('APP_NAMESPACE', 'App').'\\Handlers\\'.$handler;
         $sentEvent = $eventName;
 
         if (in_array($eventName, array_keys($events))) {
@@ -219,31 +224,30 @@ class MakeEventHandlerCommand extends Command
 
         $generatedEvents = '[';
         foreach ($events as $event => $handlers) {
-            $generatedEvents .= "\n\t'" . $event . "' => [";
+            $generatedEvents .= "\n\t'".$event."' => [";
             if (is_array($handlers)) {
                 foreach ($handlers as $handler) {
                     if ($method != 'handle' && $sentHandler == $handler && $sentEvent == $eventName) {
-                        $generatedEvents .= "\n\t\t['" . $handler . "', '" . $method . "'],";
+                        $generatedEvents .= "\n\t\t['".$handler."', '".$method."'],";
                     } else {
                         if (is_array($handler)) {
-                            $generatedEvents .= "\n\t\t['" . $handler[0] . "', '" . $handler[1] . "'],";
+                            $generatedEvents .= "\n\t\t['".$handler[0]."', '".$handler[1]."'],";
                         } else {
-                            $generatedEvents .= "\n\t\t" . $handler . "::class,";
+                            $generatedEvents .= "\n\t\t".$handler.'::class,';
                         }
                     }
                 }
             } else {
-                $generatedEvents .= "\n\t\t" . $handlers . "::class,";
+                $generatedEvents .= "\n\t\t".$handlers.'::class,';
             }
             $generatedEvents .= "\n\t],";
         }
         $generatedEvents .= "\n];";
-        
 
         $handlers = str_replace(
             '{handlers}',
             $generatedEvents,
-            file_get_contents(__DIR__ . '/temps/config.temp')
+            file_get_contents(__DIR__.'/temps/config.temp')
         );
 
         return $handlers;

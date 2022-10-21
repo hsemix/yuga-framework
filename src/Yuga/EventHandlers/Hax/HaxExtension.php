@@ -11,11 +11,11 @@ class HaxExtension implements HandlerInterface
      * ---------------------------------------------------------------------------
      * Set global variables that can be accessed accrosed the entire application.|
      * ---------------------------------------------------------------------------
-     * Do much more
+     * Do much more.
+     *
      * @param \Yuga\Events\Event $event
      */
     public function handle($event)
     {
-        
     }
 }

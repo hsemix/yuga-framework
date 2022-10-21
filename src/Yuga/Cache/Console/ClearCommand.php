@@ -2,13 +2,13 @@
 
 namespace Yuga\Cache\Console;
 
-use Yuga\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Yuga\Console\Command;
 
 class ClearCommand extends Command
 {
     protected $name = 'cache:clear';
-    
+
     /**
      * The console command description.
      *
@@ -37,5 +37,4 @@ class ClearCommand extends Command
             ['name', InputArgument::REQUIRED, 'The name of the class'],
         ];
     }
-    
 }

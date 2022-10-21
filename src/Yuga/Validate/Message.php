@@ -2,6 +2,7 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Validate;
 
 use RecursiveArrayIterator;
@@ -11,7 +12,7 @@ class Message
 {
     protected $fields = [];
     protected $messages = [];
-    
+
     public function addMessage($error, $key = null)
     {
         if ($key) {
@@ -20,7 +21,7 @@ class Message
         } else {
             $this->messages[] = $error;
         }
-        
+
         return $this;
     }
 
@@ -31,16 +32,19 @@ class Message
 
     public function addField($field)
     {
-        if (!in_array($field, $this->fields))
+        if (!in_array($field, $this->fields)) {
             $this->fields[] = $field;
+        }
+
         return $this;
     }
 
-    public function all($key = null) 
+    public function all($key = null)
     {
         if ($key) {
             return isset($this->messages[$key]) ? $this->messages[$key] : '';
         }
+
         return $this->flattenArray($this->messages);
     }
 
@@ -50,9 +54,10 @@ class Message
             new RecursiveArrayIterator($args)
         ), false);
     }
+
     public function hasMessages()
     {
-        return count($this->all()) ?:false;
+        return count($this->all()) ?: false;
     }
 
     public function hasErrors()
@@ -60,14 +65,14 @@ class Message
         return $this->hasMessages();
     }
 
-    public function first($key) 
+    public function first($key)
     {
         return isset($this->all($key)[0]) ? $this->all($key)[0] : '';
     }
 
     public function has($key)
     {
-        return isset($this->messages[$key])?:false;
+        return isset($this->messages[$key]) ?: false;
     }
 
     public function getFirst()
@@ -76,6 +81,7 @@ class Message
         foreach ($this->fields as $field) {
             $firstMessage[] = $this->first($field);
         }
+
         return $firstMessage;
     }
 

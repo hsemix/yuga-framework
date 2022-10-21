@@ -1,13 +1,14 @@
 <?php
+
 namespace Yuga\Events\Console;
 
-use Yuga\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Yuga\Console\Command;
 
 class MakeEventCommand extends Command
 {
     protected $name = 'make:event';
-    
+
     /**
      * The console command description.
      *
@@ -35,6 +36,7 @@ class MakeEventCommand extends Command
     {
         $event = str_replace('{namespace}', env('APP_NAMESPACE', 'App'), file_get_contents(__DIR__.'/temps/Event.temp'));
         $event = str_replace('{event}', strtolower(str_ireplace('Event', '', $eventName)), $event);
+
         return str_replace(
             '{class}',
             $eventName,
@@ -65,5 +67,4 @@ class MakeEventCommand extends Command
             ['name', InputArgument::REQUIRED, 'The name of the class'],
         ];
     }
-
 }

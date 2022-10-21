@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Interfaces\Database\Elegant\Association;
 
 use Closure;

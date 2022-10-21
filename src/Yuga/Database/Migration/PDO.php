@@ -1,11 +1,11 @@
 <?php
+
 namespace Yuga\Database\Migration;
 
 use Yuga\Database\Elegant\Collection;
 
 class PDO
 {
-
     protected static $instance;
 
     const SETTINGS_USERNAME = 'username';
@@ -16,7 +16,7 @@ class PDO
     protected $query;
 
     /**
-     * Return new instance
+     * Return new instance.
      *
      * @return static
      */
@@ -25,15 +25,14 @@ class PDO
         if (self::$instance === null) {
             $driver = env('DATABASE_DRIVER', 'mysql');
             if ($driver == 'sqlite') {
-                $path = storage("database");
+                $path = storage('database');
                 $config = \App::make('config')->load('config.Config');
                 $settings = $config->get('db.'.$config->get('db.defaultDriver'));
-                $connectionString = "sqlite:".$path.DIRECTORY_SEPARATOR.$settings['database'];
-            } else if ($driver == 'mysql') {
-                $connectionString = env('DATABASE_DRIVER', 'mysql') . ':host=' . env('DATABASE_HOST') . ';dbname=' . env('DATABASE_NAME') . ';charset=' . env('DATABASE_CHARSET', 'utf8');
-                
-            } else if ($driver == 'pgsql') {
-                $connectionString = env('DATABASE_DRIVER', 'mysql') . ':host=' . env('DATABASE_HOST') . ';dbname=' . env('DATABASE_NAME');
+                $connectionString = 'sqlite:'.$path.DIRECTORY_SEPARATOR.$settings['database'];
+            } elseif ($driver == 'mysql') {
+                $connectionString = env('DATABASE_DRIVER', 'mysql').':host='.env('DATABASE_HOST').';dbname='.env('DATABASE_NAME').';charset='.env('DATABASE_CHARSET', 'utf8');
+            } elseif ($driver == 'pgsql') {
+                $connectionString = env('DATABASE_DRIVER', 'mysql').':host='.env('DATABASE_HOST').';dbname='.env('DATABASE_NAME');
             }
             self::$instance = new static($connectionString, env('DATABASE_USERNAME'), env('DATABASE_PASSWORD'));
         }
@@ -49,7 +48,7 @@ class PDO
 
     /**
      * Closing connection
-     * http://php.net/manual/en/pdo.connections.php
+     * http://php.net/manual/en/pdo.connections.php.
      */
     public function close()
     {
@@ -57,16 +56,19 @@ class PDO
     }
 
     /**
-     * Executes query
+     * Executes query.
      *
-     * @param string $query
+     * @param string     $query
      * @param array|null $parameters
-     * @return \PDOStatement|null
+     *
      * @throws \PdoException
+     *
+     * @return \PDOStatement|null
      */
     public function query($query, array $parameters = null)
     {
         $last_query = $query;
+
         try {
             $query = $this->connection->prepare($query);
             $inputParameters = null;
@@ -91,11 +93,10 @@ class PDO
                 return $query;
             }
         } catch (\PDOException $ex) {
-            $output = "Database query failed: " .$ex->getMessage() ."<br /><br />";
-			$output .= "Last SQL query: ".$last_query;
-			die($output);
+            $output = 'Database query failed: '.$ex->getMessage().'<br /><br />';
+            $output .= 'Last SQL query: '.$last_query;
+            exit($output);
         }
-        
 
         return null;
     }
@@ -119,7 +120,7 @@ class PDO
 
     public function single($query, array $parameters = null)
     {
-        $result = $this->all($query . ' LIMIT 1', $parameters);
+        $result = $this->all($query.' LIMIT 1', $parameters);
         if ($result !== null) {
             return $result[0];
         }
@@ -172,10 +173,12 @@ class PDO
                 }
             }
         } else {
-            $queries = explode(";", $file);
-            foreach ($queries as $query){
+            $queries = explode(';', $file);
+            foreach ($queries as $query) {
                 $query = trim($query);
-                if(!$query) continue;
+                if (!$query) {
+                    continue;
+                }
                 $this->nonQuery($query);
             }
         }
@@ -202,10 +205,9 @@ class PDO
         try {
             return $this->connection->query($query);
         } catch (\PDOException $ex) {
-            $output = "Database query failed: " .$ex->getMessage() ."<br /><br />";
-			$output .= "Last SQL query: ".$query;
-			die($output);
+            $output = 'Database query failed: '.$ex->getMessage().'<br /><br />';
+            $output .= 'Last SQL query: '.$query;
+            exit($output);
         }
     }
-
 }

@@ -7,5 +7,4 @@ namespace Yuga\Exceptions;
  */
 class UnknownImageFileException extends ImageException
 {
-
 }

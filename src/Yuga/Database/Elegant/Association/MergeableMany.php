@@ -2,9 +2,8 @@
 
 namespace Yuga\Database\Elegant\Association;
 
-use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Builder;
-use Yuga\Database\Elegant\Collection;
+use Yuga\Database\Elegant\Model;
 
 class MergeableMany extends HasMany
 {
@@ -13,17 +12,17 @@ class MergeableMany extends HasMany
 
     public function __construct(Builder $query, Model $parent, $type, $id, $localKey)
     {
-        $this->mergeType = $type;       
+        $this->mergeType = $type;
         $this->query = $query;
         $this->mergeClass = class_base($parent->getMergeableClass());
         $this->foreignKey = $id;
         $this->parent = $parent;
-        
+
         parent::__construct($query, $parent, $id, $localKey);
     }
 
     public function addConditions()
-    {     
+    {
         $this->query->where($this->mergeType, strtolower($this->mergeClass))->where($this->foreignKey, '=', $this->getParentIdValue());
     }
 
@@ -32,7 +31,7 @@ class MergeableMany extends HasMany
         $mergeClassBase = class_base($this->mergeClass);
         $model->setAttribute($this->getPlainMergeableType(), strtolower($mergeClassBase));
         $model->setAttribute($this->getPlainMergeId(), $this->parent->{$this->parent->getPrimaryKey()});
-        
+
         return parent::save($model);
     }
 
@@ -50,6 +49,7 @@ class MergeableMany extends HasMany
         $instance = $this->related->newInstance($attributes);
         $this->setForeignAttributesForCreate($instance);
         $instance->save();
+
         return $instance;
     }
 
@@ -73,7 +73,7 @@ class MergeableMany extends HasMany
     {
         return end($colllection);
     }
-    
+
     public function saveMany($models)
     {
         foreach ($models as $model) {

@@ -1,9 +1,9 @@
 <?php
+
 namespace Yuga\Views\Widgets\Html;
 
 class HtmlInput extends Html
 {
-
     public function __construct($type, $name, $value = null)
     {
         parent::__construct('input');

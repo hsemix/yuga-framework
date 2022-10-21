@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Interfaces\Events;
 
 interface Dispatcher

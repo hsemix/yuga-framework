@@ -2,15 +2,15 @@
 
 namespace Yuga\Database\Console;
 
-use Yuga\Support\FileSystem;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Finder\Finder;
+use Yuga\Support\FileSystem;
 
 class MakeDatabaseRestoreCommand extends BaseCommand
 {
     protected $name = 'db:restore';
-    
+
     /**
      * The console command description.
      *
@@ -42,7 +42,7 @@ class MakeDatabaseRestoreCommand extends BaseCommand
 
     protected function restoreDump($fileName)
     {
-        $sourceFile = $this->getDumpsPath() . $fileName;
+        $sourceFile = $this->getDumpsPath().$fileName;
 
         $compressed = false;
 
@@ -59,7 +59,7 @@ class MakeDatabaseRestoreCommand extends BaseCommand
         }
 
         if ($status === true) {
-            $this->info($fileName . ' was successfully restored.');
+            $this->info($fileName.' was successfully restored.');
         } else {
             $this->error('Database restore failed.');
         }
@@ -78,15 +78,15 @@ class MakeDatabaseRestoreCommand extends BaseCommand
 
             $count = count($finder);
 
-            $i=0;
+            $i = 0;
 
             foreach ($finder as $dump) {
                 $i++;
 
-                if($i != $count) {
+                if ($i != $count) {
                     $this->line($dump->getFilename());
                 } else {
-                    $this->line($dump->getFilename() ."\n");
+                    $this->line($dump->getFilename()."\n");
                 }
             }
         } else {
@@ -95,10 +95,11 @@ class MakeDatabaseRestoreCommand extends BaseCommand
     }
 
     /**
-     * Uncompress a GZip compressed file
+     * Uncompress a GZip compressed file.
      *
-     * @param string $fileName      Relative or absolute path to file
-     * @return string               Name of uncompressed file (without .gz extension)
+     * @param string $fileName Relative or absolute path to file
+     *
+     * @return string Name of uncompressed file (without .gz extension)
      */
     protected function uncompress($fileName)
     {
@@ -107,20 +108,21 @@ class MakeDatabaseRestoreCommand extends BaseCommand
         $command = sprintf('gzip -dc %s > %s', $fileName, $fileNameUncompressed);
 
         if ($this->console->run($command) !== true) {
-            $this->error( 'Uncompress of gzipped file failed.');
+            $this->error('Uncompress of gzipped file failed.');
         }
 
         return $fileNameUncompressed;
     }
 
     /**
-     * Remove uncompressed files
+     * Remove uncompressed files.
      *
      * Files are temporarily uncompressed for usage in restore. We do not need these copies
      * permanently.
      *
-     * @param string $fileName      Relative or absolute path to file
-     * @return boolean              Success or failure of cleanup
+     * @param string $fileName Relative or absolute path to file
+     *
+     * @return bool Success or failure of cleanup
      */
     protected function cleanup($fileName)
     {
@@ -136,10 +138,11 @@ class MakeDatabaseRestoreCommand extends BaseCommand
     }
 
     /**
-     * Retrieve filename without Gzip extension
+     * Retrieve filename without Gzip extension.
      *
-     * @param string $fileName      Relative or absolute path to file
-     * @return string               Filename without .gz extension
+     * @param string $fileName Relative or absolute path to file
+     *
+     * @return string Filename without .gz extension
      */
     protected function getUncompressedFileName($fileName)
     {
@@ -149,7 +152,7 @@ class MakeDatabaseRestoreCommand extends BaseCommand
     protected function getArguments()
     {
         return [
-            ['dump', InputArgument::OPTIONAL, 'Filename of the dump']
+            ['dump', InputArgument::OPTIONAL, 'Filename of the dump'],
         ];
     }
 

@@ -2,37 +2,40 @@
 
 namespace Yuga\Route\Support;
 
-use Yuga\Http\Request;
 use Yuga\Handlers\IExceptionHandler;
+use Yuga\Http\Request;
 
 interface IGroupRoute extends IRoute
 {
     /**
-     * Method called to check if a domain matches
+     * Method called to check if a domain matches.
      *
      * @param Request $request
+     *
      * @return bool
      */
     public function matchDomain(Request $request);
 
     /**
-     * Add exception handler
+     * Add exception handler.
      *
      * @param IExceptionHandler|string $handler
+     *
      * @return static $this;
      */
     public function addExceptionHandler($handler);
 
     /**
-     * Set exception-handlers for group
+     * Set exception-handlers for group.
      *
      * @param array $handlers
+     *
      * @return static $this
      */
     public function setExceptionHandlers(array $handlers);
 
     /**
-     * Get exception-handlers for group
+     * Get exception-handlers for group.
      *
      * @return array
      */
@@ -49,6 +52,7 @@ interface IGroupRoute extends IRoute
      * Set allowed domains for group.
      *
      * @param array $domains
+     *
      * @return $this
      */
     public function setDomains(array $domains);
@@ -57,6 +61,7 @@ interface IGroupRoute extends IRoute
      * Set prefix that child-routes will inherit.
      *
      * @param string $prefix
+     *
      * @return string
      */
     public function setPrefix($prefix);

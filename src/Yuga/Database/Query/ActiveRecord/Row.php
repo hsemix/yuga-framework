@@ -4,33 +4,33 @@ namespace Yuga\Database\Query\ActiveRecord;
 
 use ArrayAccess;
 use JsonSerializable;
-use Yuga\Support\Inflect;
 use Yuga\Database\Query\Builder;
+use Yuga\Support\Inflect;
 
 class Row implements ArrayAccess, JsonSerializable
 {
     private $attributes = [];
 
     /**
-	 * get a variable and make an object point to it
-     * 
+     * get a variable and make an object point to it.
+     *
      * @param null
-     * 
+     *
      * @return void
-	 */
+     */
     public function __get($key)
     {
         return $this->attributes[$key];
     }
 
-	/**
-	 * Set a variable and make an object point to it
-     * 
+    /**
+     * Set a variable and make an object point to it.
+     *
      * @param string $key
-     * @param mixed $value
-     * 
+     * @param mixed  $value
+     *
      * @return void
-	 */
+     */
     public function __set($key, $value)
     {
         $this->attributes[$key] = $value;
@@ -39,8 +39,8 @@ class Row implements ArrayAccess, JsonSerializable
     /**
      * Determine if an attribute or relation exists on the model.
      *
-     * @param  string  $key
-     * 
+     * @param string $key
+     *
      * @return bool
      */
     public function __isset($key)
@@ -51,24 +51,25 @@ class Row implements ArrayAccess, JsonSerializable
     /**
      * Unset an attribute on the model.
      *
-     * @param  string  $key
-     * 
+     * @param string $key
+     *
      * @return void
      */
     public function __unset($key)
     {
         unset($this->attributes[$key], $this->relations[$key]);
     }
+
     /**
-	 * Make the object act like an array when at access time
-	 *
+     * Make the object act like an array when at access time.
+     *
      * @param $offset
      * @param $value
-     * 
+     *
      * @return void
-	 */
+     */
     #[\ReturnTypeWillChange]
-    public function offsetSet($offset, $value) 
+    public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
             $this->attributes[] = $value;
@@ -78,49 +79,49 @@ class Row implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * Determine whether an attribute exists on this model
-     * 
+     * Determine whether an attribute exists on this model.
+     *
      * @param $offset
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function offsetExists($offset) 
+    public function offsetExists($offset)
     {
         return isset($this->attributes[$offset]);
     }
 
     /**
-     * Unset an attribute if it doesn't exist
-     * 
+     * Unset an attribute if it doesn't exist.
+     *
      * @param $offset
-     * 
+     *
      * @return void
      */
     #[\ReturnTypeWillChange]
-    public function offsetUnset($offset) 
+    public function offsetUnset($offset)
     {
         unset($this->attributes[$offset]);
     }
 
     /**
-     * Get the value of an attribute from an array given its key
-     * 
+     * Get the value of an attribute from an array given its key.
+     *
      * @param string $offset
-     * 
+     *
      * @return mixed
      */
     #[\ReturnTypeWillChange]
-    public function offsetGet($offset) 
+    public function offsetGet($offset)
     {
         return isset($this->attributes[$offset]) ? $this->attributes[$offset] : null;
     }
 
     /**
-     * Change the model to a json string
-     * 
+     * Change the model to a json string.
+     *
      * @param int|null $options
-     * 
+     *
      * @return string
      */
     public function toJson($options = null)
@@ -129,10 +130,10 @@ class Row implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * Change the model to a string
-     * 
+     * Change the model to a string.
+     *
      * @param null
-     * 
+     *
      * @return void
      */
     public function __toString()
@@ -141,36 +142,39 @@ class Row implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * Implement a json serializer
-     * 
+     * Implement a json serializer.
+     *
      * @param null
-     * 
+     *
      * @return array
      */
     #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         $attributes = (array) $this->attributes;
-        $attributes = array_map(function($attribute) {
+        $attributes = array_map(function ($attribute) {
             if (!is_array($attribute)) {
                 if (!is_object($attribute)) {
                     $json_attribute = json_decode($attribute ?? '', true);
-                    if (json_last_error() == JSON_ERROR_NONE)
+                    if (json_last_error() == JSON_ERROR_NONE) {
                         return $json_attribute;
+                    }
                 } else {
-                    return (array)$attribute;
+                    return (array) $attribute;
                 }
             }
+
             return $attribute;
         }, $attributes);
+
         return $attributes;
     }
 
     /**
-     * Change an object to an array
-     * 
+     * Change an object to an array.
+     *
      * @param null
-     * 
+     *
      * @return mixed
      */
     public function toArray()
@@ -185,7 +189,7 @@ class Row implements ArrayAccess, JsonSerializable
         }
 
         if (is_null($foreignKey)) {
-            $foreignKey = Inflect::singularize($table) . '_id';
+            $foreignKey = Inflect::singularize($table).'_id';
         }
 
         return $this->table($table)->where($primaryKey, $this->{$foreignKey})->first();
@@ -193,9 +197,8 @@ class Row implements ArrayAccess, JsonSerializable
 
     public function hasMany(string $table, ?string $foreignKey = null, ?string $primaryKey = null)
     {
-
         if (is_null($foreignKey)) {
-            $foreignKey = Inflect::singularize($this->getActiveRecordTable()) . '_id';;
+            $foreignKey = Inflect::singularize($this->getActiveRecordTable()).'_id';
         }
 
         if (is_null($primaryKey)) {
@@ -207,9 +210,8 @@ class Row implements ArrayAccess, JsonSerializable
 
     public function hasOne(string $table, ?string $foreignKey = null, ?string $primaryKey = null)
     {
-
         if (is_null($foreignKey)) {
-            $foreignKey = Inflect::singularize($this->getActiveRecordTable()) . '_id';;
+            $foreignKey = Inflect::singularize($this->getActiveRecordTable()).'_id';
         }
 
         if (is_null($primaryKey)) {
@@ -220,19 +222,18 @@ class Row implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * Simulate the QueryBuilder and represent it as DB::anyMethod()
+     * Simulate the QueryBuilder and represent it as DB::anyMethod().
      */
-    public static function __callStatic($method, $args) 
+    public static function __callStatic($method, $args)
     {
         return call_user_func_array([Builder::getInstance(), $method], $args);
     }
-    
+
     /**
-     * Simulate the QueryBuilder and represent it as (new DB)->anyMethod()
+     * Simulate the QueryBuilder and represent it as (new DB)->anyMethod().
      */
-    public function __call($method, $args) 
+    public function __call($method, $args)
     {
         return call_user_func_array([Builder::getInstance(), $method], $args);
-	}
-
+    }
 }

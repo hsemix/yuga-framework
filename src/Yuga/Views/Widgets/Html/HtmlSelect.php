@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\Widgets\Html;
 
 class HtmlSelect extends Html
@@ -17,8 +18,10 @@ class HtmlSelect extends Html
     }
 
     /**
-     * Add option
+     * Add option.
+     *
      * @param HtmlSelectOption $option
+     *
      * @return static
      */
     public function addOption(HtmlSelectOption $option)
@@ -52,7 +55,6 @@ class HtmlSelect extends Html
     {
         /* @var $options array */
         foreach ($this->groups as $name => $options) {
-
             $html = new Html('optgroup');
             $html->addAttribute('label', $name);
 
@@ -64,7 +66,6 @@ class HtmlSelect extends Html
             foreach ($options as $option) {
                 $html->addInnerHtml($option);
             }
-
         }
 
         /* @var $option HtmlSelectOption */
@@ -83,8 +84,10 @@ class HtmlSelect extends Html
     }
 
     /**
-     * Disable entire group
+     * Disable entire group.
+     *
      * @param string $group
+     *
      * @return static
      */
     public function disableGroup($group)
@@ -93,5 +96,4 @@ class HtmlSelect extends Html
 
         return $this;
     }
-
 }

@@ -6,5 +6,4 @@ use Cron\CronExpression as Expression;
 
 class CronExpression extends Expression
 {
-
 }

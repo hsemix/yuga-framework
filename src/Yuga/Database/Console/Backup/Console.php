@@ -4,7 +4,6 @@ namespace Yuga\Database\Console\Backup;
 
 use Symfony\Component\Process\Process;
 
-
 class Console
 {
     public function run($command)

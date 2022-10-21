@@ -3,10 +3,11 @@
  * Mask - Implements a Mask for the registered Services.
  *
  * @author <semix.hamidouh@gmail.com>
+ *
  * @version 4.0.0
  */
-namespace Yuga\Support\Masks;
 
+namespace Yuga\Support\Masks;
 
 abstract class Mask
 {
@@ -27,8 +28,9 @@ abstract class Mask
     /**
      * Get the registered name of the component.
      *
-     * @return string
      * @throws \RuntimeException
+     *
+     * @return string
      */
     protected static function getMaskAccessor()
     {
@@ -38,24 +40,28 @@ abstract class Mask
     /**
      * Resolve the facade root instance from the container.
      *
-     * @param  string  $name
+     * @param string $name
+     *
      * @return mixed
      */
     protected static function resolveMaskInstance($name)
     {
-        if (is_object($name)) return $name;
+        if (is_object($name)) {
+            return $name;
+        }
 
         if (isset(static::$resolvedInstance[$name])) {
             return static::$resolvedInstance[$name];
         }
 
-        return static::$resolvedInstance[$name] = static::$app[$name];// ?? app()[$name];
+        return static::$resolvedInstance[$name] = static::$app[$name]; // ?? app()[$name];
     }
 
     /**
      * Set the application instance.
      *
-     * @param  \Yuga\Application\Application  $app
+     * @param \Yuga\Application\Application $app
+     *
      * @return void
      */
     public static function setMaskApplication($app)
@@ -66,7 +72,7 @@ abstract class Mask
     /**
      * Get the application instance.
      *
-     * @return  \Yuga\Application\Application  $app
+     * @return \Yuga\Application\Application $app
      */
     public static function getMaskApplication()
     {
@@ -76,7 +82,8 @@ abstract class Mask
     /**
      * Clear a resolved facade instance.
      *
-     * @param  string  $name
+     * @param string $name
+     *
      * @return void
      */
     public static function clearResolvedInstance($name)
@@ -97,8 +104,9 @@ abstract class Mask
     /**
      * Handle dynamic, static calls to the object.
      *
-     * @param  string  $method
-     * @param  array   $args
+     * @param string $method
+     * @param array  $args
+     *
      * @return mixed
      */
     public static function __callStatic($method, $args)
@@ -109,5 +117,4 @@ abstract class Mask
 
         return call_user_func_array([$instance, $method], $args);
     }
-
 }

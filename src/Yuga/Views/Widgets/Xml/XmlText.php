@@ -1,10 +1,11 @@
 <?php
+
 namespace Yuga\Views\Widgets\Xml;
+
 use Yuga\Views\Widgets\Xml\Support\IXmlNode;
 
 class XmlText implements IXmlNode
 {
-
     protected $parent;
     protected $text = '';
 
@@ -42,5 +43,4 @@ class XmlText implements IXmlNode
     {
         return $this->text;
     }
-
 }

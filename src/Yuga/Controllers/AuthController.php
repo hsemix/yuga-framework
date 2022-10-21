@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Controllers;
 
 use Yuga\Widgets\Reset;
@@ -9,12 +10,12 @@ class AuthController extends Controller
 {
     public function getSignin()
     {
-        echo new SignIn;
+        echo new SignIn();
     }
 
     public function getSignup()
     {
-        echo new SignUp;
+        echo new SignUp();
     }
 
     public function getSignout()

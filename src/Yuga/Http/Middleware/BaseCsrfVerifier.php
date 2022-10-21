@@ -1,9 +1,10 @@
 <?php
+
 namespace Yuga\Http\Middleware;
 
 use Yuga\CsrfToken;
-use Yuga\Http\Request;
 use Yuga\Http\Middleware\Exceptions\TokenMismatchException;
+use Yuga\Http\Request;
 
 class BaseCsrfVerifier implements IMiddleware
 {
@@ -23,8 +24,10 @@ class BaseCsrfVerifier implements IMiddleware
     }
 
     /**
-     * Check if the url matches the urls in the except property
+     * Check if the url matches the urls in the except property.
+     *
      * @param Request $request
+     *
      * @return bool
      */
     protected function skip(Request $request)
@@ -56,21 +59,18 @@ class BaseCsrfVerifier implements IMiddleware
 
     public function run(Request $request, \Closure $next)
     {
-
         if ($this->skip($request) === false && in_array($request->getMethod(), ['post', 'put', 'delete'], false) === true && env('CSRF_PROTECT', true) === true) {
-
             $token = $request->getInput()->get(static::POST_KEY, null, 'post');
 
             // If the token is not posted, check headers for valid x-csrf-token
             if ($token === null) {
-                $token = $request->getHeader('http-' . static::HEADER_KEY);
+                $token = $request->getHeader('http-'.static::HEADER_KEY);
             }
 
             if ($token === null) {
                 throw new TokenMismatchException('Invalid form, Add csrf-token.');
             }
             if ($this->csrfToken->validate($token) === false) {
-
                 if (app()->getDebugEnabled() === true) {
                     throw new TokenMismatchException('Invalid csrf-token.');
                 } else {
@@ -78,14 +78,14 @@ class BaseCsrfVerifier implements IMiddleware
                         throw new TokenMismatchException('Your form has expired, please refresh the page and try again.');
                     } else {
                         $request->setRewriteCallback('Yuga\Controllers\PageController@formExpired');
+
                         return $request;
                     }
                 }
-                
             }
+
             return $next($request);
         }
-
     }
 
     public function generateToken()
@@ -109,5 +109,4 @@ class BaseCsrfVerifier implements IMiddleware
     {
         return $this->token;
     }
-
 }

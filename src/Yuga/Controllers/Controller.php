@@ -1,9 +1,10 @@
 <?php
+
 namespace Yuga\Controllers;
 
 use Yuga\Http\Request;
-use Yuga\Validate\Message;
 use Yuga\Shared\Controller as SharedController;
+use Yuga\Validate\Message;
 
 class Controller
 {
@@ -26,12 +27,14 @@ class Controller
             } else {
                 $this->session->put('errors', $validation->errors());
                 $this->request->addOld();
+
                 return $this->response->redirect->back();
-            } 
+            }
         }
         if ($clearOldData) {
             $this->session->delete('old-data');
         }
+
         return $validation->getValidated();
     }
 
@@ -39,17 +42,15 @@ class Controller
     {
         if (count($rules) > 1) {
             $this->validateFilesMoreRules($rules);
-        }else {
+        } else {
             $this->validateFilesSingleRule($rules);
         }
-        
     }
 
     protected function validateFilesMoreRules(array $rules = [])
     {
         foreach ($rules as $field => $rules) {
             if ($rules === 'file') {
-                
                 if (!$this->request->hasFile($field)) {
                     $this->session->put('file-message', "The field {$field} requires an uploadable file");
                     $this->session->put('yuga-file-field', $field);
@@ -71,6 +72,7 @@ class Controller
         if ($message->hasMessages()) {
             $this->session->put('errors', $message);
             $this->request->addOld();
+
             return $this->response->redirect->back();
         }
     }

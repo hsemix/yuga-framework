@@ -2,23 +2,25 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Support;
 
 class Config
 {
     protected $data;
     protected $default = null;
-    
+
     public function load($file, $key = null)
     {
-        $file = str_replace(".", "/", $file);
+        $file = str_replace('.', '/', $file);
         $file = require path($file.'.php');
 
-        if ($key)
+        if ($key) {
             $this->data[$key] = $file;
-        else
+        } else {
             $this->data = $file;
-        
+        }
+
         return $this;
     }
 
@@ -58,6 +60,7 @@ class Config
                 $data = $data[$segment] = $value;
             }
         }
+
         return $data;
     }
 }

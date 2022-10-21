@@ -1,9 +1,10 @@
 <?php
+
 namespace Yuga\Route\Router;
 
+use Yuga\Handlers\IExceptionHandler;
 use Yuga\Http\Request;
 use Yuga\Route\Support\IGroupRoute;
-use Yuga\Handlers\IExceptionHandler;
 
 class RouteGroup extends Route implements IGroupRoute
 {
@@ -13,9 +14,10 @@ class RouteGroup extends Route implements IGroupRoute
     protected $exceptionHandlers = [];
 
     /**
-     * Method called to check if a domain matches
+     * Method called to check if a domain matches.
      *
      * @param Request $request
+     *
      * @return bool
      */
     public function matchDomain(Request $request)
@@ -25,11 +27,9 @@ class RouteGroup extends Route implements IGroupRoute
         }
 
         foreach ($this->domains as $domain) {
-
             $parameters = $this->parseParameters($domain, $request->getHost(), '.*');
 
             if ($parameters !== null && count($parameters) > 0) {
-
                 $this->parameters = $parameters;
 
                 return true;
@@ -40,10 +40,11 @@ class RouteGroup extends Route implements IGroupRoute
     }
 
     /**
-     * Method called to check if route matches
+     * Method called to check if route matches.
      *
-     * @param string $url
+     * @param string  $url
      * @param Request $request
+     *
      * @return bool
      */
     public function matchRoute($url, Request $request)
@@ -60,9 +61,10 @@ class RouteGroup extends Route implements IGroupRoute
     }
 
     /**
-     * Add exception handler
+     * Add exception handler.
      *
      * @param IExceptionHandler|string $handler
+     *
      * @return static $this
      */
     public function addExceptionHandler($handler)
@@ -73,9 +75,10 @@ class RouteGroup extends Route implements IGroupRoute
     }
 
     /**
-     * Set exception-handlers for group
+     * Set exception-handlers for group.
      *
      * @param array $handlers
+     *
      * @return static $this
      */
     public function setExceptionHandlers(array $handlers)
@@ -86,7 +89,7 @@ class RouteGroup extends Route implements IGroupRoute
     }
 
     /**
-     * Get exception-handlers for group
+     * Get exception-handlers for group.
      *
      * @return array
      */
@@ -109,6 +112,7 @@ class RouteGroup extends Route implements IGroupRoute
      * Set allowed domains for group.
      *
      * @param array $domains
+     *
      * @return $this
      */
     public function setDomains(array $domains)
@@ -120,11 +124,12 @@ class RouteGroup extends Route implements IGroupRoute
 
     /**
      * @param string $prefix
+     *
      * @return static
      */
     public function setPrefix($prefix)
     {
-        $this->prefix = '/' . trim($prefix, '/');
+        $this->prefix = '/'.trim($prefix, '/');
 
         return $this;
     }
@@ -143,27 +148,27 @@ class RouteGroup extends Route implements IGroupRoute
      * Merge with information from another route.
      *
      * @param array $values
-     * @param bool $merge
+     * @param bool  $merge
+     *
      * @return static
      */
     public function setSettings(array $values, $merge = false)
     {
-
         if (isset($values['prefix'])) {
-            $this->setPrefix($values['prefix'] . $this->prefix);
+            $this->setPrefix($values['prefix'].$this->prefix);
         }
 
         if (isset($values['exceptionHandler'])) {
-            $this->setExceptionHandlers((array)$values['exceptionHandler']);
+            $this->setExceptionHandlers((array) $values['exceptionHandler']);
         }
 
         if (isset($values['domain'])) {
-            $this->setDomains((array)$values['domain']);
+            $this->setDomains((array) $values['domain']);
         }
 
         if (isset($values['as'])) {
             if ($this->name !== null && $merge !== false) {
-                $this->name = $values['as'] . '.' . $this->name;
+                $this->name = $values['as'].'.'.$this->name;
             } else {
                 $this->name = $values['as'];
             }
@@ -197,5 +202,4 @@ class RouteGroup extends Route implements IGroupRoute
 
         return array_merge($values, parent::toArray());
     }
-
 }

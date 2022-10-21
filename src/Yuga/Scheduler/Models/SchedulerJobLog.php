@@ -6,5 +6,4 @@ use Yuga\Database\Elegant\Model;
 
 class SchedulerJobLog extends Model
 {
-    
 }

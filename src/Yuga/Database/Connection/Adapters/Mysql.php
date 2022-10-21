@@ -29,6 +29,7 @@ class Mysql extends BaseAdapter
                 $connection->prepare("SET NAMES '{$config['charset']}'")->execute();
             }
             $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
             return $connection;
         } catch (PDOException $e) {
             throw DatabaseQueryException::create($e, $this->getQueryAdapterClass());
@@ -36,7 +37,8 @@ class Mysql extends BaseAdapter
     }
 
     /**
-     * Get query adapter class
+     * Get query adapter class.
+     *
      * @return string
      */
     public function getQueryAdapterClass()

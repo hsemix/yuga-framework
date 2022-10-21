@@ -1,25 +1,16 @@
 <?php
+
 namespace Yuga\Database\Query\Exceptions;
 
 use Exception;
 use PDOException;
-use Yuga\Database\Query\QueryObject;
 use Yuga\Database\Query\Grammar\Mysql;
 use Yuga\Database\Query\Grammar\Pgsql;
 use Yuga\Database\Query\Grammar\Sqlite;
-use Yuga\Database\Query\Exceptions\NotNullException;
-use Yuga\Database\Query\Exceptions\ConnectionException;
-use Yuga\Database\Query\Exceptions\ForeignKeyException;
-use Yuga\Database\Query\Exceptions\DuplicateKeyException;
-use Yuga\Database\Query\Exceptions\TableNotFoundException;
-use Yuga\Database\Query\Exceptions\ColumnNotFoundException;
-use Yuga\Database\Query\Exceptions\DuplicateEntryException;
-use Yuga\Database\Query\Exceptions\DuplicateColumnException;
+use Yuga\Database\Query\QueryObject;
 
 /**
- * Class Exception
- *
- * @package Yuga\Database\Query
+ * Class Exception.
  */
 class DatabaseQueryException extends Exception
 {
@@ -27,15 +18,16 @@ class DatabaseQueryException extends Exception
 
     public function __construct($message = '', $code = 0, $previous = null, QueryObject $query = null)
     {
-        $lastSql = $query ? PHP_EOL.PHP_EOL.'Last query: '. $query->getRawSql() : '';
+        $lastSql = $query ? PHP_EOL.PHP_EOL.'Last query: '.$query->getRawSql() : '';
         parent::__construct($message.$lastSql, $code, $previous);
         $this->query = $query;
     }
 
     /**
-     * @param \Exception $e
-     * @param string|null $adapterName
+     * @param \Exception                                                    $e
+     * @param string|null                                                   $adapterName
      * @param \Yuga\Database\Query\Exceptions\QueryBuilder\QueryObject|null $query
+     *
      * @return static|ColumnNotFoundException|ConnectionException|DuplicateColumnException|DuplicateEntryException|DuplicateKeyException|ForeignKeyException|NotNullException|TableNotFoundException
      *
      * @see https://dev.mysql.com/doc/refman/5.6/en/error-messages-server.html
@@ -44,18 +36,17 @@ class DatabaseQueryException extends Exception
      */
     public static function create(Exception $e, $adapterName = null, QueryObject $query = null)
     {
-        
         if ($e instanceof PDOException) {
             /**
              * @var string|null $errorSqlState
-             * @var integer|null $errorCode
+             * @var int|null    $errorCode
              * @var string|null $errorMsg
              */
             list($errorIdentity, $errorCode, $errorMsg) = $e->errorInfo;
 
             $errorMsg = isset($errorMsg) ? $errorMsg : $e->getMessage();
-            $errorCode = (int)(isset($errorCode) ? $errorCode : $e->getCode());
-            
+            $errorCode = (int) (isset($errorCode) ? $errorCode : $e->getCode());
+
             switch ($adapterName) {
                 case Mysql::class:
                     // https://dev.mysql.com/doc/refman/5.6/en/error-messages-server.html
@@ -100,7 +91,7 @@ class DatabaseQueryException extends Exception
             }
         }
 
-        return new static($e->getMessage(), (int)$e->getCode(), $e->getPrevious(), $query);
+        return new static($e->getMessage(), (int) $e->getCode(), $e->getPrevious(), $query);
     }
 
     /**
@@ -110,6 +101,6 @@ class DatabaseQueryException extends Exception
      */
     public function getQuery()
     {
-        return $this->query?:null;
+        return $this->query ?: null;
     }
 }

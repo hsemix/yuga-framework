@@ -4,5 +4,4 @@ namespace Yuga\Interfaces\Queue;
 
 interface ShouldQueueInterface
 {
-    
 }

@@ -1,9 +1,9 @@
 <?php
+
 namespace Yuga\Views\Widgets\Xml\Support;
 
 interface IXmlNode
 {
-
     public function __toString();
 
     /**
@@ -15,5 +15,4 @@ interface IXmlNode
      * @return XmlElement
      */
     public function getParent();
-
 }

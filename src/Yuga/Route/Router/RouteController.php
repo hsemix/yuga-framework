@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Route\Router;
 
 use Yuga\Http\Request;
@@ -22,6 +23,7 @@ class RouteController extends LoadableRoute implements IControllerRoute
      * Check if route has given name.
      *
      * @param string $name
+     *
      * @return bool
      */
     public function hasName($name)
@@ -44,9 +46,10 @@ class RouteController extends LoadableRoute implements IControllerRoute
     }
 
     /**
-     * @param string|null $method
+     * @param string|null       $method
      * @param string|array|null $parameters
-     * @param string|null $name
+     * @param string|null       $name
+     *
      * @return string
      */
     public function findUrl($method = null, $parameters = null, $name = null)
@@ -54,20 +57,19 @@ class RouteController extends LoadableRoute implements IControllerRoute
         if (strpos($name, '.') !== false) {
             $found = array_search(substr($name, strrpos($name, '.') + 1), $this->names, false);
             if ($found !== false) {
-                $method = (string)$found;
+                $method = (string) $found;
             }
         }
 
         $url = '';
-        $parameters = (array)$parameters;
+        $parameters = (array) $parameters;
 
         if ($method !== null) {
 
             /* Remove requestType from method-name, if it exists */
             foreach (static::$requestTypes as $requestType) {
-
                 if (stripos($method, $requestType) === 0) {
-                    $method = (string)substr($method, strlen($requestType));
+                    $method = (string) substr($method, strlen($requestType));
                     break;
                 }
             }
@@ -78,12 +80,12 @@ class RouteController extends LoadableRoute implements IControllerRoute
         $group = $this->getGroup();
 
         if ($group !== null && count($group->getDomains()) > 0) {
-            $url .= '//' . $group->getDomains()[0];
+            $url .= '//'.$group->getDomains()[0];
         }
 
-        $url .= '/' . trim($this->getUrl(), '/') . '/' . strtolower($method) . join('/', $parameters);
+        $url .= '/'.trim($this->getUrl(), '/').'/'.strtolower($method).join('/', $parameters);
 
-        return '/' . trim($url, '/') . '/';
+        return '/'.trim($url, '/').'/';
     }
 
     public function matchRoute($url, Request $request)
@@ -99,14 +101,13 @@ class RouteController extends LoadableRoute implements IControllerRoute
         $path = explode('/', $strippedUrl);
 
         if (count($path) > 0) {
-
             $method = (isset($path[0]) === false || trim($path[0]) === '') ? $this->defaultMethod : $path[0];
-            $this->method = $request->getMethod() . ucfirst($method);
+            $this->method = $request->getMethod().ucfirst($method);
 
             $this->parameters = array_slice($path, 1);
 
             // Set callback
-            $this->setCallback($this->controller . '@' . $this->method);
+            $this->setCallback($this->controller.'@'.$this->method);
 
             return true;
         }
@@ -128,6 +129,7 @@ class RouteController extends LoadableRoute implements IControllerRoute
      * Get controller class-name.
      *
      * @param string $controller
+     *
      * @return static
      */
     public function setController($controller)
@@ -138,7 +140,7 @@ class RouteController extends LoadableRoute implements IControllerRoute
     }
 
     /**
-     * Return active method
+     * Return active method.
      *
      * @return string
      */
@@ -148,9 +150,10 @@ class RouteController extends LoadableRoute implements IControllerRoute
     }
 
     /**
-     * Set active method
+     * Set active method.
      *
      * @param string $method
+     *
      * @return static
      */
     public function setMethod($method)
@@ -164,7 +167,8 @@ class RouteController extends LoadableRoute implements IControllerRoute
      * Merge with information from another route.
      *
      * @param array $values
-     * @param bool $merge
+     * @param bool  $merge
+     *
      * @return static
      */
     public function setSettings(array $values, $merge = false)
@@ -177,5 +181,4 @@ class RouteController extends LoadableRoute implements IControllerRoute
 
         return $this;
     }
-
 }

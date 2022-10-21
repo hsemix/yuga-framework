@@ -3,11 +3,10 @@
 namespace Yuga\Http;
 
 use Exception;
-use Yuga\Route\Route;
-use Yuga\Http\Input\Input;
-use Yuga\Validate\Validate;
-use Yuga\Route\Router\RouteUrl;
 use Yuga\Application\Application;
+use Yuga\Http\Input\Input;
+use Yuga\Route\Route;
+use Yuga\Route\Router\RouteUrl;
 use Yuga\Route\Support\ILoadableRoute;
 
 class Request
@@ -31,7 +30,7 @@ class Request
     protected $loadedRoute;
 
     /**
-     * Form fields
+     * Form fields.
      */
     protected $formFields = [];
 
@@ -60,12 +59,11 @@ class Request
             $this->headers[strtolower($key)] = $value;
             $this->headers[strtolower(str_replace('_', '-', $key))] = $value;
         }
-
     }
 
     public function create()
     {
-        return new static;
+        return new static();
     }
 
     public function isSecure()
@@ -86,9 +84,9 @@ class Request
         if ($trim) {
             return $this->uri;
         }
-        return '/' . ltrim(str_replace($this->processHost(), '', $this->uri), '/');
-    }
 
+        return '/'.ltrim(str_replace($this->processHost(), '', $this->uri), '/');
+    }
 
     public function processHost()
     {
@@ -97,7 +95,7 @@ class Request
         if (env('PAGE_CONTROLLER', 'index.php') == 'index.php') {
             $scriptName = str_replace('/index.php', '', $this->getHeader('php-self'));
         }
-        
+
         $segs = explode('/', trim($scriptName, '/'));
         $segs = array_reverse($segs);
         $index = 0;
@@ -106,17 +104,17 @@ class Request
 
         do {
             $seg = $segs[$index];
-            $baseUrl = '/' . $seg . rtrim($baseUrl, '/') ;
-            ++$index;
+            $baseUrl = '/'.$seg.rtrim($baseUrl, '/');
+            $index++;
         } while ($last > $index && (false !== $pos = strpos($scriptName, $baseUrl)) && 0 != $pos);
 
-        return $baseUrl . '/';
+        return $baseUrl.'/';
     }
 
     public function formatUrl($url)
     {
         echo $this->uri;
-        die();
+        exit();
     }
 
     /**
@@ -141,7 +139,8 @@ class Request
     }
 
     /**
-     * Get http basic auth user
+     * Get http basic auth user.
+     *
      * @return string|null
      */
     public function getUser()
@@ -150,7 +149,8 @@ class Request
     }
 
     /**
-     * Get http basic auth password
+     * Get http basic auth password.
+     *
      * @return string|null
      */
     public function getPassword()
@@ -159,7 +159,8 @@ class Request
     }
 
     /**
-     * Get all headers
+     * Get all headers.
+     *
      * @return array
      */
     public function getHeaders()
@@ -168,7 +169,8 @@ class Request
     }
 
     /**
-     * Get id address
+     * Get id address.
+     *
      * @return string
      */
     public function getIp()
@@ -185,9 +187,10 @@ class Request
     }
 
     /**
-     * Get remote address/ip
+     * Get remote address/ip.
      *
      * @alias static::getIp
+     *
      * @return string
      */
     public function getRemoteAddr()
@@ -196,7 +199,8 @@ class Request
     }
 
     /**
-     * Get referer
+     * Get referer.
+     *
      * @return string
      */
     public function getReferer()
@@ -205,7 +209,8 @@ class Request
     }
 
     /**
-     * Get user agent
+     * Get user agent.
+     *
      * @return string
      */
     public function getUserAgent()
@@ -214,9 +219,9 @@ class Request
     }
 
     /**
-     * Get header value by name
+     * Get header value by name.
      *
-     * @param string $name
+     * @param string      $name
      * @param string|null $defaultValue
      *
      * @return string|null
@@ -231,7 +236,6 @@ class Request
         $keys = array_keys($_SERVER);
 
         for ($i = $max; $i >= 0; $i--) {
-
             $key = $keys[$i];
             $name = $_SERVER[$key];
 
@@ -255,7 +259,8 @@ class Request
     }
 
     /**
-     * Get input class
+     * Get input class.
+     *
      * @return Input
      */
     public function getInput()
@@ -269,7 +274,7 @@ class Request
     }
 
     /**
-     * Is format accepted
+     * Is format accepted.
      *
      * @param string $format
      *
@@ -277,11 +282,12 @@ class Request
      */
     public function isFormatAccepted($format)
     {
-        return ($this->getHeader('http-accept') !== null && stripos($this->getHeader('http-accept'), $format) > -1);
+        return $this->getHeader('http-accept') !== null && stripos($this->getHeader('http-accept'), $format) > -1;
     }
 
     /**
-     * Get accept formats
+     * Get accept formats.
+     *
      * @return array
      */
     public function getAcceptFormats()
@@ -314,9 +320,10 @@ class Request
     }
 
     /**
-     * Set rewrite route
+     * Set rewrite route.
      *
      * @param ILoadableRoute $route
+     *
      * @return static
      */
     public function setRewriteRoute(ILoadableRoute $route)
@@ -327,26 +334,22 @@ class Request
 
         /* Only add default namespace on relative callbacks */
         if ($callback === null || $callback[0] !== '\\') {
-
             $namespace = Route::getDefaultNamespace();
 
             if ($namespace !== null) {
-
                 if ($this->rewriteRoute->getNamespace() !== null) {
-                    $namespace .= '\\' . $this->rewriteRoute->getNamespace();
+                    $namespace .= '\\'.$this->rewriteRoute->getNamespace();
                 }
 
                 $this->rewriteRoute->setDefaultNamespace($namespace);
-
             }
-
         }
 
         return $this;
     }
 
     /**
-     * Get rewrite route
+     * Get rewrite route.
      *
      * @return ILoadableRoute|null
      */
@@ -356,7 +359,7 @@ class Request
     }
 
     /**
-     * Get rewrite url
+     * Get rewrite url.
      *
      * @return string
      */
@@ -366,9 +369,10 @@ class Request
     }
 
     /**
-     * Set rewrite url
+     * Set rewrite url.
      *
      * @param string $rewriteUrl
+     *
      * @return static
      */
     public function setRewriteUrl($rewriteUrl)
@@ -379,8 +383,10 @@ class Request
     }
 
     /**
-     * Set rewrite callback
+     * Set rewrite callback.
+     *
      * @param string $callback
+     *
      * @return static
      */
     public function setRewriteCallback($callback)
@@ -389,7 +395,8 @@ class Request
     }
 
     /**
-     * Get loaded route
+     * Get loaded route.
+     *
      * @return ILoadableRoute|null
      */
     public function getLoadedRoute()
@@ -398,9 +405,10 @@ class Request
     }
 
     /**
-     * Set loaded route
+     * Set loaded route.
      *
      * @param ILoadableRoute $route
+     *
      * @return static
      */
     public function setLoadedRoute(ILoadableRoute $route)
@@ -427,16 +435,18 @@ class Request
 
     public function exists($index = null)
     {
-		return $this->getInput()->exists($index);
+        return $this->getInput()->exists($index);
     }
 
     public function files($key = null, $default = null)
     {
         $files = $this->getInput()->findFile($key, $default);
-		if (is_array($files)) 
-			return $this->getInput()->findFile($key, $default);
-		else if(!$this->getInput()->findFile($key, $default)->hasError())
-			return $this->getInput()->findFile($key, $default);
+        if (is_array($files)) {
+            return $this->getInput()->findFile($key, $default);
+        } elseif (!$this->getInput()->findFile($key, $default)->hasError()) {
+            return $this->getInput()->findFile($key, $default);
+        }
+
         return false;
     }
 
@@ -444,6 +454,7 @@ class Request
     {
         return $this->getInput()->hasFile($key);
     }
+
     public function all(array $filter = null)
     {
         return $this->getInput()->all($filter);
@@ -453,41 +464,49 @@ class Request
     {
         $only = [];
         foreach ($this->all() as $field => $value) {
-            if (in_array($field, $onlyFields))
+            if (in_array($field, $onlyFields)) {
                 $only[$field] = $value;
+            }
         }
-       return $only;
+
+        return $only;
     }
 
     public function except(array $exceptFields = [])
     {
         $only = [];
         foreach ($this->all() as $field => $value) {
-            if (!in_array($field, $exceptFields))
+            if (!in_array($field, $exceptFields)) {
                 $only[$field] = $value;
+            }
         }
-       return $only;
+
+        return $only;
     }
-    
+
     public function isAjax()
     {
         if (($this->getHeader('http-x-requested-with') !== null && strtolower($this->getHeader('http-x-requested-with')) === 'xmlhttprequest') || ($this->getHeader('http-user-agent') !== null && preg_match('/^(curl|wget)/i', $this->getHeader('http-user-agent')))) {
             return true;
         }
+
         return false;
     }
 
     public function addOld()
     {
         app()->make('session')->put('old-data', $this->getInput()->all());
+
         return $this;
     }
+
     public function old($key = null)
     {
         $data = app()->make('session')->get('old-data');
         if ($key && !is_null($data)) {
-            return isset($data[$key]) ? $data[$key]: null;
+            return isset($data[$key]) ? $data[$key] : null;
         }
+
         return $data;
     }
 
@@ -504,9 +523,10 @@ class Request
     public function validate($rules = [], $clearOldData = true)
     {
         $fields = $this->all();
-        if (isset($fields['_token']))
+        if (isset($fields['_token'])) {
             unset($fields['_token']);
-        
+        }
+
         $validation = app()->get('validate')->check($this->all(), $rules);
         if ($validation->failed()) {
             if ($this->isAjax()) {
@@ -514,8 +534,9 @@ class Request
             } else {
                 app()->get('validate')->getSession()->put('errors', $validation->errors());
                 $this->addOld();
+
                 return app()->get('validate')->getResponse()->redirect->back();
-            } 
+            }
         }
         if ($clearOldData) {
             app()->get('validate')->getSession()->delete('old-data');
@@ -523,12 +544,12 @@ class Request
         if ($this->isAjax() || $this->getHeader('http-accept') == 'application/json' || $this->getHeader('http-content-type') == 'text/plain') {
             return $validation;
         }
+
         return $validation->getValidated();
     }
 
     public function getRouteParams($key = null)
-    {   
+    {
         return $this->getLoadedRoute()->getParams($key);
     }
-
 }

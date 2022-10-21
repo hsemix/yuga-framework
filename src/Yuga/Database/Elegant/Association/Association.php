@@ -3,8 +3,8 @@
 namespace Yuga\Database\Elegant\Association;
 
 use Closure;
-use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Builder;
+use Yuga\Database\Elegant\Model;
 use Yuga\Interfaces\Database\Elegant\Association\Association as Relation;
 
 abstract class Association implements Relation
@@ -12,21 +12,21 @@ abstract class Association implements Relation
     private $query;
     private $parent;
     private $child;
-    static $conditions;
+    public static $conditions;
 
     public function __construct(Builder $query, Model $parent)
     {
         $this->query = $query;
         $this->parent = $parent;
         $this->child = $query->getModel();
-        
+
         $this->addConditions();
     }
 
     abstract public function addConditions();
 
     /**
-     * Redirect all unknown methods to the query Builder, it could be aware of them
+     * Redirect all unknown methods to the query Builder, it could be aware of them.
      */
     public function __call($method, $parameters)
     {
@@ -62,5 +62,4 @@ abstract class Association implements Relation
      * @return mixed
      */
     abstract public function getResults();
-    
 }

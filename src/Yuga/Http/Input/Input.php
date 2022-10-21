@@ -63,7 +63,7 @@ class Input
     {
         $list = [];
 
-        foreach ((array)$_FILES as $key => $value) {
+        foreach ((array) $_FILES as $key => $value) {
 
             // Handle array input
             if (is_array($value['name']) === false) {
@@ -81,7 +81,6 @@ class Input
             } else {
                 $list[$key] = $files;
             }
-
         }
 
         return $list;
@@ -91,11 +90,10 @@ class Input
     {
         $output = [];
         $getItem = function ($key, $property = 'name') use ($original, $index) {
-
             $path = $original[$property];
-            
+
             $fileValues = array_values($index);
-            
+
             foreach ($fileValues as $i) {
                 $path = $path[$i];
             }
@@ -103,8 +101,8 @@ class Input
             return $path[$key];
         };
 
-        
         $output = $this->generateFiles($values, $getItem);
+
         return $output;
     }
 
@@ -113,7 +111,7 @@ class Input
         foreach ($values as $key => $value) {
             if (is_array($getItem($key)) === false) {
                 $file = $this->getFile($key, $getItem);
-                
+
                 if (isset($output[$key])) {
                     $output[$key][] = $file;
                 } else {
@@ -121,7 +119,7 @@ class Input
                 }
                 continue;
             }
-            
+
             $index[] = $key;
 
             $files = $this->rearrangeFiles($value, $index, $original);
@@ -139,7 +137,7 @@ class Input
     {
         return InputFile::createFromArray([
             'index'    => $key,
-            'name' => $getItem($key),
+            'name'     => $getItem($key),
             'error'    => $getItem($key, 'error'),
             'tmp_name' => $getItem($key, 'tmp_name'),
             'type'     => $getItem($key, 'type'),
@@ -155,7 +153,6 @@ class Input
         $keys = array_keys($array);
 
         for ($i = $max; $i >= 0; $i--) {
-
             $key = $keys[$i];
             $value = $array[$key];
 
@@ -176,24 +173,27 @@ class Input
     /**
      * Find post-value by index or return default value.
      *
-     * @param string $index
+     * @param string      $index
      * @param string|null $defaultValue
+     *
      * @return InputItem|string
      */
     public function findPost($index, $defaultValue = null)
     {
         $input = $this->post;
-        if ($string = file_get_contents("php://input")) {
-            $input = array_merge($this->post, filter_var_array((array)json_decode($string, true), FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+        if ($string = file_get_contents('php://input')) {
+            $input = array_merge($this->post, filter_var_array((array) json_decode($string, true), FILTER_SANITIZE_FULL_SPECIAL_CHARS));
         }
+
         return isset($input[$index]) ? $input[$index] : $defaultValue;
     }
 
     /**
      * Find file by index or return default value.
      *
-     * @param string $index
+     * @param string      $index
      * @param string|null $defaultValue
+     *
      * @return InputFile|string
      */
     public function findFile($index, $defaultValue = null)
@@ -204,8 +204,9 @@ class Input
     /**
      * Find parameter/query-string by index or return default value.
      *
-     * @param string $index
+     * @param string      $index
      * @param string|null $defaultValue
+     *
      * @return InputItem|string
      */
     public function findGet($index, $defaultValue = null)
@@ -214,11 +215,12 @@ class Input
     }
 
     /**
-     * Get input object
+     * Get input object.
      *
-     * @param string $index
-     * @param string|null $defaultValue
+     * @param string            $index
+     * @param string|null       $defaultValue
      * @param array|string|null $methods
+     *
      * @return IInputItem|string
      */
     public function getObject($index, $defaultValue = null, $methods = null)
@@ -245,11 +247,12 @@ class Input
     }
 
     /**
-     * Get input element value matching index
+     * Get input element value matching index.
      *
-     * @param string $index
-     * @param string|null $defaultValue
+     * @param string            $index
+     * @param string|null       $defaultValue
      * @param array|string|null $methods
+     *
      * @return InputItem|string
      */
     public function get($index, $defaultValue = null, $methods = null)
@@ -264,19 +267,22 @@ class Input
     }
 
     /**
-     * Check if a input-item exist
+     * Check if a input-item exist.
      *
      * @param string $index
+     *
      * @return bool
      */
     public function exists($index)
     {
-        return ($this->getObject($index) !== null);
+        return $this->getObject($index) !== null;
     }
 
     /**
-     * Get all get/post items
+     * Get all get/post items.
+     *
      * @param array|null $filter Only take items in filter
+     *
      * @return array
      */
     public function all(array $filter = null)
@@ -284,7 +290,6 @@ class Input
         $output = $_POST;
 
         if ($this->request->getMethod() === 'post' || $this->request->getMethod() === 'patch' || $this->request->getMethod() === 'put') {
-
             $contents = file_get_contents('php://input');
 
             if (strpos(trim($contents), '{') === 0) {
@@ -299,24 +304,27 @@ class Input
     }
 
     public static function file($key = null, $default = null)
-	{
-		return array_get($_FILES, $key, $default);
+    {
+        return array_get($_FILES, $key, $default);
     }
-    
-    /**
-     * Determine if the input contains a file
-     */
 
+    /**
+     * Determine if the input contains a file.
+     */
     public static function hasFile($key)
-	{
+    {
         $file = static::file("{$key}.tmp_name");
         if (is_array($file)) {
-            if ($file[0] === '')
+            if ($file[0] === '') {
                 return false;
+            }
+
             return true;
         }
-        if ($file === '' || $file === null)
+        if ($file === '' || $file === null) {
             return false;
+        }
+
         return true;
-	}
+    }
 }

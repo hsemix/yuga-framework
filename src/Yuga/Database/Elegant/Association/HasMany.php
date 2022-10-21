@@ -2,9 +2,9 @@
 
 namespace Yuga\Database\Elegant\Association;
 
-use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Builder;
 use Yuga\Database\Elegant\Collection;
+use Yuga\Database\Elegant\Model;
 
 class HasMany extends Association
 {
@@ -13,7 +13,7 @@ class HasMany extends Association
     private $parent;
     private $otherKey;
     private $foreignKey;
-    
+
     public function __construct(Builder $query, Model $parent, $foreignKey, $otherKey)
     {
         $this->otherKey = $otherKey;
@@ -53,7 +53,8 @@ class HasMany extends Association
 
     public function getPlainForeignKey()
     {
-        $foreign = explode(".", $this->foreignKey);
+        $foreign = explode('.', $this->foreignKey);
+
         return end($foreign);
     }
 
@@ -68,7 +69,6 @@ class HasMany extends Association
 
     public function bootRelation(array $models, $relation)
     {
-        
         foreach ($models as $model) {
             $model->setRelation($relation, $model->$relation);
             //$model->setRelation($relation, $this->child->newCollection($models));
@@ -76,7 +76,7 @@ class HasMany extends Association
 
         return $models;
     }
-    
+
     public function match(array $models, Collection $results, $relation)
     {
         return $this->matchMany($models, $results, $relation);
@@ -106,5 +106,4 @@ class HasMany extends Association
     {
         return $this->query->get();
     }
-    
 }

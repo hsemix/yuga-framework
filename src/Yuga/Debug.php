@@ -2,6 +2,7 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga;
 
 use Yuga\Views\Widgets\Debug\WidgetDebug;
@@ -88,5 +89,4 @@ class Debug
 
         return $widget->render();
     }
-
 }

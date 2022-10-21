@@ -1,7 +1,6 @@
 <?php
-namespace Yuga\Authenticate\Console;
 
-use Yuga\Http\Middleware\MiddleWare;
+namespace Yuga\Authenticate\Console;
 
 trait MakeAuthMiddleware
 {
@@ -48,7 +47,7 @@ trait MakeAuthMiddleware
 
         $generatedMiddleware = '[';
         foreach ($middleware as $alias => $ware) {
-            $generatedMiddleware .= "\n\t'{$alias}' => \\". $ware. "::class,";
+            $generatedMiddleware .= "\n\t'{$alias}' => \\".$ware.'::class,';
         }
         $generatedMiddleware .= "\n]";
 

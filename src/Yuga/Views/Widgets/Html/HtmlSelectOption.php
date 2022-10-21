@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\Widgets\Html;
 
 class HtmlSelectOption extends Html
@@ -21,8 +22,10 @@ class HtmlSelectOption extends Html
     }
 
     /**
-     * Set group name
+     * Set group name.
+     *
      * @param string $group
+     *
      * @return static
      */
     public function setGroup($group)
@@ -33,8 +36,10 @@ class HtmlSelectOption extends Html
     }
 
     /**
-     * Set group name
+     * Set group name.
+     *
      * @param string $group
+     *
      * @return static
      */
     public function group($group)
@@ -43,7 +48,8 @@ class HtmlSelectOption extends Html
     }
 
     /**
-     * Get group name
+     * Get group name.
+     *
      * @return string|null
      */
     public function getGroup()
@@ -55,5 +61,4 @@ class HtmlSelectOption extends Html
     {
         return $this->addAttribute('disabled', null);
     }
-
 }

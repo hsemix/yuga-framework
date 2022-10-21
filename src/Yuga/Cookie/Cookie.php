@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Cookie;
 
 class Cookie
@@ -23,16 +24,16 @@ class Cookie
         if (!empty($name) && !is_null($name)) {
             if ($domain === null) {
                 $sub = explode('.', request()->getHost());
-                $domain = (count($sub) > 2) ? request()->getHost() :  request()->getHost();
+                $domain = (count($sub) > 2) ? request()->getHost() : request()->getHost();
             }
             $expiry = ($expiry === null) ? time() + 60 * 60 * 24 * 6004 : time() + $expiry;
 
             return setcookie($name, $value, (($expiry > 0) ? $expiry : null), $path, $domain, $secure);
         }
     }
-    
+
     public static function delete($name)
     {
-        return self::put($name, '', - 1);
+        return self::put($name, '', -1);
     }
 }

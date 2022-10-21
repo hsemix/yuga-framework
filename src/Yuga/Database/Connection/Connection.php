@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Connection;
 
 use PDO;
@@ -19,14 +20,15 @@ class Connection
      * @var QueryObject|null
      */
     protected $lastQuery;
+
     public function __construct(array $adapterConfig, Container $container = null)
     {
         $this->adapterConfig = $adapterConfig;
-        $this->container = $container ? $container : new Container;
+        $this->container = $container ? $container : new Container();
         $this->setAdapter($adapterConfig['driver'])->setAdapterConfig($adapterConfig)->connect();
         $this->eventHandler = $this->container->resolve(EventHandler::class);
     }
-    
+
     public function getAdapterInstance()
     {
         return $this->adapterInstance;
@@ -35,12 +37,14 @@ class Connection
     public function setAdapter($adapter)
     {
         $this->adapter = $adapter;
+
         return $this;
     }
 
     public function setAdapterConfig(array $adapterConfig)
     {
         $this->adapterConfig = $adapterConfig;
+
         return $this;
     }
 
@@ -48,13 +52,13 @@ class Connection
     {
         try {
             // Build a database connection if we don't have one connected
-            $adapter = '\Yuga\Database\Connection\Adapters\\' . ucfirst(strtolower($this->adapter));
+            $adapter = '\Yuga\Database\Connection\Adapters\\'.ucfirst(strtolower($this->adapter));
             $adapterInstance = $this->container->resolve($adapter, [$this->container]);
             $pdo = $adapterInstance->connect($this->adapterConfig);
             $this->setPdoInstance($pdo);
             $this->adapterInstance = $adapterInstance;
         } catch (PDOException $ex) {
-            die("Database selection failed: ". $ex->getMessage());
+            exit('Database selection failed: '.$ex->getMessage());
         }
 
         // Preserve the first database connection with a static property
@@ -66,6 +70,7 @@ class Connection
     public function setPdoInstance(PDO $pdo)
     {
         $this->pdoInstance = $pdo;
+
         return $this;
     }
 
@@ -106,6 +111,7 @@ class Connection
      * Set query-object for last executed query.
      *
      * @param QueryObject $query
+     *
      * @return static
      */
     public function setLastQuery(QueryObject $query)

@@ -1,22 +1,17 @@
 <?php
+
 namespace Yuga\Console;
 
-use Closure;
-use Exception;
-use Throwable;
-use Yuga\Container\Container;
-use Yuga\Interfaces\Events\Dispatcher;
+use Symfony\Component\Console\Application as Console;
+use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutput;
-use Yuga\Application\Application as YugaApplication;
-use Symfony\Component\Console\Application as Console;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Debug\Exception\FatalThrowableError;
-use Symfony\Component\Console\Command\Command as SymfonyCommand;
+use Yuga\Application\Application as YugaApplication;
+use Yuga\Container\Container;
+use Yuga\Interfaces\Events\Dispatcher;
 
 class Application extends Console
 {
@@ -39,10 +34,12 @@ class Application extends Console
         }
         $this->events->dispatch('yuga.start', [$this]);
     }
+
     /**
      * Create and boot a new Console application.
      *
-     * @param  \Yuga\Interfaces\Application\Application  $app
+     * @param \Yuga\Interfaces\Application\Application $app
+     *
      * @return \Yuga\Console\Application
      */
     public static function start($app)
@@ -58,7 +55,8 @@ class Application extends Console
     /**
      * Create a new Console application.
      *
-     * @param  \Yuga\Interfaces\Application\Application  $app
+     * @param \Yuga\Interfaces\Application\Application $app
+     *
      * @return \Yuga\Console\Application
      */
     public static function make($app)
@@ -73,7 +71,8 @@ class Application extends Console
     /**
      * Add the command to the parent instance.
      *
-     * @param  \Symfony\Component\Console\Command\Command  $command
+     * @param \Symfony\Component\Console\Command\Command $command
+     *
      * @return \Symfony\Component\Console\Command\Command
      */
     protected function addToParent(SymfonyCommand $command)
@@ -84,7 +83,8 @@ class Application extends Console
     /**
      * Add a command to the console.
      *
-     * @param  \Symfony\Component\Console\Command\Command  $command
+     * @param \Symfony\Component\Console\Command\Command $command
+     *
      * @return \Symfony\Component\Console\Command\Command
      */
     public function add(SymfonyCommand $command)
@@ -99,7 +99,8 @@ class Application extends Console
     /**
      * Add a command, resolving through the application.
      *
-     * @param  string  $command
+     * @param string $command
+     *
      * @return \Symfony\Component\Console\Command\Command
      */
     public function resolve($command)
@@ -110,14 +111,15 @@ class Application extends Console
     /**
      * Resolve an array of commands through the application.
      *
-     * @param  array|mixed  $commands
+     * @param array|mixed $commands
+     *
      * @return void
      */
     public function resolveCommands($commands)
     {
         $commands = is_array($commands) ? $commands : func_get_args();
 
-        foreach ($commands as $command)  {
+        foreach ($commands as $command) {
             $this->resolve($command);
         }
     }
@@ -125,20 +127,21 @@ class Application extends Console
     public function run(InputInterface $input = null, OutputInterface $output = null)
     {
         $commandName = $this->getCommandName(
-            $input = $input ?: new ArgvInput
+            $input = $input ?: new ArgvInput()
         );
 
         $exitCode = parent::run($input, $output);
-        
+
         return $exitCode;
     }
 
     /**
      * Run an Yuga console command by name.
      *
-     * @param  string  $command
-     * @param  array   $parameters
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param string                                            $command
+     * @param array                                             $parameters
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     *
      * @return void
      */
     public function call($command, array $parameters = [], OutputInterface $output = null)
@@ -148,7 +151,7 @@ class Application extends Console
         // Unless an output interface implementation was specifically passed to us we
         // will use the "NullOutput" implementation by default to keep any writing
         // suppressed so it doesn't leak out to the browser or any other source.
-        $output = $output ?? new NullOutput;
+        $output = $output ?? new NullOutput();
 
         $input = new ArrayInput($parameters);
 

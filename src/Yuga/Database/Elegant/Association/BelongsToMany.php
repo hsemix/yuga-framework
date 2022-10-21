@@ -2,9 +2,8 @@
 
 namespace Yuga\Database\Elegant\Association;
 
-use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Builder;
-use Yuga\Database\Elegant\Collection;
+use Yuga\Database\Elegant\Model;
 
 class BelongsToMany extends Association
 {
@@ -35,7 +34,8 @@ class BelongsToMany extends Association
     protected function setWhereClause()
     {
         $foreign = $this->getForeignKey();
-        $this->query->where($foreign, '=', $this->getParentIdValue());//->select($this->query->from.'.*');
+        $this->query->where($foreign, '=', $this->getParentIdValue()); //->select($this->query->from.'.*');
+
         return $this;
     }
 
@@ -53,14 +53,14 @@ class BelongsToMany extends Association
     {
         $query = $query ? $query : $this->query;
         $baseTable = $this->query->getModel()->getTable();
-        
+
         $key = $baseTable.'.'.$this->query->getModel()->getPrimaryKey();
-        
+
         $query->join($this->table, $key, '=', $this->getOtherKey())->select($baseTable.'.*');
-        
+
         return $this;
     }
-    
+
     protected function getOtherKey()
     {
         return $this->table.'.'.$this->otherKey;

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Yuga\Queue\Console;
 
@@ -10,13 +10,13 @@ use Yuga\Console\Command;
  */
 class MakeQueueRetryCommand extends Command
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
-	protected $name = 'queue:retry';
-    
+    /**
+     * The Command's name.
+     *
+     * @var string
+     */
+    protected $name = 'queue:retry';
+
     /**
      * The console command description.
      *
@@ -24,19 +24,18 @@ class MakeQueueRetryCommand extends Command
      */
     protected $description = 'Retries a failed queue job';
 
-
-	/**
-	 * Creates a queue table
-	 */
-	public function handle()
-	{
-		$cli = new CLI;
+    /**
+     * Creates a queue table.
+     */
+    public function handle()
+    {
+        $cli = new CLI();
         $cli->writeLine('Resetting Failed Jobs Queue...', 'yellow');
 
         $queue = $this->yuga['queue'];
 
-		$queue->reset();
+        $queue->reset();
 
-		$cli->writeLine('Completed Resetting Failed Jobs the queue can now retry them', 'green');
-	}
+        $cli->writeLine('Completed Resetting Failed Jobs the queue can now retry them', 'green');
+    }
 }

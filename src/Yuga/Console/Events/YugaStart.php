@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Console\Events;
 
 use Yuga\Events\Event;
@@ -16,7 +17,8 @@ class YugaStart extends Event
     /**
      * Create a new event instance.
      *
-     * @param  \Yuga\Interfaces\Application\Application  $yuga
+     * @param \Yuga\Interfaces\Application\Application $yuga
+     *
      * @return void
      */
     public function __construct(Application $yuga)

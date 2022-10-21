@@ -3,17 +3,17 @@
 namespace Yuga\Events;
 
 use Yuga\Console\Events\YugaStart;
-use Yuga\Providers\ServiceProvider;
 use Yuga\Interfaces\Application\Application;
 use Yuga\Interfaces\Events\Dispatcher as IDispatcher;
+use Yuga\Providers\ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
 {
     protected $app;
     /**
      * All Yuga default events registered here!
-     * 
-     * @var array $events
+     *
+     * @var array
      */
     protected $events = [
         'on:app-start'      => \Yuga\EventHandlers\ApplicationStart::class,
@@ -28,10 +28,10 @@ class EventServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Boot the event service provider with $app 
-     * 
+     * Boot the event service provider with $app.
+     *
      * @param \Yuga\Interfaces\Application\Application $app
-     * 
+     *
      * @return void
      */
     public function __construct(Application $app)
@@ -40,10 +40,10 @@ class EventServiceProvider extends ServiceProvider
     }
 
     /**
-     * Load a service provider
-     * 
+     * Load a service provider.
+     *
      * @param \Yuga\Interfaces\Application\Application $app
-     * 
+     *
      * @return mixed
      */
     public function load(Application $app)
@@ -57,12 +57,12 @@ class EventServiceProvider extends ServiceProvider
             });
         }
     }
-    
+
     /**
-     * Load all event handlers that have been registered by the developer
-     * 
+     * Load all event handlers that have been registered by the developer.
+     *
      * @param \Yuga\Events\IDispatcher $dispatcher
-     * 
+     *
      * @return \Yuga\Events\Event $dispatcher
      */
     protected function loadEvents(IDispatcher $dispatcher)
@@ -71,7 +71,7 @@ class EventServiceProvider extends ServiceProvider
         if (\file_exists(path('config/AppEvents.php'))) {
             $otherApplicationEvents = require path('config/AppEvents.php');
         }
-        $handlers = array_merge($this->events,  $otherApplicationEvents);
+        $handlers = array_merge($this->events, $otherApplicationEvents);
 
         foreach ($handlers as $event => $handles) {
             if (is_array($handles)) {
@@ -86,6 +86,7 @@ class EventServiceProvider extends ServiceProvider
                 $dispatcher->attach($event, $this->app->resolve($handles));
             }
         }
+
         return $dispatcher;
     }
 }

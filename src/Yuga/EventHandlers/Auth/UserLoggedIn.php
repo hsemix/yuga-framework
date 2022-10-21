@@ -8,6 +8,5 @@ class UserLoggedIn implements HandlerInterface
 {
     public function handle($event)
     {
-        
     }
 }

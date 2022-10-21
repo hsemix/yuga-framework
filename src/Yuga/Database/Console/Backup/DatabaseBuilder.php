@@ -4,13 +4,11 @@ namespace Yuga\Database\Console\Backup;
 
 use Exception;
 
-
 class DatabaseBuilder
 {
     protected $database;
 
     protected $console;
-
 
     public function __construct(Console $console)
     {
@@ -23,9 +21,9 @@ class DatabaseBuilder
 
         if ($driver == 'mysql') {
             return $this->buildMySQL($config);
-        } else if ($driver == 'sqlite') {
+        } elseif ($driver == 'sqlite') {
             return $this->buildSqlite($config);
-        } else if ($driver == 'pgsql') {
+        } elseif ($driver == 'pgsql') {
             return $this->buildPostgres($config);
         }
 

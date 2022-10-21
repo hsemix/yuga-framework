@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Authenticate\Shared;
 
 use Yuga\Database\Elegant\Model;
@@ -6,22 +7,22 @@ use Yuga\Database\Elegant\Model;
 trait CanBeRemembered
 {
     /**
-     * Remember the user or save the user's setting that they want to be remembered
-     * 
+     * Remember the user or save the user's setting that they want to be remembered.
+     *
      * @param \Yuga\Database\Elegant\Model $model
-     * 
+     *
      * @return any
      */
     protected function rememberUser(Model $model)
     {
-       return $this->checkRemember($model);
+        return $this->checkRemember($model);
     }
 
     /**
-     * Check whether or not the user has asked to be remembered before
-     * 
+     * Check whether or not the user has asked to be remembered before.
+     *
      * @param \Yuga\Database\Elegant\Model $model
-     * 
+     *
      * @return null
      */
     protected function checkRemember(Model $model)

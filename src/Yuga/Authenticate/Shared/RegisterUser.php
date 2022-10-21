@@ -1,17 +1,19 @@
 <?php
+
 namespace Yuga\Authenticate\Shared;
 
+use App\Handlers\EmailConfirmation;
+use App\ViewModels\Register;
+use Yuga\EventHandlers\Auth\EmailConfirmation as OtherwiseHandler;
 use Yuga\Events\Event;
 use Yuga\Http\Request;
 use Yuga\Session\Session;
 use Yuga\Shared\Paradigm;
-use App\ViewModels\Register;
-use App\Handlers\EmailConfirmation;
-use Yuga\EventHandlers\Auth\EmailConfirmation as OtherwiseHandler;
 
 trait RegisterUser
 {
-    use RedirectUser, Paradigm;
+    use RedirectUser;
+    use Paradigm;
 
     /**
      * Show the application registration form.
@@ -24,8 +26,8 @@ trait RegisterUser
     }
 
     /**
-     * Return the appropriete view basing on the app settings in .env
-     * 
+     * Return the appropriete view basing on the app settings in .env.
+     *
      * @return string|ViewModel $view
      */
     public function getView()
@@ -33,15 +35,17 @@ trait RegisterUser
         if ($this->getStyle() == 'mvc') {
             $view = 'auth.register';
         } else {
-            $view = new Register;
+            $view = new Register();
         }
+
         return $view;
     }
 
     /**
      * Handle a registration request for the application.
      *
-     * @param  \Yuga\Http\Request  $request
+     * @param \Yuga\Http\Request $request
+     *
      * @return \Yuga\Http\Response
      */
     public function register(Request $request, Session $auth)
@@ -49,7 +53,7 @@ trait RegisterUser
         $this->validator($request);
 
         $eventClass = Event::class;
-       
+
         $handleClass = OtherwiseHandler::class;
 
         if (class_exists(EmailConfirmation::class)) {
@@ -66,8 +70,9 @@ trait RegisterUser
     /**
      * The user has been registered.
      *
-     * @param  \Yuga\Http\Request  $request
-     * @param  mixed  $user
+     * @param \Yuga\Http\Request $request
+     * @param mixed              $user
+     *
      * @return mixed
      */
     protected function registered(Request $request, $user)

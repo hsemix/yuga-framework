@@ -3,12 +3,11 @@
 namespace Yuga\JWTAuth;
 
 use DateTime;
-use Yuga\JWTAuth\Token;
 
 trait UsesJWTTokens
 {
     /**
-     * Create a JWT Token to be used for authorization
+     * Create a JWT Token to be used for authorization.
      */
     public function createToken($payload, $secret = null)
     {
@@ -16,7 +15,7 @@ trait UsesJWTTokens
     }
 
     /**
-     * Verify a JWT Token to be used for authorization
+     * Verify a JWT Token to be used for authorization.
      */
     public function verifyToken($token, $secret = null)
     {
@@ -24,7 +23,7 @@ trait UsesJWTTokens
     }
 
     /**
-     * Generate some defaults for the payload
+     * Generate some defaults for the payload.
      */
     public function generateDefaults(array $payload = []): array
     {
@@ -52,6 +51,5 @@ trait UsesJWTTokens
 
             return $payload;
         }
-        
     }
 }

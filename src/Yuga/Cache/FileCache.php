@@ -56,7 +56,7 @@ class FileCache extends CacheAbstract
         $file = $this->getFile($key);
 
         if (file_exists($file) and !is_readable($file)) {
-            throw new CacheException('Cache item `' . $key . '` is not readable.');
+            throw new CacheException('Cache item `'.$key.'` is not readable.');
         }
 
         if ($this->isFileExpired($file)) {
@@ -74,7 +74,7 @@ class FileCache extends CacheAbstract
     {
         $this->validatePath();
 
-        file_put_contents($this->getNewFile($key), $this->getExpiresAt($ttl) . PHP_EOL . $this->serialize($value));
+        file_put_contents($this->getNewFile($key), $this->getExpiresAt($ttl).PHP_EOL.$this->serialize($value));
 
         return $this;
     }
@@ -86,7 +86,7 @@ class FileCache extends CacheAbstract
 
     public function clear()
     {
-        $files = glob($this->path . DIRECTORY_SEPARATOR . '*' . self::EXTENSION);
+        $files = glob($this->path.DIRECTORY_SEPARATOR.'*'.self::EXTENSION);
 
         foreach ($files as $file) {
             unlink($file);
@@ -97,7 +97,7 @@ class FileCache extends CacheAbstract
 
     public function collectGarbage()
     {
-        $files = glob($this->path . DIRECTORY_SEPARATOR . '*' . self::EXTENSION);
+        $files = glob($this->path.DIRECTORY_SEPARATOR.'*'.self::EXTENSION);
 
         foreach ($files as $file) {
             $ttl = $this->getFileTTL($file);
@@ -129,7 +129,7 @@ class FileCache extends CacheAbstract
 
     protected function getFile(string $key): string
     {
-        return $this->path . DIRECTORY_SEPARATOR . md5($key) . self::EXTENSION;
+        return $this->path.DIRECTORY_SEPARATOR.md5($key).self::EXTENSION;
     }
 
     protected function getNewFile(string $key)

@@ -1,9 +1,10 @@
 <?php
+
 namespace Yuga\Authenticate\Shared;
 
-use Yuga\Validate\Message;
-use Yuga\Database\Elegant\Model;
 use Yuga\Authenticate\Exceptions\FieldNameMisMatch;
+use Yuga\Database\Elegant\Model;
+use Yuga\Validate\Message;
 
 trait CanLogin
 {
@@ -25,8 +26,8 @@ trait CanLogin
     protected function checkValidators($loginFormUsernameField, $loginFormPasswordField, $usernameValue, $passwordValue, $remember = null)
     {
         // model fields
-        $fields                 = explode(',', env('AUTH_MODEL_USERNAME_FIELDS', 'username'));
-        $modelPasswordField     = env('AUTH_MODEL_PASSWORD_FIELD', 'password');
+        $fields = explode(',', env('AUTH_MODEL_USERNAME_FIELDS', 'username'));
+        $modelPasswordField = env('AUTH_MODEL_PASSWORD_FIELD', 'password');
 
         return $this->checkUserName($this->model, $fields, $usernameValue, $loginFormUsernameField, $passwordValue, $loginFormPasswordField, $modelPasswordField, $remember);
     }
@@ -41,18 +42,20 @@ trait CanLogin
             }
         }
         if (!$this->userNotFound($model, $firstField, $fields, $loginFormUsernameField) instanceof Message) {
-            if ($fetched = $login->first()) { 
+            if ($fetched = $login->first()) {
                 if (!$this->verifyPassword($fetched, $passwordValue, $modelPasswordField, $loginFormUsernameField) instanceof Message) {
                     $this->session->login($fetched);
 
-                    $remember = ($remember === 'on' || $remember === '1') ? true: false;
+                    $remember = ($remember === 'on' || $remember === '1') ? true : false;
                     if ($remember) {
                         $this->rememberUser($fetched);
                     }
-                    if ($this->request->isAjax()) 
+                    if ($this->request->isAjax()) {
                         return $this->validate->errors();
+                    }
+
                     return true;
-                }  else {
+                } else {
                     return $this->verifyPassword($fetched, $passwordValue, $modelPasswordField, $loginFormUsernameField);
                 }
             }
@@ -65,7 +68,7 @@ trait CanLogin
     {
         $this->hash->setAlgorithm($this->getAuthMethod());
         $crypt_password = $this->hash->password($password, $this->getSalt($user));
-        
+
         $userPassword = $user->$passwordField;
         $this->validate->addRuleMessage('found', 'Password or and Username mismatch!');
         $this->validate->addRule('found', function ($field, $value, $args) use ($crypt_password) {
@@ -74,19 +77,21 @@ trait CanLogin
         $validation = $this->validate->validator([
             $loginFormPasswordField => [
                 'found' => $userPassword,
-            ]
+            ],
         ]);
-        
+
         event('on:authenticate', ['user' => $user]);
-        if ($this->request->isAjax()) 
+        if ($this->request->isAjax()) {
             return (!$validation->hasErrors()) ? true : $validation;
+        }
+
         return ($validation->passed()) ? true : false;
     }
 
     protected function userNotFound($user, $firstField, $fields, $loginFormUsernameField)
     {
         $this->validate->addRuleMessage('userfound', 'Username Does not exist');
-        $this->validate->addRule('userfound', function($field, $value, $args) use ($user, $firstField, $fields) {
+        $this->validate->addRule('userfound', function ($field, $value, $args) use ($user, $firstField, $fields) {
             $loginUser = $user->where($firstField, $value);
 
             if (count($fields) > 0) {
@@ -94,28 +99,30 @@ trait CanLogin
                     $loginUser->orWhere($field, $value);
                 }
             }
-            return ($loginUser->first())? : false;
+
+            return ($loginUser->first()) ?: false;
         });
-        
+
         $validation = $this->validate->validator([
             $loginFormUsernameField => [
                 'userfound' => true,
-            ]
+            ],
         ]);
-        if ($this->request->isAjax()) 
+        if ($this->request->isAjax()) {
             return (!$validation->hasErrors()) ? true : $validation;
+        }
+
         return ($validation->passed()) ? true : false;
     }
 
     public function getSalt(Model $model)
     {
-
         $modelUserSalt = env('AUTH_MODEL_TOKEN_FIELD');
         $appSecret = env('APP_SECRET', 'NoApplicationSecret');
         if (is_null($modelUserSalt)) {
             $modelUserSalt = $appSecret;
         } else {
-            $modelUserSalt = $model->$modelUserSalt?:$appSecret;
+            $modelUserSalt = $model->$modelUserSalt ?: $appSecret;
         }
 
         return $modelUserSalt;

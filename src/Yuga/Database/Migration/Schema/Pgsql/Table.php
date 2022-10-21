@@ -3,13 +3,13 @@
 namespace Yuga\Database\Migration\Schema\Pgsql;
 
 use Yuga\Database\Migration\PDO;
-use Yuga\Database\Migration\Schema\Pgsql\Column;
 use Yuga\Database\Migration\Schema\Table as SqlTable;
 
 class Table extends SqlTable
 {
     protected $name;
     protected $columns = [];
+
     public function __construct($name = null, $getTableSchema = false)
     {
         $this->name = $name;
@@ -18,8 +18,10 @@ class Table extends SqlTable
             $this->getTableColumns();
         }
     }
+
     /**
      * @param $name
+     *
      * @return Column
      */
     public function column($name)
@@ -52,13 +54,15 @@ class Table extends SqlTable
     }
 
     /**
-     * Create timestamp columns
+     * Create timestamp columns.
+     *
      * @return static $this
      */
     public function timestamps()
     {
         $this->column('updated_at')->datetime()->nullable()->index();
         $this->column('created_at')->datetime()->index();
+
         return $this;
     }
 
@@ -116,11 +120,11 @@ class Table extends SqlTable
 
     public function exists()
     {
-        return (PDO::getInstance()->value('SELECT EXISTS (SELECT 1 FROM   information_schema.tables WHERE  table_schema = ? AND table_name = ?);', [env('DATABASE_SCHEMA', 'public'), $this->name]) !== false);
+        return PDO::getInstance()->value('SELECT EXISTS (SELECT 1 FROM   information_schema.tables WHERE  table_schema = ? AND table_name = ?);', [env('DATABASE_SCHEMA', 'public'), $this->name]) !== false;
     }
 
     /**
-     * Create table
+     * Create table.
      */
     public function create()
     {
@@ -143,7 +147,7 @@ class Table extends SqlTable
 
             /* @var $column Column */
             foreach ($this->columns as $column) {
-                $sql = sprintf('ALTER TABLE "%s" ALTER COLUMN "%s" TYPE %s', $this->name, $column->getName(), str_replace('"' . $column->getName() . '"', '', $column->getQuery(false)));
+                $sql = sprintf('ALTER TABLE "%s" ALTER COLUMN "%s" TYPE %s', $this->name, $column->getName(), str_replace('"'.$column->getName().'"', '', $column->getQuery(false)));
 
                 //NULL and DEFAULT cannot be set while changing column type
                 $sql = preg_replace('/ not null/', '', $sql);
@@ -153,7 +157,7 @@ class Table extends SqlTable
                 PDO::getInstance()->nonQuery($sql);
                 if ($column->getKeyRelationsQuery() !== '') {
                     PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" ADD %s', $this->name, $column->getKeyRelationsQuery()));
-                }   
+                }
             }
         }
     }
@@ -162,14 +166,14 @@ class Table extends SqlTable
     {
         if ($this->exists()) {
             $result = PDO::getInstance()->doQuery(sprintf("SELECT column_name FROM information_schema.columns WHERE table_name='%s' and column_name='%s'", $this->name, $column));
-            return ($result->rowCount() == 1) ? true : false;   
-        }
 
+            return ($result->rowCount() == 1) ? true : false;
+        }
     }
 
     public function rename($name)
     {
-        PDO::getInstance()->nonQuery('ALTER TABLE "' . $this->name . '" RENAME TO "' . $name . '";');
+        PDO::getInstance()->nonQuery('ALTER TABLE "'.$this->name.'" RENAME TO "'.$name.'";');
         $this->name = $name;
     }
 
@@ -192,19 +196,19 @@ class Table extends SqlTable
     public function dropIndex(array $indexes)
     {
         foreach ($indexes as $index) {
-            PDO::getInstance()->nonQuery('ALTER TABLE "' . $this->name . '" DROP INDEX "' . $index . '"');
+            PDO::getInstance()->nonQuery('ALTER TABLE "'.$this->name.'" DROP INDEX "'.$index.'"');
         }
     }
 
     public function dropPrimary()
     {
-        PDO::getInstance()->nonQuery('ALTER TABLE "' . $this->name . '" DROP PRIMARY KEY');
+        PDO::getInstance()->nonQuery('ALTER TABLE "'.$this->name.'" DROP PRIMARY KEY');
     }
 
     public function dropForeign(array $indexes)
     {
         foreach ($indexes as $index) {
-            PDO::getInstance()->nonQuery('ALTER TABLE "' . $this->name . '" DROP FOREIGN KEY "' . $index . '"');
+            PDO::getInstance()->nonQuery('ALTER TABLE "'.$this->name.'" DROP FOREIGN KEY "'.$index.'"');
         }
     }
 
@@ -217,12 +221,12 @@ class Table extends SqlTable
 
     public function truncate()
     {
-        PDO::getInstance()->nonQuery('TRUNCATE TABLE "'. $this->name .'";');
+        PDO::getInstance()->nonQuery('TRUNCATE TABLE "'.$this->name.'";');
     }
 
     public function drop()
     {
-        PDO::getInstance()->nonQuery('DROP TABLE "' . $this->name . '";');
+        PDO::getInstance()->nonQuery('DROP TABLE "'.$this->name.'";');
     }
 
     public function getTableColumns()
@@ -242,6 +246,7 @@ class Table extends SqlTable
                 // }
             }
         }
+
         return $this;
     }
 }

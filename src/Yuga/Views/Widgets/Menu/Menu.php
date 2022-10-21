@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\Widgets\Menu;
 
 use Yuga\Views\Widgets\Html\Html;
@@ -26,7 +27,9 @@ class Menu
 
     /**
      * Get active tab by index.
+     *
      * @param int $index
+     *
      * @return \Yuga\Views\Widgets\Menu\MenuItem
      */
     public function getItem($index)
@@ -36,6 +39,7 @@ class Menu
 
     /**
      * Returns first item.
+     *
      * @return \Yuga\Views\Widgets\Menu\MenuItem|null
      */
     public function getFirst()
@@ -49,6 +53,7 @@ class Menu
 
     /**
      * Returns last item.
+     *
      * @return \Yuga\Views\Widgets\Menu\MenuItem|null
      */
     public function getLast()
@@ -58,7 +63,9 @@ class Menu
 
     /**
      * Check if the item-index exists.
+     *
      * @param int $index
+     *
      * @return bool
      */
     public function hasItem($index)
@@ -72,7 +79,8 @@ class Menu
     }
 
     /**
-     * Add form content
+     * Add form content.
+     *
      * @param \Yuga\Views\Widgets\Html\Html $element
      */
     public function addContent(Html $element)
@@ -81,7 +89,8 @@ class Menu
     }
 
     /**
-     * Add form content
+     * Add form content.
+     *
      * @param \Yuga\Views\Widgets\Menu\Menu $element
      */
     public function addMenu(Menu $element)
@@ -90,7 +99,8 @@ class Menu
     }
 
     /**
-     * Get form content, if any
+     * Get form content, if any.
+     *
      * @return array
      */
     public function getContent()
@@ -99,10 +109,11 @@ class Menu
     }
 
     /**
-     * Add new item
+     * Add new item.
      *
      * @param string $name
      * @param string $url
+     *
      * @return \Yuga\Views\Widgets\Menu\MenuItem
      */
     public function addItem($name, $url, $html = false)
@@ -115,9 +126,10 @@ class Menu
     }
 
     /**
-     * Add new item
+     * Add new item.
      *
      * @param \Yuga\Views\Widgets\Menu\MenuItem $item
+     *
      * @return static
      */
     public function addMenuItem(MenuItem $item)
@@ -128,8 +140,10 @@ class Menu
     }
 
     /**
-     * Set item-class
+     * Set item-class.
+     *
      * @param string $name
+     *
      * @return static
      */
     public function setClass($name)
@@ -168,9 +182,10 @@ class Menu
     }
 
     /**
-     * Set parent menu-item
+     * Set parent menu-item.
      *
      * @param MenuItem $parent
+     *
      * @return static
      */
     public function setParent(MenuItem $parent)
@@ -181,7 +196,8 @@ class Menu
     }
 
     /**
-     * Get parent menu-item
+     * Get parent menu-item.
+     *
      * @return MenuItem|null
      */
     public function getParent()
@@ -193,7 +209,6 @@ class Menu
     {
         /* @var $item MenuItem */
         foreach ($this->items as $item) {
-
             if ($recursive === true && $item->getMenu() !== null) {
                 $subItem = $item->getMenu()->findItemByUrl($url, $strict, $recursive);
                 if ($subItem !== null) {
@@ -216,7 +231,6 @@ class Menu
                     return $item;
                 }
             }
-
         }
 
         return null;
@@ -226,7 +240,6 @@ class Menu
     {
         /* @var $item MenuItem */
         foreach ($this->items as $item) {
-
             if ($recursive === true && $item->getMenu() !== null) {
                 $subItem = $item->getMenu()->findItemByAttribute($name, $value, $strict, $recursive);
                 if ($subItem !== null) {
@@ -237,7 +250,6 @@ class Menu
             $attributes = $item->getAttributes();
 
             if ($attributes !== null && isset($attributes[$name])) {
-
                 if ($strict === true) {
                     if (in_array($value, $attributes[$name], true) === true) {
                         return $item;
@@ -247,7 +259,6 @@ class Menu
                         return $item;
                     }
                 }
-
             }
         }
 
@@ -260,7 +271,7 @@ class Menu
             $output = ' ';
             /* Run through each attribute */
             foreach ($attributes as $name => $value) {
-                $output .= $name . '="' . join(' ', $value) . '"';
+                $output .= $name.'="'.join(' ', $value).'"';
             }
 
             return $output;
@@ -270,15 +281,15 @@ class Menu
     }
 
     /**
-     * Write html
+     * Write html.
+     *
      * @return string
      */
     public function __toString()
     {
         $o = '';
         if (count($this->items)) {
-
-            $o .= '<' . $this->parentTag . ($this->class ? ' class="' . $this->class . '"' : '');
+            $o .= '<'.$this->parentTag.($this->class ? ' class="'.$this->class.'"' : '');
 
             if (count($this->attributes)) {
                 $o .= $this->formatAttributes($this->attributes);
@@ -290,15 +301,16 @@ class Menu
             foreach ($this->items as $key => $menuItem) {
                 /* Write html */
 
-                $o .= '<' . $this->childTag . $this->formatAttributes($menuItem->getAttributes()) . '>';
-                $o .= '<a href="' . $menuItem->getUrl() . '"' .
-                    $this->formatAttributes($menuItem->getLinkAttributes()) . '>' .
+                $o .= '<'.$this->childTag.$this->formatAttributes($menuItem->getAttributes()).'>';
+                $o .= '<a href="'.$menuItem->getUrl().'"'.
+                    $this->formatAttributes($menuItem->getLinkAttributes()).'>'.
                     $menuItem->getLinkIcon();
 
-                    if(!$menuItem->getReturnHtml()) 
-                        $o .= htmlspecialchars($menuItem->getName());
-                    else
-                        $o .= $menuItem->getName();
+                if (!$menuItem->getReturnHtml()) {
+                    $o .= htmlspecialchars($menuItem->getName());
+                } else {
+                    $o .= $menuItem->getName();
+                }
                 $o .= '</a>';
 
                 $inner = $menuItem->getInnerContent();
@@ -317,10 +329,10 @@ class Menu
                     $o .= $this->content[$key]->__toString();
                 }
 
-                $o .= '</' . $this->childTag . '>';
+                $o .= '</'.$this->childTag.'>';
             }
 
-            $o .= '</' . $this->parentTag . '>';
+            $o .= '</'.$this->parentTag.'>';
 
             return $o;
         }

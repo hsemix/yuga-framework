@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Connection\Adapters;
 
 use PDO;
@@ -11,7 +12,6 @@ class Pgsql extends BaseAdapter
     /**
      * @param array $config
      *
-     * @return PDO
      * @throws \Yuga\Database\Query\Exceptions\TableNotFoundException
      * @throws \Yuga\Database\Query\Exceptions\ConnectionException
      * @throws \Yuga\Database\Query\Exceptions\ColumnNotFoundException
@@ -21,6 +21,8 @@ class Pgsql extends BaseAdapter
      * @throws \Yuga\Database\Query\Exceptions\DuplicateKeyException
      * @throws \Yuga\Database\Query\Exceptions\ForeignKeyException
      * @throws \Yuga\Database\Query\Exceptions\NotNullException
+     *
+     * @return PDO
      */
     protected function doConnect($config)
     {
@@ -35,7 +37,6 @@ class Pgsql extends BaseAdapter
         }
 
         try {
-
             $connection = new PDO($connectionString, $config['username'], $config['password'], $config['options']);
 
             if (isset($config['charset']) === true) {
@@ -45,7 +46,6 @@ class Pgsql extends BaseAdapter
             if (isset($config['schema']) === true) {
                 $connection->prepare("SET search_path TO '{$config['schema']}'")->execute();
             }
-
         } catch (PDOException $e) {
             throw DatabaseQueryException::create($e, $this->getQueryAdapterClass());
         }
@@ -54,7 +54,8 @@ class Pgsql extends BaseAdapter
     }
 
     /**
-     * Get query adapter class
+     * Get query adapter class.
+     *
      * @return string
      */
     public function getQueryAdapterClass()

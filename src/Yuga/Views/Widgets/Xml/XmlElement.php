@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\Widgets\Xml;
 
 use Yuga\ArrayUtil;
@@ -6,7 +7,6 @@ use Yuga\Views\Widgets\Xml\Support\IXmlNode;
 
 class XmlElement implements IXmlNode
 {
-
     private $tag;
     private $parent;
     private $attrs = [];
@@ -61,6 +61,7 @@ class XmlElement implements IXmlNode
     public function setParent($parent)
     {
         $this->parent = $parent;
+
         return $this;
     }
 
@@ -113,7 +114,7 @@ class XmlElement implements IXmlNode
     public function setChildAt($i, IXmlNode $node)
     {
         if ($i < 0 || $i > count($this->children)) {
-            throw new \Exception ("Child offset out of bounds: $i. Child count : " . count($this->children));
+            throw new \Exception("Child offset out of bounds: $i. Child count : ".count($this->children));
         }
         unset($this->children[$i]);
         $this->children[intval($i)] = $node;
@@ -125,7 +126,7 @@ class XmlElement implements IXmlNode
     public function removeChildAt($i)
     {
         if ($i < 0 || $i > count($this->children)) {
-            throw new \Exception ("Child offset out of bounds: $i. Child count : " . count($this->children));
+            throw new \Exception("Child offset out of bounds: $i. Child count : ".count($this->children));
         }
         unset($this->children[$i]);
         $this->children = array_values($this->children);
@@ -141,7 +142,7 @@ class XmlElement implements IXmlNode
     public function addChildAt($offset, IXmlNode $node)
     {
         if ($offset < 0) {
-            throw new \Exception ("Child offset must be greater than -1" . count($this->children));
+            throw new \Exception('Child offset must be greater than -1'.count($this->children));
         }
         $result = [];
         if ($offset >= count($this->children)) {
@@ -218,14 +219,14 @@ class XmlElement implements IXmlNode
 
     public function toXml($makeParent = true)
     {
-        $str = "";
+        $str = '';
         if (!$this->parent && $makeParent) {
-            $str = '<?xml version="1.0" encoding="UTF-8" ?>' . chr(10);
+            $str = '<?xml version="1.0" encoding="UTF-8" ?>'.chr(10);
         }
-        $str .= "<";
+        $str .= '<';
         $tagName = '';
         if ($this->getNs() != '') {
-            $tagName .= $this->getNs() . ':';
+            $tagName .= $this->getNs().':';
         }
         $tagName .= $this->tag;
         $str .= $tagName;
@@ -248,5 +249,4 @@ class XmlElement implements IXmlNode
 
         return $str;
     }
-
 }

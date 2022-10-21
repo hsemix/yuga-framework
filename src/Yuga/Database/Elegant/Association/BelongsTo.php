@@ -2,13 +2,11 @@
 
 namespace Yuga\Database\Elegant\Association;
 
-use Yuga\Database\Elegant\Model;
 use Yuga\Database\Elegant\Builder;
-use Yuga\Database\Elegant\Collection;
+use Yuga\Database\Elegant\Model;
 
 class BelongsTo extends Association
 {
-
     protected $child;
     protected $otherKey;
     protected $foreignKey;

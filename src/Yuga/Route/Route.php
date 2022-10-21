@@ -2,101 +2,104 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Route;
 
 use Closure;
-use Yuga\Http\Uri;
-use Yuga\Http\Request;
+use Yuga\Exceptions\CallbackException;
+use Yuga\Http\Exceptions\BadFormedUrlException;
+use Yuga\Http\Middleware\BaseCsrfVerifier;
 use Yuga\Http\Redirect;
+use Yuga\Http\Request;
 use Yuga\Http\Response;
-use Yuga\Route\Support\IRoute;
-use Yuga\Route\Router\RouteUrl;
+use Yuga\Http\Uri;
+use Yuga\Route\Router\RouteController;
 use Yuga\Route\Router\RouteGroup;
 use Yuga\Route\Router\RouteResource;
-use Yuga\Exceptions\CallbackException;
-use Yuga\Route\Router\RouteController;
-use Yuga\Http\Middleware\BaseCsrfVerifier;
-use Yuga\Http\Exceptions\BadFormedUrlException;
+use Yuga\Route\Router\RouteUrl;
+use Yuga\Route\Support\IRoute;
 
 class Route
 {
     /**
-    * Default namespace added to all routes
-    * @var string
-    */
+     * Default namespace added to all routes.
+     *
+     * @var string
+     */
     protected static $defaultNamespace;
-     
+
     /**
-    * The response object
-    * @var Response
-    */
+     * The response object.
+     *
+     * @var Response
+     */
     protected static $response;
 
     /**
-    * Router instance
-    * @var Router
-    */
+     * Router instance.
+     *
+     * @var Router
+     */
     protected static $router;
 
     /**
-    * Start/route request
-    *
-    * @throws HttpException
-    * @throws NotFoundHttpException
-    */
+     * Start/route request.
+     *
+     * @throws HttpException
+     * @throws NotFoundHttpException
+     */
     public static function start()
     {
         static::router()->routeRequest();
     }
-     
+
     /**
      * Route the given url to your callback on GET request method.
      *
-     * @param string $url
+     * @param string          $url
      * @param string|\Closure $callback
-     * @param array|null $settings
+     * @param array|null      $settings
+     *
      * @return RouteUrl
      */
-     public static function get($url, $callback, array $settings = null)
-     {
-         return static::match(['get'], $url, $callback, $settings);
-     }    
+    public static function get($url, $callback, array $settings = null)
+    {
+        return static::match(['get'], $url, $callback, $settings);
+    }
 
     /**
      * Set default namespace which will be prepended to all routes.
      *
      * @param string $defaultNamespace
      */
-     public static function setDefaultNamespace($defaultNamespace)
-     {
-         static::$defaultNamespace = $defaultNamespace;
-     }
+    public static function setDefaultNamespace($defaultNamespace)
+    {
+        static::$defaultNamespace = $defaultNamespace;
+    }
 
-     /**
+    /**
      * Prepends the default namespace to all new routes added.
      *
      * @param IRoute $route
+     *
      * @return IRoute
      */
     public static function addDefaultNamespace(IRoute $route)
     {
         if (static::$defaultNamespace !== null) {
-
             $callback = $route->getCallback();
 
             /* Only add default namespace on relative callbacks */
             if ($callback === null || $callback[0] !== '\\') {
-
                 $namespace = static::$defaultNamespace;
 
                 $currentNamespace = $route->getNamespace();
 
                 if ($currentNamespace !== null) {
-                    $namespace .= '\\' . $currentNamespace;
+                    $namespace .= '\\'.$currentNamespace;
                 }
 
                 $route->setDefaultNamespace($namespace);
-
             }
         }
 
@@ -106,9 +109,10 @@ class Route
     /**
      * Route the given url to your callback on POST request method.
      *
-     * @param string $url
+     * @param string          $url
      * @param string|\Closure $callback
-     * @param array|null $settings
+     * @param array|null      $settings
+     *
      * @return RouteUrl
      */
     public static function post($url, $callback, array $settings = null)
@@ -118,12 +122,13 @@ class Route
 
     /**
      * Route the given url to your callback on PUT request method.
-    *
-    * @param string $url
-    * @param string|\Closure $callback
-    * @param array|null $settings
-    * @return RouteUrl
-    */
+     *
+     * @param string          $url
+     * @param string|\Closure $callback
+     * @param array|null      $settings
+     *
+     * @return RouteUrl
+     */
     public static function put($url, $callback, array $settings = null)
     {
         return static::match(['put'], $url, $callback, $settings);
@@ -131,12 +136,13 @@ class Route
 
     /**
      * Route the given url to your callback on PATCH request method.
-    *
-    * @param string $url
-    * @param string|\Closure $callback
-    * @param array|null $settings
-    * @return RouteUrl
-    */
+     *
+     * @param string          $url
+     * @param string|\Closure $callback
+     * @param array|null      $settings
+     *
+     * @return RouteUrl
+     */
     public static function patch($url, $callback, array $settings = null)
     {
         return static::match(['patch'], $url, $callback, $settings);
@@ -144,12 +150,13 @@ class Route
 
     /**
      * Route the given url to your callback on OPTIONS request method.
-    *
-    * @param string $url
-    * @param string|\Closure $callback
-    * @param array|null $settings
-    * @return RouteUrl
-    */
+     *
+     * @param string          $url
+     * @param string|\Closure $callback
+     * @param array|null      $settings
+     *
+     * @return RouteUrl
+     */
     public static function options($url, $callback, array $settings = null)
     {
         return static::match(['options'], $url, $callback, $settings);
@@ -157,12 +164,13 @@ class Route
 
     /**
      * Route the given url to your callback on DELETE request method.
-    *
-    * @param string $url
-    * @param string|\Closure $callback
-    * @param array|null $settings
-    * @return RouteUrl
-    */
+     *
+     * @param string          $url
+     * @param string|\Closure $callback
+     * @param array|null      $settings
+     *
+     * @return RouteUrl
+     */
     public static function delete($url, $callback, array $settings = null)
     {
         return static::match(['delete'], $url, $callback, $settings);
@@ -170,12 +178,14 @@ class Route
 
     /**
      * Groups allows for encapsulating routes with special settings.
-    *
-    * @param array $settings
-    * @param \Closure $callback
-    * @throws \InvalidArgumentException
-    * @return RouteGroup
-    */
+     *
+     * @param array    $settings
+     * @param \Closure $callback
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return RouteGroup
+     */
     public static function group(array $settings, \Closure $callback)
     {
         $group = new RouteGroup();
@@ -192,14 +202,16 @@ class Route
     }
 
     /**
-     * Alias for the form method
-    *
-    * @param string $url
-    * @param callable $callback
-    * @param array|null $settings
-    * @see Route::form
-    * @return RouteUrl
-    */
+     * Alias for the form method.
+     *
+     * @param string     $url
+     * @param callable   $callback
+     * @param array|null $settings
+     *
+     * @see Route::form
+     *
+     * @return RouteUrl
+     */
     public static function basic($url, $callback, array $settings = null)
     {
         return static::match(['get', 'post'], $url, $callback, $settings);
@@ -207,14 +219,16 @@ class Route
 
     /**
      * This type will route the given url to your callback on the provided request methods.
-    * Route the given url to your callback on POST and GET request method.
-    *
-    * @param string $url
-    * @param string|\Closure $callback
-    * @param array|null $settings
-    * @see Route::form
-    * @return RouteUrl
-    */
+     * Route the given url to your callback on POST and GET request method.
+     *
+     * @param string          $url
+     * @param string|\Closure $callback
+     * @param array|null      $settings
+     *
+     * @see Route::form
+     *
+     * @return RouteUrl
+     */
     public static function form($url, $callback, array $settings = null)
     {
         return static::match(['get', 'post'], $url, $callback, $settings);
@@ -222,13 +236,14 @@ class Route
 
     /**
      * This type will route the given url to your callback on the provided request methods.
-    *
-    * @param array $requestMethods
-    * @param string $url
-    * @param string|\Closure $callback
-    * @param array|null $settings
-    * @return RouteUrl|IRoute
-    */
+     *
+     * @param array           $requestMethods
+     * @param string          $url
+     * @param string|\Closure $callback
+     * @param array|null      $settings
+     *
+     * @return RouteUrl|IRoute
+     */
     public static function match(array $requestMethods, $url, $callback, array $settings = null)
     {
         $route = new RouteUrl($url, $callback);
@@ -245,13 +260,14 @@ class Route
     }
 
     /**
-     * This type will route the given url to your callback and allow any type of request method
-    *
-    * @param string $url
-    * @param string|\Closure $callback
-    * @param array|null $settings
-    * @return RouteUrl|IRoute
-    */
+     * This type will route the given url to your callback and allow any type of request method.
+     *
+     * @param string          $url
+     * @param string|\Closure $callback
+     * @param array|null      $settings
+     *
+     * @return RouteUrl|IRoute
+     */
     public static function all($url, $callback, array $settings = null)
     {
         $route = new RouteUrl($url, $callback);
@@ -268,12 +284,13 @@ class Route
 
     /**
      * This route will route request from the given url to the controller.
-    *
-    * @param string $url
-    * @param string $controller
-    * @param array|null $settings
-    * @return RouteController|IRoute
-    */
+     *
+     * @param string     $url
+     * @param string     $controller
+     * @param array|null $settings
+     *
+     * @return RouteController|IRoute
+     */
     public static function controller($url, $controller, array $settings = null)
     {
         $route = new RouteController($url, $controller);
@@ -288,10 +305,11 @@ class Route
         return $route;
     }
 
-     /**
+    /**
      * Add exception callback handler.
      *
      * @param \Closure $callback
+     *
      * @return CallbackException $callbackException
      */
     public static function error(Closure $callback)
@@ -314,15 +332,16 @@ class Route
     {
         return static::$defaultNamespace;
     }
- 
+
     /**
      * This type will route all REST-supported requests to different methods in the provided controller.
-    *
-    * @param string $url
-    * @param string $controller
-    * @param array|null $settings
-    * @return RouteResource|IRoute
-    */
+     *
+     * @param string     $url
+     * @param string     $controller
+     * @param array|null $settings
+     *
+     * @return RouteResource|IRoute
+     */
     public static function resource($url, $controller, array $settings = null)
     {
         $route = new RouteResource($url, $controller);
@@ -336,11 +355,12 @@ class Route
 
         return $route;
     }
+
     /**
-    * Returns the router instance
-    *
-    * @return Router
-    */
+     * Returns the router instance.
+     *
+     * @return Router
+     */
     public static function router()
     {
         if (static::$router === null) {
@@ -349,11 +369,12 @@ class Route
 
         return static::$router;
     }
+
     /**
-    * Base CSRF verifier
-    *
-    * @param BaseCsrfVerifier $baseCsrfVerifier
-    */
+     * Base CSRF verifier.
+     *
+     * @param BaseCsrfVerifier $baseCsrfVerifier
+     */
     public static function csrfVerifier(BaseCsrfVerifier $baseCsrfVerifier)
     {
         static::router()->setCsrfVerifier($baseCsrfVerifier);
@@ -368,27 +389,27 @@ class Route
             try {
                 return new Uri('/');
             } catch (BadFormedUrlException $e) {
-
             }
         }
+
         return null;
     }
 
     /**
-    * Get the request
-    *
-    * @return \Yuga\Http\Request
-    */
+     * Get the request.
+     *
+     * @return \Yuga\Http\Request
+     */
     public static function request()
     {
         return static::router()->getRequest();
     }
 
     /**
-    * Get the response object
-    *
-    * @return Response
-    */
+     * Get the response object.
+     *
+     * @return Response
+     */
     public static function response()
     {
         if (static::$response === null) {

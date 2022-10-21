@@ -2,15 +2,14 @@
 
 namespace Yuga\Database\Console;
 
+use Symfony\Component\Console\Input\InputArgument;
 use Yuga\Console\Command;
 use Yuga\Scaffold\Scaffold;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
 
 class MakeMigrationCommand extends Command
 {
     protected $name = 'migration:make';
-    
+
     /**
      * The console command description.
      *
@@ -30,15 +29,15 @@ class MakeMigrationCommand extends Command
     }
 
     /**
-     * Process Migration
-     * 
+     * Process Migration.
+     *
      * @param string|null $name
      */
     public function processMigration($name = null, array $scaffold = null)
     {
         $this->createDirectories();
         file_put_contents(
-            path('database/migrations/' . $this->formatName($name) . '.php'),
+            path('database/migrations/'.$this->formatName($name).'.php'),
             $this->compileMigrationTemp(trim($name ? $name : $this->argument('name')), $scaffold)
         );
 
@@ -53,10 +52,11 @@ class MakeMigrationCommand extends Command
         $table = strtolower($model);
         $migration = str_replace('{table}', $table, file_get_contents(__DIR__.'/temps/Migration.temp'));
         if ($scaffold) {
-            if (count($scaffold) > 0)
+            if (count($scaffold) > 0) {
                 $migration = $this->processMigrationTemp($table, $scaffold);
+            }
         }
-        
+
         return str_replace(
             '{class}',
             'Create'.ucfirst($model).'Table',
@@ -70,29 +70,31 @@ class MakeMigrationCommand extends Command
         $i = 0;
         foreach ($fields as $field => $type) {
             $dataType = $this->processFieldType($type);
-            
-            if ($i != (count($fields) - 1))
-                $scaffold .= "$" . "table->column('" . $field . "')->" . $dataType . "->nullable();\n\t\t\t";
-            else
-                $scaffold .= "$" . "table->column('" . $field . "')->" . $dataType . "->nullable();";
+
+            if ($i != (count($fields) - 1)) {
+                $scaffold .= '$'."table->column('".$field."')->".$dataType."->nullable();\n\t\t\t";
+            } else {
+                $scaffold .= '$'."table->column('".$field."')->".$dataType.'->nullable();';
+            }
             $i++;
         }
 
-        return str_replace(['{table}', '{scaffold_fields}'], [$table, $scaffold], file_get_contents(__DIR__.'/temps/MigrationScaffold.temp'));;
+        return str_replace(['{table}', '{scaffold_fields}'], [$table, $scaffold], file_get_contents(__DIR__.'/temps/MigrationScaffold.temp'));
     }
 
     protected function processFieldType($type)
     {
-        return Scaffold::getMethod($type) == 'string' ? Scaffold::getMethod($type) . '(255)' : Scaffold::getMethod($type) . '()';
+        return Scaffold::getMethod($type) == 'string' ? Scaffold::getMethod($type).'(255)' : Scaffold::getMethod($type).'()';
     }
 
     /**
-     * Format the name of the table given i.e. deCamalize it
+     * Format the name of the table given i.e. deCamalize it.
      */
     protected function formatName($name = null)
     {
         $table = trim($name ? $name : $this->argument('name'));
-        $table = (new \DateTime)->format('YmdHis') . '_create_' . strtolower($table) . '_table';
+        $table = (new \DateTime())->format('YmdHis').'_create_'.strtolower($table).'_table';
+
         return $table;
     }
 
@@ -128,27 +130,27 @@ class MakeMigrationCommand extends Command
     protected function compileYugaMigrationsTemp($name)
     {
         $migrations = require path('config/migrations.php');
-        $table = 'Create' . ucfirst($name) . 'Table';
-        if (!in_array($table, $migrations['migrate']))
+        $table = 'Create'.ucfirst($name).'Table';
+        if (!in_array($table, $migrations['migrate'])) {
             $migrations['migrate'][] = $table;
-        
+        }
 
         $generatedMigrations = '[';
         foreach ($migrations['migrate'] as $migration) {
-            $generatedMigrations .= "\n\t\t" . $migration . "::class,";
+            $generatedMigrations .= "\n\t\t".$migration.'::class,';
         }
         $generatedMigrations .= "\n\t]";
 
         $generatedSeeds = '[';
         foreach ($migrations['seed'] as $seed) {
-            $generatedSeeds .= "\n\t\t" . $seed . "::class,";
+            $generatedSeeds .= "\n\t\t".$seed.'::class,';
         }
         $generatedSeeds .= "\n\t]";
 
         $migration = str_replace(
             '{migrations}',
             $generatedMigrations,
-            file_get_contents(__DIR__ . '/temps/config.temp')
+            file_get_contents(__DIR__.'/temps/config.temp')
         );
 
         $migration = str_replace(

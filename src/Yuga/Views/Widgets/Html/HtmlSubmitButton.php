@@ -1,9 +1,9 @@
 <?php
+
 namespace Yuga\Views\Widgets\Html;
 
 class HtmlSubmitButton extends HtmlButton
 {
-
     public $onClick = [];
 
     public function __construct($type = 'submit', $name = null, $value = null)
@@ -25,9 +25,10 @@ class HtmlSubmitButton extends HtmlButton
                 // do onClick events and onSubmit events
                 $this->clickedButton($this);
             }
+
             return parent::__toString();
         } catch (\Throwable $e) {
-            trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
+            trigger_error('Exception in '.__METHOD__."(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
         }
     }
 
@@ -35,11 +36,12 @@ class HtmlSubmitButton extends HtmlButton
     {
         if ($this->isClicked()) {
             if (count($this->onClick) > 0) {
-                foreach ($this->onClick as $clickHandlers)
+                foreach ($this->onClick as $clickHandlers) {
                     $clickHandlers($html, request()->except([$this->getAttribute('name')[0], '_token']));
+                }
             }
         }
-        return;
+
     }
 
     public function addOnClick($handler)
@@ -48,5 +50,4 @@ class HtmlSubmitButton extends HtmlButton
 
         return $this;
     }
-    
 }

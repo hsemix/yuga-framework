@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Elegant\Traits;
 
 trait PermanentDeleteTrait

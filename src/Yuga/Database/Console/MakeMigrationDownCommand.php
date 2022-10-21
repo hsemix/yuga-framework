@@ -1,14 +1,15 @@
 <?php
+
 namespace Yuga\Database\Console;
 
-use Yuga\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
+use Yuga\Console\Command;
 use Yuga\Database\Migration\MigrationServiceProvider;
 
 class MakeMigrationDownCommand extends Command
 {
     protected $name = 'migration:down';
-    
+
     /**
      * The console command description.
      *
@@ -28,8 +29,6 @@ class MakeMigrationDownCommand extends Command
         $this->info('Migration was successful, check your database for confirmation.');
     }
 
-    
-    
     /**
      * Get the console command options.
      *

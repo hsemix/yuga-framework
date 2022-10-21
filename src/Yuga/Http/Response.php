@@ -16,9 +16,10 @@ class Response
     }
 
     /**
-     * Set the http status code
+     * Set the http status code.
      *
      * @param int $code
+     *
      * @return static
      */
     public function httpCode($code)
@@ -29,16 +30,17 @@ class Response
     }
 
     /**
-     * Redirect the response
+     * Redirect the response.
      *
      * @param string $url
-     * @param int $httpCode
+     * @param int    $httpCode
      */
     public function redirect($url = null, $httpCode = null)
     {
         if ($httpCode !== null) {
             $this->httpCode($httpCode);
         }
+
         return $this->redirect->to($url);
     }
 
@@ -63,14 +65,16 @@ class Response
     }
 
     /**
-     * Add http authorisation
+     * Add http authorisation.
+     *
      * @param string $name
+     *
      * @return static
      */
     public function auth($name = '')
     {
         $this->headers([
-            'WWW-Authenticate: Basic realm="' . $name . '"',
+            'WWW-Authenticate: Basic realm="'.$name.'"',
             'HTTP/1.0 401 Unauthorized',
         ]);
 
@@ -79,18 +83,16 @@ class Response
 
     public function cache($eTag, $lastModified = 2592000)
     {
-
         $this->headers([
             'Cache-Control: public',
-            'Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . ' GMT',
-            'Etag: ' . $eTag,
+            'Last-Modified: '.gmdate('D, d M Y H:i:s', $lastModified).' GMT',
+            'Etag: '.$eTag,
         ]);
 
         $httpModified = $this->request->getHeader('http-if-modified-since');
         $httpIfNoneMatch = $this->request->getHeader('http-if-none-match');
 
         if (($httpIfNoneMatch !== null && $httpIfNoneMatch === $eTag) || ($httpModified !== null && strtotime($httpModified) === $lastModified)) {
-
             $this->header('HTTP/1.1 304 Not Modified');
 
             exit();
@@ -100,7 +102,8 @@ class Response
     }
 
     /**
-     * Json encode array
+     * Json encode array.
+     *
      * @param array $value
      */
     public function json($value, $options = 0, $code = 200, $dept = 512)
@@ -115,8 +118,10 @@ class Response
     }
 
     /**
-     * Add header to response
+     * Add header to response.
+     *
      * @param string $value
+     *
      * @return static
      */
     public function header($value)
@@ -127,8 +132,10 @@ class Response
     }
 
     /**
-     * Add multiple headers to response
+     * Add multiple headers to response.
+     *
      * @param array $headers
+     *
      * @return static
      */
     public function headers(array $headers)
@@ -144,5 +151,4 @@ class Response
     {
         return \App::make('view');
     }
-
 }

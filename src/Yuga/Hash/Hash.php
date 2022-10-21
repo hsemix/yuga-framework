@@ -1,11 +1,11 @@
 <?php
+
 namespace Yuga\Hash;
 
 use Yuga\Database\Elegant\Model;
 
 class Hash
 {
-    
     private $crypt;
     private $algorithm = 'sha256';
     protected static $instance;
@@ -21,18 +21,21 @@ class Hash
 
     public function make($string, $salt = '')
     {
-        if ($salt == '' || is_null($salt)) 
+        if ($salt == '' || is_null($salt)) {
             $salt = env('APP_SECRET', 'NoApplicationSecret');
-    
-        if ($this->algorithm == 'crypt')
-            return crypt($string, $salt);
+        }
 
-        return hash($this->getAlgorithm(), $string . $salt);
+        if ($this->algorithm == 'crypt') {
+            return crypt($string, $salt);
+        }
+
+        return hash($this->getAlgorithm(), $string.$salt);
     }
 
     public function setAlgorithm($algorithm = 'crypt')
     {
         $this->algorithm = $algorithm;
+
         return $this;
     }
 
@@ -47,6 +50,7 @@ class Hash
         } else {
             $salt = random_bytes($length);
         }
+
         return substr(bin2hex($salt), 0, $length);
     }
 
@@ -57,7 +61,7 @@ class Hash
 
     public function code($length = 8, $clean = true)
     {
-        return $clean ? "$1$" . $this->salt($length) . "$" : $this->salt($length);
+        return $clean ? '$1$'.$this->salt($length).'$' : $this->salt($length);
     }
 
     public function password($string, $code = null)
@@ -87,8 +91,9 @@ class Hash
         if (is_null($modelUserSalt)) {
             $modelUserSalt = $appSecret;
         } else {
-            $modelUserSalt = $model->$modelUserSalt?:$appSecret;
+            $modelUserSalt = $model->$modelUserSalt ?: $appSecret;
         }
+
         return $modelUserSalt;
     }
 }

@@ -2,16 +2,17 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga;
 
 class Boolean
 {
-
     /**
-     * Parse boolean
+     * Parse boolean.
      *
      * @param string $str
-     * @param mixed $defaultValue
+     * @param mixed  $defaultValue
+     *
      * @return bool|mixed
      */
     public static function parse($str, $defaultValue = false)
@@ -20,5 +21,4 @@ class Boolean
 
         return ($bool !== null) ? $bool : $defaultValue;
     }
-
 }

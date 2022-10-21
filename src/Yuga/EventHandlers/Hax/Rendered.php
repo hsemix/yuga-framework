@@ -11,10 +11,9 @@ class Rendered implements HandlerInterface
      * ---------------------------------------------------------------------------
      * Set global variables that can be accessed accrosed the entire application.|
      * ---------------------------------------------------------------------------
-     * Do much more
+     * Do much more.
      */
     public function handle($event)
     {
-        
     }
 }

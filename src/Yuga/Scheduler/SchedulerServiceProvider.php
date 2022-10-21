@@ -3,10 +3,11 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Scheduler;
 
-use Yuga\Providers\ServiceProvider;
 use Yuga\Interfaces\Application\Application;
+use Yuga\Providers\ServiceProvider;
 
 class SchedulerServiceProvider extends ServiceProvider
 {
@@ -15,7 +16,7 @@ class SchedulerServiceProvider extends ServiceProvider
     public function load(Application $app)
     {
         if ($app->runningInConsole()) {
-            $app->singleton('scheduler', function () use($app) {
+            $app->singleton('scheduler', function () use ($app) {
                 return new Scheduler($app);
             });
             $this->scheduler = $app->resolve('scheduler');
@@ -29,6 +30,5 @@ class SchedulerServiceProvider extends ServiceProvider
 
     public function schedule(Scheduler $scheduler)
     {
-        
     }
 }

@@ -3,8 +3,8 @@
 namespace Yuga\Events;
 
 use Closure;
-use Yuga\Events\Dispatcher\Dispatcher;
 use Yuga\EventHandlers\HandlerInterface;
+use Yuga\Events\Dispatcher\Dispatcher;
 use Yuga\Events\Exceptions\EventException;
 use Yuga\Interfaces\Events\Dispatcher as IDispatcher;
 
@@ -29,9 +29,10 @@ class Event implements IDispatcher
     {
         return $this->getAttribute($key);
     }
-	/**
-	* Set a variable and make an object point to it
-	*/
+
+    /**
+     * Set a variable and make an object point to it.
+     */
     public function __set($key, $value)
     {
         $this->setAttribute($key, $value);
@@ -40,14 +41,15 @@ class Event implements IDispatcher
     public function setAttribute($key, $value)
     {
         $this->attributes[$key] = $value;
-        
+
         return $this;
     }
 
     /**
      * Get an attribute from the event.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return mixed
      */
     public function getAttribute($name)
@@ -56,11 +58,11 @@ class Event implements IDispatcher
     }
 
     /**
-     * Attach callback to event
+     * Attach callback to event.
      *
-     * @param  string   $eventName
-     * @param  callable $callback|null
-     * @param  int  $priority
+     * @param string   $eventName
+     * @param callable $callback|null
+     * @param int      $priority
      *
      * @return void
      */
@@ -81,15 +83,16 @@ class Event implements IDispatcher
             }
             $this->listeners[$eventName][$priority][] = $callback;
         }
+
         return $this;
     }
 
     /**
-     * Allias to the attach method
+     * Allias to the attach method.
      *
-     * @param  string   $eventName
-     * @param  callable $callback|null
-     * @param  int  $priority
+     * @param string   $eventName
+     * @param callable $callback|null
+     * @param int      $priority
      *
      * @return void
      */
@@ -100,10 +103,10 @@ class Event implements IDispatcher
 
     /**
      * Some times the name provided in the attach method might be an instance of the HandlerInterface
-     * When that happens, Make sure the $event has the handle method
-     * 
+     * When that happens, Make sure the $event has the handle method.
+     *
      * @param array|string $handlers
-     * 
+     *
      * @return void
      */
     protected function triggerObjectHandlers($handlers)
@@ -115,6 +118,7 @@ class Event implements IDispatcher
                 }
                 $this->listeners[$this->name][1][] = [$handler, 'handle'];
             }
+
             return;
         }
         if (!method_exists($handlers, 'handle')) {
@@ -125,10 +129,10 @@ class Event implements IDispatcher
     }
 
     /**
-     * Dispatch event
+     * Dispatch event.
      *
-     * @param  string|Event  $event
-     * @param  array  $parameters
+     * @param string|Event $event
+     * @param array        $parameters
      *
      * @return Event $event
      */
@@ -139,16 +143,17 @@ class Event implements IDispatcher
         } else {
             $params = $parameters;
         }
-        if (!$event)
+        if (!$event) {
             $event = $this->name;
+        }
         if (!$event instanceof Dispatcher) {
             $event = new Dispatcher($event, $params);
         }
 
         $event->setAttributes($this->attributes);
         $event->setAttribute('dispatcher', $this);
-        
-        $params = array_merge([$event], $params ?:[]);
+
+        $params = array_merge([$event], $params ?: []);
         if (false !== strpos($event->getName(), ':')) {
             $namespace = substr($event->getName(), 0, strpos($event->getName(), ':'));
             if (isset($this->listeners[$namespace])) {
@@ -157,17 +162,17 @@ class Event implements IDispatcher
         }
 
         if (isset($this->listeners[$event->getName()])) {
-            
             $this->fire($this->listeners[$event->getName()], $event, $params, $callback);
         }
+
         return $event;
     }
 
     /**
-     * Alias for dispatch
-     * 
-     * @param  string|Event  $event
-     * @param  array  $parameters
+     * Alias for dispatch.
+     *
+     * @param string|Event $event
+     * @param array        $parameters
      *
      * @return Event $event
      */
@@ -176,14 +181,15 @@ class Event implements IDispatcher
         if (count(func_get_args()) == 2) {
             return $this->dispatch($event, $parameters);
         }
+
         return $this->dispatch($event, $parameters, $callback);
     }
 
     /**
-     * Organise parameters to suit both two and three arguments as a user dispatches or triggers the event
-     * 
+     * Organise parameters to suit both two and three arguments as a user dispatches or triggers the event.
+     *
      * @param $parameters
-     * 
+     *
      * @return array $items
      */
     protected function getParameters($parameters = null)
@@ -201,17 +207,17 @@ class Event implements IDispatcher
     }
 
     /**
-     * Fire an Event
+     * Fire an Event.
      *
-     * @param  array $listeners
-     * @param  Dispatcher $event
-     * @param array $params
+     * @param array         $listeners
+     * @param Dispatcher    $event
+     * @param array         $params
      * @param callable|null $callback
      *
      * @return void
      */
     protected function fire($listeners, $event, array $params = [], $callback = null)
-    {        
+    {
         ksort($listeners);
 
         foreach ($listeners as $list) {
@@ -227,13 +233,14 @@ class Event implements IDispatcher
                         if (array_values($params) !== $params) {
                             $event->setAttributes($params);
                             $eventParams = [$event];
-                        } 
+                        }
                     }
                 }
 
                 call_user_func_array($eventListener, array_values($eventParams));
-                if($callback instanceof Closure)
+                if ($callback instanceof Closure) {
                     $callback($event);
+                }
             }
         }
     }

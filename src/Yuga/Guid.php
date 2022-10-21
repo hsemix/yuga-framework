@@ -2,11 +2,11 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga;
 
 class Guid
 {
-
     public static function create($separator = false)
     {
         if (function_exists('com_create_guid')) {
@@ -16,10 +16,17 @@ class Guid
         }
         $pattern = (!$separator) ? '%04X%04X%04X%04X%04X%04X%04X%04X' : '%04X%04X-%04X-%04X-%04X-%04X%04X%04X';
 
-        return sprintf($pattern,
-            mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535),
-            mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535),
-            mt_rand(0, 65535), mt_rand(0, 65535));
+        return sprintf(
+            $pattern,
+            mt_rand(0, 65535),
+            mt_rand(0, 65535),
+            mt_rand(0, 65535),
+            mt_rand(16384, 20479),
+            mt_rand(32768, 49151),
+            mt_rand(0, 65535),
+            mt_rand(0, 65535),
+            mt_rand(0, 65535)
+        );
     }
 
     public static function encrypt($key, $data, $method = null)
@@ -32,7 +39,7 @@ class Guid
         $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($method));
         $data = openssl_encrypt($data, $method, $key, 0, $iv);
 
-        return base64_encode($data . '|' . bin2hex($iv));
+        return base64_encode($data.'|'.bin2hex($iv));
     }
 
     public static function decrypt($key, $data, $method = null)
@@ -57,14 +64,17 @@ class Guid
 
     /**
      * Creates an random password, with a given length.
+     *
      * @param int $length
-     * @return string
+     *
      * @throws \Exception
+     *
+     * @return string
      */
     public static function createRandomPassword($length)
     {
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVXYXW023456789';
-        mt_srand((double)microtime() * 1000000);
+        mt_srand((float) microtime() * 1000000);
         $i = 0;
         $pass = '';
         while ($i <= $length) {
@@ -78,12 +88,12 @@ class Guid
     }
 
     /**
-     * Creates random very unique string
+     * Creates random very unique string.
+     *
      * @return string
      */
     public static function generateSalt()
     {
         return password_hash(uniqid(mt_rand(), true), PASSWORD_BCRYPT);
     }
-
 }

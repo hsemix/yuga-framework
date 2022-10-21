@@ -43,8 +43,10 @@ class InputItem implements IInputItem
     }
 
     /**
-     * Set input name
+     * Set input name.
+     *
      * @param string $name
+     *
      * @return static $this
      */
     public function setName($name)
@@ -63,8 +65,10 @@ class InputItem implements IInputItem
     }
 
     /**
-     * Set input value
+     * Set input value.
+     *
      * @param string $value
+     *
      * @return static $this
      */
     public function setValue($value)
@@ -76,7 +80,6 @@ class InputItem implements IInputItem
 
     public function __toString()
     {
-        return (string)$this->value;
+        return (string) $this->value;
     }
-
 }

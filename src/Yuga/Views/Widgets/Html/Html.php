@@ -17,7 +17,6 @@ class Html
     protected $parent;
 
     protected static $instance;
-    
 
     public function __construct($tag)
     {
@@ -30,10 +29,10 @@ class Html
     }
 
     /**
-     * Return a static instance of the Element
-     * 
+     * Return a static instance of the Element.
+     *
      * @param null
-     * 
+     *
      * @return static
      */
     public static function getInstance()
@@ -43,6 +42,7 @@ class Html
 
     /**
      * @param array $html
+     *
      * @return static
      */
     public function setInnerHtml(array $html)
@@ -59,21 +59,22 @@ class Html
         return $this;
     }
 
-    public function append($html) 
+    public function append($html)
     {
         return $this->addInnerHtml($html);
     }
 
     /**
-     * Replace attribute
+     * Replace attribute.
      *
      * @param string $name
      * @param string $value
+     *
      * @return static
      */
     public function replaceAttribute($name, $value = '')
     {
-        $this->attributes[$name] = array($value);
+        $this->attributes[$name] = [$value];
 
         return $this;
     }
@@ -83,6 +84,7 @@ class Html
      *
      * @param string $name
      * @param string $value
+     *
      * @return static
      */
     public function addAttribute($name, $value = '')
@@ -105,6 +107,7 @@ class Html
 
     /**
      * @param array $attributes
+     *
      * @return static $this
      */
     public function setAttributes(array $attributes)
@@ -118,6 +121,7 @@ class Html
 
     /**
      * @param array $attributes
+     *
      * @return static $this
      */
     public function addAttributes(array $attributes)
@@ -127,16 +131,19 @@ class Html
 
     /**
      * @param array $attributes
+     *
      * @return static $this
      */
     public function setParentAttributes(array $attributes)
     {
         $this->parent->setAttributes($attributes);
+
         return $this;
     }
 
     /**
      * @param array $attributes
+     *
      * @return static $this
      */
     public function addParentAttributes(array $attributes)
@@ -170,13 +177,13 @@ class Html
             $html = $before;
             $output .= ($html instanceof static) ? $html->render() : $html;
         }
-        $output .= '<' . $this->tag;
+        $output .= '<'.$this->tag;
 
         foreach ($this->attributes as $key => $val) {
-            $output .= ' ' . $key;
+            $output .= ' '.$key;
             if ($val[0] !== null || strtolower($key) === 'value') {
                 $val = htmlentities(implode(' ', $val), ENT_QUOTES, app()->getCharset());
-                $output .= '="' . $val . '"';
+                $output .= '="'.$val.'"';
             }
         }
 
@@ -193,15 +200,14 @@ class Html
             $html = $prepended;
             $output .= ($html instanceof static) ? $html->render() : $html;
         }
-        
 
-        for($i = 0, $max = count($this->innerHtml); $i < $max; $i++) {
+        for ($i = 0, $max = count($this->innerHtml); $i < $max; $i++) {
             $html = $this->innerHtml[$i];
             $output .= ($html instanceof static) ? $html->render() : $html;
         }
 
-        if($this->closingType === static::CLOSE_TYPE_TAG) {
-            $output .= '</' . $this->tag . ">";
+        if ($this->closingType === static::CLOSE_TYPE_TAG) {
+            $output .= '</'.$this->tag.'>';
         }
 
         foreach ($this->afterHtml as $after) {
@@ -214,36 +220,46 @@ class Html
         if ($parent) {
             $output = $parent->addInnerHtml($output)->render();
         }
+
         return $output;
     }
 
     public function prepend($html)
     {
         $this->prepended[] = $html;
+
         return $this;
     }
 
     /**
-     * Add class
+     * Add class.
+     *
      * @param string $class
+     *
      * @return static
      */
     public function addClass($class)
     {
-        foreach (explode(" ", $class) as $cls)
+        foreach (explode(' ', $class) as $cls) {
             $this->addAttribute('class', $cls);
+        }
+
         return $this;
     }
 
     /**
-     * Add class
+     * Add class.
+     *
      * @param string $class
+     *
      * @return static
      */
     public function addParentClass($class)
     {
-        foreach (explode(" ", $class) as $cls)
+        foreach (explode(' ', $class) as $cls) {
             $this->parent->addAttribute('class', $cls);
+        }
+
         return $this;
     }
 
@@ -257,6 +273,7 @@ class Html
 
     /**
      * @param string $closingType
+     *
      * @return static $this;
      */
     public function setClosingType($closingType)
@@ -275,8 +292,6 @@ class Html
     {
         return $this->innerHtml;
     }
-
-    
 
     public function getAttribute($name)
     {
@@ -330,12 +345,9 @@ class Html
 
     public function findItemByAttribute($element, $name, $value, $strict = false)
     {
-
         $attributes = $element->getAttributes();
 
-        
         if ($attributes !== null && isset($attributes[$name])) {
-
             if ($strict === true) {
                 if (in_array($value, $attributes[$name], true) === true) {
                     return $element;
@@ -345,17 +357,17 @@ class Html
                     return $element;
                 }
             }
-
         }
 
         return null;
     }
 
     /**
-     * Set parent html
+     * Set parent html.
      *
      * @param Html|string|null $parent
-     * @param array $attributes
+     * @param array            $attributes
+     *
      * @return static
      */
     public function setParent($parent = null, array $attributes = [])
@@ -367,13 +379,13 @@ class Html
                 $this->parent = (new self($parent))->setAttributes($attributes);
             }
         }
-        
 
         return $this;
     }
 
     /**
-     * Get parent html
+     * Get parent html.
+     *
      * @return Html|null
      */
     public function getParent()
@@ -382,11 +394,12 @@ class Html
     }
 
     /**
-     * Add a parent to an html Element
+     * Add a parent to an html Element.
      */
     public function addParent($element)
     {
-        $this->setParent($element);  
-        return $this->parent; 
+        $this->setParent($element);
+
+        return $this->parent;
     }
 }

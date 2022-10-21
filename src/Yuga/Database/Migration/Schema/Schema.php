@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration\Schema;
 
 class Schema
@@ -9,6 +10,7 @@ class Schema
     {
         $this->sqlTable = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
     }
+
     public function create($name, $callback)
     {
         $sqlTable = $this->sqlTable;
@@ -46,5 +48,4 @@ class Schema
         $callback($table);
         $table->addColumns();
     }
-
 }

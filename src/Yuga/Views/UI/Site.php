@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Views\UI;
 
 use Yuga\Views\Widgets\Html\Html;
@@ -36,8 +37,6 @@ class Site
 
         return $this;
     }
-
-    
 
     public function addCss($path, $section = self::SECTION_DEFAULT)
     {
@@ -114,5 +113,4 @@ class Site
     {
         return '<!DOCTYPE html>';
     }
-
 }

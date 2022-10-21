@@ -4,7 +4,6 @@ namespace Yuga\Console;
 
 class CLI
 {
-
     public const COLOR_GREY = 'grey';
     public const COLOR_RED = 'red';
     public const COLOR_GREEN = 'green';
@@ -44,7 +43,9 @@ class CLI
 
     /**
      * Returns text formatted with color, background color and/or attributes.
+     *
      * @param array $args
+     *
      * @return string
      */
     protected function createColor($text, array $args)
@@ -53,38 +54,40 @@ class CLI
         $text = array_shift($args);
 
         foreach ($args as $_arg) {
-            foreach ((array)$_arg as $arg) {
+            foreach ((array) $_arg as $arg) {
                 if (isset($options[$arg])) {
                     $text = sprintf(self::STR_FORMAT, $options[$arg], $text);
                 } else {
-                    $this->writeLine('Invalid argument: ' . $arg);
+                    $this->writeLine('Invalid argument: '.$arg);
                     $this->write(self::STR_SOUND);
                     exit(1);
                 }
             }
         }
 
-        return $text . self::STR_RESET;
+        return $text.self::STR_RESET;
     }
 
     /**
      * Echos text formatted with color, background color and/or attributes.
      * Adds a new line at the end.
+     *
      * @param string|null $text
-     * @param array|null $args
+     * @param array|null  $args
      */
     public function writeLine($text = null, $args = null)
     {
         // $args = func_get_args();
         // $args[0] = (is_null($text)) ? chr(10) : $text . chr(10);
-        $text = (is_null($text)) ? chr(10) : $text . chr(10);
+        $text = (is_null($text)) ? chr(10) : $text.chr(10);
         echo call_user_func_array([$this, 'write'], [$text, $args]);
     }
 
     /**
      * Echos text formatted with color, background color and/or attributes.
+     *
      * @param string|null $text
-     * @param array|null $args
+     * @param array|null  $args
      */
     public function write($text, $args = null)
     {
@@ -111,7 +114,7 @@ class CLI
 
     public function clear()
     {
-        print chr(27) . "[2J" . chr(27) . "[;H";
+        echo chr(27).'[2J'.chr(27).'[;H';
     }
 
     /**
@@ -126,19 +129,19 @@ class CLI
         // Foreground colors.
             array_combine(
                 [self::COLOR_GREY, self::COLOR_RED, self::COLOR_GREEN, self::COLOR_YELLOW, self::COLOR_BLUE,
-                    self::COLOR_MAGENTA, self::COLOR_CYAN, self::COLOR_WHITE],
+                    self::COLOR_MAGENTA, self::COLOR_CYAN, self::COLOR_WHITE, ],
                 range(30, 37)
             ),
             // Background colors.
             array_combine(
                 [self::BG_GREY, self::BG_RED, self::BG_GREEN, self::BG_YELLOW, self::BG_BLUE,
-                    self::BG_MAGENTA, self::BG_CYAN, self::BG_WHITE],
+                    self::BG_MAGENTA, self::BG_CYAN, self::BG_WHITE, ],
                 range(40, 47)
             ),
             // Text style attributes. 3 and 6 is not used.
             array_combine(
                 [self::STYLE_BOLD, self::STYLE_DARK, '', self::STYLE_UNDERLINE, self::STYLE_BLINK, '',
-                    self::STYLE_REVERSE, self::STYLE_CONCEALED],
+                    self::STYLE_REVERSE, self::STYLE_CONCEALED, ],
                 range(1, 8)
             )
         );
@@ -146,5 +149,4 @@ class CLI
 
         return $options;
     }
-
 }

@@ -6,13 +6,10 @@ use Yuga\Database\Query\Exceptions\DatabaseQueryException;
 use Yuga\Database\Query\Exceptions\TransactionHaltException;
 
 /**
- * Class Transaction
- *
- * @package Yuga\Database\Query
+ * Class Transaction.
  */
 class Transaction extends Builder
 {
-
     protected $transactionStatement;
 
     /**
@@ -28,7 +25,7 @@ class Transaction extends Builder
     }
 
     /**
-     * Commit transaction
+     * Commit transaction.
      *
      * @throws \Yuga\Database\Query\Exceptions\TableNotFoundException
      * @throws \Yuga\Database\Query\Exceptions\ConnectionException
@@ -41,7 +38,7 @@ class Transaction extends Builder
      * @throws \Yuga\Database\Query\Exceptions\NotNullException
      * @throws TransactionHaltException
      */
-    public function commit() : void
+    public function commit(): void
     {
         try {
             $this->pdo->commit();
@@ -53,7 +50,7 @@ class Transaction extends Builder
     }
 
     /**
-     * Rollback transaction
+     * Rollback transaction.
      *
      * @throws \Yuga\Database\Query\Exceptions\TableNotFoundException
      * @throws \Yuga\Database\Query\Exceptions\ConnectionException
@@ -66,7 +63,7 @@ class Transaction extends Builder
      * @throws \Yuga\Database\Query\Exceptions\NotNullException
      * @throws TransactionHaltException
      */
-    public function rollBack() : void
+    public function rollBack(): void
     {
         try {
             $this->pdo->rollBack();
@@ -78,12 +75,11 @@ class Transaction extends Builder
     }
 
     /**
-     * Execute statement
+     * Execute statement.
      *
      * @param string $sql
-     * @param array $bindings
+     * @param array  $bindings
      *
-     * @return array PDOStatement and execution time as float
      * @throws \Yuga\Database\Query\Exceptions\TableNotFoundException
      * @throws \Yuga\Database\Query\Exceptions\ConnectionException
      * @throws \Yuga\Database\Query\Exceptions\ColumnNotFoundException
@@ -94,11 +90,12 @@ class Transaction extends Builder
      * @throws \Yuga\Database\Query\Exceptions\ForeignKeyException
      * @throws \Yuga\Database\Query\Exceptions\NotNullException
      * @throws Exception
+     *
+     * @return array PDOStatement and execution time as float
      */
     public function statement(string $sql, array $bindings = []): array
     {
         if ($this->transactionStatement === null && $this->pdo->inTransaction() === true) {
-
             $results = parent::statement($sql, $bindings);
             $this->transactionStatement = $results[0];
 
@@ -107,5 +104,4 @@ class Transaction extends Builder
 
         return parent::statement($sql, $bindings);
     }
-
 }

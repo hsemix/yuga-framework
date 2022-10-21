@@ -1,8 +1,8 @@
 <?php
+
 namespace Yuga\Database\Connection;
 
 use Yuga\Database\Query\Raw;
-use Yuga\Database\Query\Builder;
 
 class EventHandler
 {
@@ -55,7 +55,7 @@ class EventHandler
 
     /**
      * @param          $event
-     * @param string $table
+     * @param string   $table
      * @param \Closure $action
      *
      * @return void
@@ -82,6 +82,7 @@ class EventHandler
     /**
      * @param QueryBuilderHandler $queryBuilder
      * @param $event
+     *
      * @return mixed
      */
     public function fireEvents($queryBuilder, $event)
@@ -98,7 +99,7 @@ class EventHandler
             // Fire before events for :any table
             if ($action = $this->getEvent($event, $table)) {
                 // Make an event id, with event type and table
-                $eventId = $event . $table;
+                $eventId = $event.$table;
 
                 // Fire event
                 $handlerParams = func_get_args();

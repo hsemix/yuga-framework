@@ -1,11 +1,11 @@
 <?php
+
 namespace Yuga\Database\Migration;
 
 use Yuga\Database\Migration\Schema\Schema;
 
 abstract class Migration
 {
-
     /**
      * @var Schema
      */
@@ -15,5 +15,4 @@ abstract class Migration
     {
         $this->schema = new Schema();
     }
-
 }

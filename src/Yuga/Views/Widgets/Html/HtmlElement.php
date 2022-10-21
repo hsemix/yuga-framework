@@ -1,12 +1,12 @@
 <?php
+
 namespace Yuga\Views\Widgets\Html;
 
-use Yuga\Views\Widgets\Xml\XmlElement;
 use Yuga\Views\Widgets\Html\Support\IHtmlNode;
+use Yuga\Views\Widgets\Xml\XmlElement;
 
 class HtmlElement extends XmlElement implements IHtmlNode
 {
-
     public function isContainer()
     {
         switch (strtolower($this->getTag())) {
@@ -50,5 +50,4 @@ class HtmlElement extends XmlElement implements IHtmlNode
 
         return false;
     }
-
 }

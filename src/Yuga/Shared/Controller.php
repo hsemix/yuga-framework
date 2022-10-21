@@ -2,23 +2,24 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Shared;
 
 use Yuga\App;
-use Yuga\Hash\Hash;
-use Yuga\Views\View;
-use Yuga\Support\Str;
-use Yuga\Http\Request;
 use Yuga\Cookie\Cookie;
-use Yuga\Http\Redirect;
-use Yuga\Http\Response;
-use Yuga\View\ViewModel;
-use Yuga\Session\Session;
-use Yuga\Validate\Validate;
-use Yuga\Http\Middleware\MiddleWare;
+use Yuga\Hash\Hash;
 use Yuga\Http\Middleware\IMiddleware;
+use Yuga\Http\Middleware\MiddleWare;
+use Yuga\Http\Redirect;
+use Yuga\Http\Request;
+use Yuga\Http\Response;
 use Yuga\Route\Exceptions\HttpException;
 use Yuga\Route\Exceptions\NotFoundHttpException;
+use Yuga\Session\Session;
+use Yuga\Support\Str;
+use Yuga\Validate\Validate;
+use Yuga\View\ViewModel;
+use Yuga\Views\View;
 
 trait Controller
 {
@@ -29,14 +30,14 @@ trait Controller
     public $request;
     public $session;
     public $validate;
-    public $response; 
+    public $response;
     public $login_id;
-    
 
     public function getApp()
     {
         return $this->app = App::getInstance();
     }
+
     public function getHash()
     {
         return $this->hash = App::resolve(Hash::class);
@@ -47,7 +48,6 @@ trait Controller
         return $this->cookie = App::resolve(Cookie::class);
     }
 
-    
     public function getRequest()
     {
         return $this->request = App::resolve(Request::class);
@@ -57,9 +57,10 @@ trait Controller
     {
         return $this->session = App::resolve(Session::class);
     }
+
     public function getResponse()
     {
-        return $this->response = App::resolve(Response::class);; 
+        return $this->response = App::resolve(Response::class);
     }
 
     public function getValidator()
@@ -71,12 +72,13 @@ trait Controller
     {
         $this->login_id = $this->getSession()->getUserId();
     }
+
     /**
-     * Run Controller method or contructor specific middleware
-     * 
+     * Run Controller method or contructor specific middleware.
+     *
      * @param string | array $ware
-     * @param array | null $except
-     * 
+     * @param array | null   $except
+     *
      * @return \Yuga\Http\Middleware\MiddleWare
      */
     public function middleWare($ware, array $except = null)
@@ -93,25 +95,26 @@ trait Controller
                     $routeMiddleWare = App::resolve($wares[$controllerMiddleware]);
                     $request = request();
                     if (($routeMiddleWare instanceof IMiddleware) === false) {
-                        throw new HttpException($controllerMiddleware . ' must inherit the IMiddleware interface');
+                        throw new HttpException($controllerMiddleware.' must inherit the IMiddleware interface');
                     }
-                    $result = $routeMiddleWare->run($request, function($request) {
+                    $result = $routeMiddleWare->run($request, function ($request) {
                         return $request;
                     }, $middleWare->except);
 
-                    if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+                    if ($result instanceof ViewModel || is_string($result) || $result instanceof View) {
                         echo $result;
                     } elseif ($result instanceof Redirect) {
                         if ($result->getPath() !== null) {
-                            $result->header('location: ' . $result->getPath());
+                            $result->header('location: '.$result->getPath());
                             exit();
                         } else {
-                            throw new NotFoundHttpException("You have not provided a Redirect URL");
+                            throw new NotFoundHttpException('You have not provided a Redirect URL');
                         }
                     }
+
                     return;
                 } else {
-                    throw new HttpException($controllerMiddleware . ' Middleware is not yet defined');
+                    throw new HttpException($controllerMiddleware.' Middleware is not yet defined');
                 }
             }
         } else {
@@ -119,42 +122,43 @@ trait Controller
                 $routeMiddleWare = App::resolve($wares[$ware]);
                 $request = request();
                 if (($routeMiddleWare instanceof IMiddleware) === false) {
-                    throw new HttpException($ware . ' must inherit the IMiddleware interface');
+                    throw new HttpException($ware.' must inherit the IMiddleware interface');
                 }
-                $result = $routeMiddleWare->run($request, function($request) {
+                $result = $routeMiddleWare->run($request, function ($request) {
                     return $request;
                 }, $middleWare->except);
 
-                if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+                if ($result instanceof ViewModel || is_string($result) || $result instanceof View) {
                     echo $result;
                 } elseif ($result instanceof Redirect) {
                     if ($result->getPath() !== null) {
-                        $result->header('Location: ' . $result->getPath());
+                        $result->header('Location: '.$result->getPath());
                         exit();
                     } else {
-                        throw new NotFoundHttpException("You have not provided a Redirect URL");
+                        throw new NotFoundHttpException('You have not provided a Redirect URL');
                     }
                 }
+
                 return;
             } else {
-                throw new HttpException($ware . ' Middleware is not yet defined');
+                throw new HttpException($ware.' Middleware is not yet defined');
             }
         }
-		
+
         return $middleWare;
     }
-    
+
     public function getView()
     {
         return $this->view = App::make('view');
     }
 
     /**
-     * Route every uri to resources/views/Page/Route.php
-     * 
-     * @param Request $request
+     * Route every uri to resources/views/Page/Route.php.
+     *
+     * @param Request     $request
      * @param string|null $slug
-     * 
+     *
      * @return View
      */
     public function show(Request $request, $slug = null): View
@@ -167,7 +171,7 @@ trait Controller
         }
 
         // Compute the page and subpage.
-        list ($page, $subPage) = array_pad($segments, 2, null);
+        list($page, $subPage) = array_pad($segments, 2, null);
 
         // Compute the full View name, i.e. 'about-us' -> 'Pages/Users'
         array_unshift($segments, 'pages');
@@ -183,12 +187,12 @@ trait Controller
         }
 
         // We will look for a Home View before going to Exception.
-        else if (!View::exists($viewFile = $view .'/Home')) {
-            throw new NotFoundHttpException('no template file "' . $viewFile . '.php" or "' . $view . '.php"  present in directory "./resources/views"');
+        elseif (!View::exists($viewFile = $view.'/Home')) {
+            throw new NotFoundHttpException('no template file "'.$viewFile.'.php" or "'.$view.'.php"  present in directory "./resources/views"');
         }
 
-        $title = Str::title(str_replace(array('-', '_'), ' ', $subPage ?: ($page ?: 'Home')));
-    
+        $title = Str::title(str_replace(['-', '_'], ' ', $subPage ?: ($page ?: 'Home')));
+
         $methods = explode('/', $slug);
         $methodCamel = implode('', array_map(function ($value) {
             return Str::studly($value);
@@ -199,35 +203,34 @@ trait Controller
         $requestMethod = strtolower($request->getMethod());
         if ($requestMethod != 'get') {
             if ($requestMethod == 'post') {
-                if (method_exists($this, "on" . ucfirst($requestMethod) . $methodCamel)) {
-                    App::call([$this, "on" . ucfirst($requestMethod) . $methodCamel]);
-                } elseif (method_exists($this, "on_" . $requestMethod . '_' . $method_snake)) {
-                    App::call([$this, "on_" . $requestMethod . '_' . $method_snake]);
+                if (method_exists($this, 'on'.ucfirst($requestMethod).$methodCamel)) {
+                    App::call([$this, 'on'.ucfirst($requestMethod).$methodCamel]);
+                } elseif (method_exists($this, 'on_'.$requestMethod.'_'.$method_snake)) {
+                    App::call([$this, 'on_'.$requestMethod.'_'.$method_snake]);
                 }
             } else {
-                if (method_exists($this, "onPost" . ucfirst($requestMethod) . $methodCamel)) {
-                    App::call([$this, "onPost" . ucfirst($requestMethod) . $methodCamel]);
-                } elseif (method_exists($this, "on_post_" . $requestMethod . '_' . $method_snake)) {
-                    App::call([$this, "on_post_" . $requestMethod . '_' . $method_snake]);
+                if (method_exists($this, 'onPost'.ucfirst($requestMethod).$methodCamel)) {
+                    App::call([$this, 'onPost'.ucfirst($requestMethod).$methodCamel]);
+                } elseif (method_exists($this, 'on_post_'.$requestMethod.'_'.$method_snake)) {
+                    App::call([$this, 'on_post_'.$requestMethod.'_'.$method_snake]);
                 }
             }
-            
         } else {
-            if (method_exists($this, 'render' . $methodCamel)) {
-                App::call([$this, 'render' . $methodCamel]);
-            } elseif (method_exists($this, 'render_' . $method_snake)) {
-                App::call([$this, 'render_' . $method_snake]);
+            if (method_exists($this, 'render'.$methodCamel)) {
+                App::call([$this, 'render'.$methodCamel]);
+            } elseif (method_exists($this, 'render_'.$method_snake)) {
+                App::call([$this, 'render_'.$method_snake]);
             }
         }
-        
+
         return View::make($view)->shares('title', $title);
     }
 
     /**
-     * Initialize all controller defaults
-     * 
+     * Initialize all controller defaults.
+     *
      * @param null
-     * 
+     *
      * @return void
      */
     protected function init()

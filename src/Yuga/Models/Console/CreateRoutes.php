@@ -2,14 +2,14 @@
 
 namespace Yuga\Models\Console;
 
-use Yuga\Support\Inflect;
 use Yuga\Database\Elegant\Model;
+use Yuga\Support\Inflect;
 
 trait CreateRoutes
 {
     /**
-     * Make the scaffold for a routes
-     * 
+     * Make the scaffold for a routes.
+     *
      * @param \Yuga\Database\Elegant\Model $model
      * @param mixed
      */
@@ -17,10 +17,10 @@ trait CreateRoutes
     {
         $name = \class_base($model);
         $property = \strtolower($name);
-        
+
         $routes = str_replace(
-            ['{routes}', '{class}', '{classes}'], 
-            [Inflect::pluralize($property), $name, Inflect::pluralize($name)], 
+            ['{routes}', '{class}', '{classes}'],
+            [Inflect::pluralize($property), $name, Inflect::pluralize($name)],
             file_get_contents(__DIR__.'/temps/scaffold/routes.temp')
         );
         file_put_contents(

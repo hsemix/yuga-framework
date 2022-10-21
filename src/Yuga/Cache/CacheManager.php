@@ -11,7 +11,7 @@ class CacheManager implements CacheDriver
     public function setDefaultStoreName(string $name)
     {
         if (!isset($this->stores[$name])) {
-            throw new \Exception('Store `' . $name . '` was not defined.');
+            throw new \Exception('Store `'.$name.'` was not defined.');
         }
 
         $this->defaultStoreName = $name;
@@ -53,14 +53,14 @@ class CacheManager implements CacheDriver
         }
 
         if (!$driver = $this->stores[$name] ?? null) {
-            throw new \Exception('Cache driver `' . $name . '` was not defined.');
+            throw new \Exception('Cache driver `'.$name.'` was not defined.');
         }
 
         if (is_callable($driver)) {
             $driver = call_user_func_array($driver, []);
 
             if (!($driver instanceof CacheDriver)) {
-                throw new \Exception('Cache driver `' . $name . '` must be an instance of `' . CacheDriver::class . '`');
+                throw new \Exception('Cache driver `'.$name.'` must be an instance of `'.CacheDriver::class.'`');
             }
 
             $this->stores[$name] = $driver;

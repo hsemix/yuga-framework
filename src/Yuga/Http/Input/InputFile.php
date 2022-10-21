@@ -23,10 +23,12 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Create from array
+     * Create from array.
      *
      * @param array $values
+     *
      * @throws \InvalidArgumentException
+     *
      * @return static
      */
     public static function createFromArray(array $values)
@@ -51,7 +53,6 @@ class InputFile implements IInputItem
             ->setType($values['type'])
             ->setTmpName($values['tmp_name'])
             ->setFilename($values['name']);
-
     }
 
     /**
@@ -63,8 +64,10 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Set input index
+     * Set input index.
+     *
      * @param string $index
+     *
      * @return static $this
      */
     public function setIndex($index)
@@ -83,8 +86,10 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Set file size
+     * Set file size.
+     *
      * @param int $size
+     *
      * @return static $this
      */
     public function setSize($size)
@@ -95,7 +100,8 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Get mime-type of file
+     * Get mime-type of file.
+     *
      * @return string
      */
     public function getMime()
@@ -112,8 +118,10 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Set type
+     * Set type.
+     *
      * @param string $type
+     *
      * @return static $this
      */
     public function setType($type)
@@ -124,18 +132,19 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Returns extension without "."
+     * Returns extension without ".".
      *
      * @return string
      */
     public function getExtension()
     {
         $file = explode('.', basename($this->getFilename()));
+
         return end($file);
     }
 
     /**
-     * Get human friendly name
+     * Get human friendly name.
      *
      * @return string
      */
@@ -149,6 +158,7 @@ class InputFile implements IInputItem
      * Useful for adding validation etc.
      *
      * @param string $name
+     *
      * @return static $this
      */
     public function setName($name)
@@ -159,9 +169,10 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Set filename
+     * Set filename.
      *
      * @param string $name
+     *
      * @return static $this
      */
     public function setFilename($name)
@@ -172,7 +183,7 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Get filename
+     * Get filename.
      *
      * @return string mixed
      */
@@ -182,9 +193,10 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Move the uploaded temporary file to it's new home
+     * Move the uploaded temporary file to it's new home.
      *
      * @param string $destination
+     *
      * @return bool
      */
     public function move($destination, $newFilename)
@@ -192,11 +204,12 @@ class InputFile implements IInputItem
         if (!is_dir($destination)) {
             mkdir($destination, 0777, true);
         }
-        return move_uploaded_file($this->tmpName, $destination . '/' .$newFilename);
+
+        return move_uploaded_file($this->tmpName, $destination.'/'.$newFilename);
     }
 
     /**
-     * Get file contents
+     * Get file contents.
      *
      * @return string
      */
@@ -212,7 +225,7 @@ class InputFile implements IInputItem
      */
     public function hasError()
     {
-        return ($this->getError() !== 0);
+        return $this->getError() !== 0;
     }
 
     /**
@@ -226,14 +239,15 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Set error
+     * Set error.
      *
      * @param int $error
+     *
      * @return static $this
      */
     public function setError($error)
     {
-        $this->error = (int)$error;
+        $this->error = (int) $error;
 
         return $this;
     }
@@ -247,8 +261,10 @@ class InputFile implements IInputItem
     }
 
     /**
-     * Set file temp. name
+     * Set file temp. name.
+     *
      * @param string $name
+     *
      * @return static $this
      */
     public function setTmpName($name)
@@ -278,5 +294,4 @@ class InputFile implements IInputItem
             'error'    => $this->error,
         ];
     }
-
 }

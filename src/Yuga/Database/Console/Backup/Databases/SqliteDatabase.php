@@ -10,17 +10,17 @@ class SqliteDatabase implements DatabaseInterface
     protected $databaseFile;
     protected $config;
 
-
     public function __construct(Console $console, $databaseFile)
     {
         $this->console = $console;
         $this->databaseFile = $databaseFile;
-        $this->config   = app()->config->load('config.Config');
+        $this->config = app()->config->load('config.Config');
     }
 
     public function dump($destinationFile)
     {
-        $command = sprintf('cp %s %s',
+        $command = sprintf(
+            'cp %s %s',
             escapeshellarg($this->databaseFile),
             escapeshellarg($destinationFile)
         );
@@ -30,7 +30,8 @@ class SqliteDatabase implements DatabaseInterface
 
     public function restore($sourceFile)
     {
-        $command = sprintf('cp -f %s %s',
+        $command = sprintf(
+            'cp -f %s %s',
             escapeshellarg($sourceFile),
             escapeshellarg($this->databaseFile)
         );

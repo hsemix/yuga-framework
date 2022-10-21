@@ -229,7 +229,7 @@ class Column
 
     public function getIndex()
     {
-        return $this->index ? : null;
+        return $this->index ?: null;
     }
 
     public function setIncrement($increment)
@@ -244,7 +244,7 @@ class Column
         } else {
             $this->setType(self::TYPE_SERIAL);
         }
-        
+
         $this->primary();
 
         return $this;
@@ -378,7 +378,7 @@ class Column
     public function textarray()
     {
         $this->setType(self::TYPE_TEXT_ARRAY);
-        
+
         return $this;
     }
 
@@ -440,13 +440,12 @@ class Column
 
     public function relation($table, $column, $delete = self::RELATION_TYPE_CASCADE, $update = self::RELATION_TYPE_RESTRICT)
     {
-
         if (!in_array($delete, self::$RELATION_TYPES)) {
-            throw new \InvalidArgumentException('Unknown relation type for delete. Valid types are: ' . implode(', ', self::$RELATION_TYPES));
+            throw new \InvalidArgumentException('Unknown relation type for delete. Valid types are: '.implode(', ', self::$RELATION_TYPES));
         }
 
         if (!in_array($update, self::$RELATION_TYPES)) {
-            throw new \InvalidArgumentException('Unknown relation type for delete. Valid types are: ' . implode(', ', self::$RELATION_TYPES));
+            throw new \InvalidArgumentException('Unknown relation type for delete. Valid types are: '.implode(', ', self::$RELATION_TYPES));
         }
 
         $this->relationTable = $table;
@@ -459,7 +458,7 @@ class Column
 
     public function drop()
     {
-        Pdo::getInstance()->nonQuery('ALTER TABLE "' . $this->table . '" DROP COLUMN "' . $this->name . '"');
+        Pdo::getInstance()->nonQuery('ALTER TABLE "'.$this->table.'" DROP COLUMN "'.$this->name.'"');
     }
 
     public function change()
@@ -470,7 +469,7 @@ class Column
             $index = sprintf(', ADD %s ("%s")', $this->getIndex(), $this->getName());
         }
 
-        $query = 'ALTER TABLE "' . $this->table . '" MODIFY COLUMN ' . $this->getQuery() . $index . ';';
+        $query = 'ALTER TABLE "'.$this->table.'" MODIFY COLUMN '.$this->getQuery().$index.';';
         Pdo::getInstance()->nonQuery($query);
     }
 
@@ -478,7 +477,7 @@ class Column
     {
         $length = '';
         if ($this->getLength()) {
-            $length = '(' . $this->getLength() . ')';
+            $length = '('.$this->getLength().')';
         }
 
         $query = sprintf('"%s" %s%s %s', $this->getName(), $this->getType(), $length, $this->getAttributes());
@@ -494,18 +493,19 @@ class Column
         }
 
         if ($includeRelations) {
-
             if ($this->getIndex()) {
                 $query .= sprintf(', %s ("%s")', $this->getIndex(), $this->getName());
             }
 
             if ($this->getRelationTable() !== null && $this->getRelationColumn() !== null) {
-                $query .= sprintf(', FOREIGN KEY("%s") REFERENCES "%s"("%s") ON UPDATE %s ON DELETE %s',
+                $query .= sprintf(
+                    ', FOREIGN KEY("%s") REFERENCES "%s"("%s") ON UPDATE %s ON DELETE %s',
                     $this->getName(),
                     $this->getRelationTable(),
                     $this->getRelationColumn(),
                     $this->getRelationUpdateType(),
-                    $this->getRelationDeleteType());
+                    $this->getRelationDeleteType()
+                );
             }
         }
 
@@ -520,12 +520,14 @@ class Column
         }
 
         if ($this->getRelationTable() !== null && $this->getRelationColumn() !== null) {
-            $query .= sprintf('CONSTRAINT FOREIGN KEY("%s") REFERENCES "%s"("%s") ON UPDATE %s ON DELETE %s',
+            $query .= sprintf(
+                'CONSTRAINT FOREIGN KEY("%s") REFERENCES "%s"("%s") ON UPDATE %s ON DELETE %s',
                 $this->getName(),
                 $this->getRelationTable(),
                 $this->getRelationColumn(),
                 $this->getRelationUpdateType(),
-                $this->getRelationDeleteType());
+                $this->getRelationDeleteType()
+            );
         }
 
         return $query;

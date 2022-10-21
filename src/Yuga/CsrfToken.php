@@ -2,6 +2,7 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga;
 
 use Yuga\Cookie\Cookie;
@@ -13,9 +14,10 @@ class CsrfToken
     protected $token;
 
     /**
-     * Generate random identifier for CSRF token
+     * Generate random identifier for CSRF token.
      *
      * @throws \RuntimeException
+     *
      * @return string
      */
     public static function generateToken()
@@ -30,14 +32,15 @@ class CsrfToken
         if ($isSourceStrong === false || $random === false) {
             throw new \RuntimeException('IV generation failed');
         }
-        
+
         return $random;
     }
 
     /**
-     * Validate valid CSRF token
+     * Validate valid CSRF token.
      *
      * @param string $token
+     *
      * @return bool
      */
     public function validate($token)
@@ -48,16 +51,15 @@ class CsrfToken
             }
         } else {
             if ($token !== null && $this->getToken() !== null) {
-                return ($token === $this->getToken())?:false;
+                return ($token === $this->getToken()) ?: false;
             }
         }
-        
 
         return false;
     }
 
     /**
-     * Set csrf token cookie
+     * Set csrf token cookie.
      *
      * @param $token
      */
@@ -67,7 +69,8 @@ class CsrfToken
     }
 
     /**
-     * Get csrf token
+     * Get csrf token.
+     *
      * @return string|null
      */
     public function getToken()
@@ -80,12 +83,12 @@ class CsrfToken
     }
 
     /**
-     * Returns whether the csrf token has been defined
+     * Returns whether the csrf token has been defined.
+     *
      * @return bool
      */
     public function hasToken()
     {
         return Cookie::exists(static::CSRF_KEY);
     }
-
 }

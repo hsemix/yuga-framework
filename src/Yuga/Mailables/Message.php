@@ -2,11 +2,13 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Mailables;
 
 class Message
 {
     protected $mailer;
+
     /**
      * @param $mailer
      */
@@ -16,12 +18,11 @@ class Message
     }
 
     /**
-     * @param string $address
+     * @param string      $address
      * @param string|null $name
-     * 
+     *
      * @return null
      */
-
     public function to($address, $name = null)
     {
         $this->mailer->addToRecipient($address, $name);
@@ -29,10 +30,9 @@ class Message
 
     /**
      * @param string $subject
-     * 
+     *
      * @return null
      */
-
     public function subject($subject)
     {
         $this->mailer->setSubject($subject);
@@ -40,20 +40,18 @@ class Message
 
     /**
      * @param string $body
-     * 
+     *
      * @return null
      */
-
     public function body($body)
     {
         $this->mailer->setHtmlBody($body);
     }
 
-
     /**
-     * @param string $email
+     * @param string      $email
      * @param string|null $name
-     * 
+     *
      * @return null
      */
     public function replyTo($email, $name = null)
@@ -62,9 +60,9 @@ class Message
     }
 
     /**
-     * @param string $email
+     * @param string      $email
      * @param string|null $name
-     * 
+     *
      * @return null
      */
     public function from($email, $name = null)
@@ -73,9 +71,9 @@ class Message
     }
 
     /**
-     * @param string $email
+     * @param string      $email
      * @param string|null $name
-     * 
+     *
      * @return null
      */
     public function reciever($email, $name = null)
@@ -84,9 +82,9 @@ class Message
     }
 
     /**
-     * @param string $email
+     * @param string      $email
      * @param string|null $name
-     * 
+     *
      * @return null
      */
     public function cc($email, $name = null)
@@ -95,9 +93,9 @@ class Message
     }
 
     /**
-     * @param string $email
+     * @param string      $email
      * @param string|null $name
-     * 
+     *
      * @return null
      */
     public function bcc($email, $name = null)
@@ -106,9 +104,9 @@ class Message
     }
 
     /**
-     * @param string $location
+     * @param string      $location
      * @param string|null $filename
-     * 
+     *
      * @return null
      */
     public function attach($location, $filename = null)

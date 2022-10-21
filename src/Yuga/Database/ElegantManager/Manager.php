@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\ElegantManager;
 
 use Yuga\Container\Container;
@@ -10,12 +11,12 @@ class Manager
     protected $manager;
     private $container;
     private $connection;
-    
+
     public function __construct(Container $container = null)
     {
-        $this->setContainer($container ?: new Container);       
+        $this->setContainer($container ?: new Container());
     }
-    
+
     public function addConnection(Connection $connection)
     {
         $this->connection = $connection;

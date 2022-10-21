@@ -32,7 +32,8 @@ trait Manager
     /**
      * Create a new manager instance.
      *
-     * @param  \Yuga\Interfaces\Application\Application  $app
+     * @param \Yuga\Interfaces\Application\Application $app
+     *
      * @return void
      */
     public function __construct(Application $app)
@@ -43,14 +44,15 @@ trait Manager
     /**
      * Get a driver instance.
      *
-     * @param  string  $driver
+     * @param string $driver
+     *
      * @return mixed
      */
     public function driver($driver = null)
     {
         $driver = $driver ?: $this->getDefaultDriver();
 
-        if (! isset($this->drivers[$driver])) {
+        if (!isset($this->drivers[$driver])) {
             $this->drivers[$driver] = $this->createDriver($driver);
         }
 
@@ -60,18 +62,19 @@ trait Manager
     /**
      * Create a new driver instance.
      *
-     * @param  string  $driver
-     * @return mixed
+     * @param string $driver
      *
      * @throws InvalidArgumentException
+     *
+     * @return mixed
      */
     protected function createDriver($driver)
     {
-        $method = 'create' .ucfirst($driver) .'Driver';
+        $method = 'create'.ucfirst($driver).'Driver';
 
         if (isset($this->customCreators[$driver])) {
             return $this->callCustomCreator($driver);
-        } else if (method_exists($this, $method)) {
+        } elseif (method_exists($this, $method)) {
             return $this->$method();
         }
 
@@ -81,7 +84,8 @@ trait Manager
     /**
      * Call a custom driver creator.
      *
-     * @param  string  $driver
+     * @param string $driver
+     *
      * @return mixed
      */
     protected function callCustomCreator($driver)
@@ -92,8 +96,9 @@ trait Manager
     /**
      * Register a custom driver creator Closure.
      *
-     * @param  string   $driver
-     * @param  Closure  $callback
+     * @param string  $driver
+     * @param Closure $callback
+     *
      * @return static
      */
     public function extend($driver, Closure $callback)
@@ -116,8 +121,9 @@ trait Manager
     /**
      * Dynamically call the default driver instance.
      *
-     * @param  string  $method
-     * @param  array   $parameters
+     * @param string $method
+     * @param array  $parameters
+     *
      * @return mixed
      */
     public function __call($method, $parameters)

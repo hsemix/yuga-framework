@@ -2,6 +2,7 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Providers;
 
 use Yuga\Interfaces\Application\Application;

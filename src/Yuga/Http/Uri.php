@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Http;
 
 use Yuga\Http\Exceptions\BadFormedUrlException;
@@ -19,6 +20,7 @@ class Uri
      * Url constructor.
      *
      * @param string $url
+     *
      * @throws BadFormedUrlException
      */
     public function __construct($url)
@@ -49,27 +51,27 @@ class Uri
     }
 
     /**
-     * Check if url is using a secure protocol like https
+     * Check if url is using a secure protocol like https.
      *
      * @return bool
      */
     public function isSecure()
     {
-        return (strtolower($this->getScheme()) === 'https');
+        return strtolower($this->getScheme()) === 'https';
     }
 
     /**
-     * Checks if url is relative
+     * Checks if url is relative.
      *
      * @return bool
      */
     public function isRelative()
     {
-        return ($this->getHost() === null);
+        return $this->getHost() === null;
     }
 
     /**
-     * Get url scheme
+     * Get url scheme.
      *
      * @return string|null
      */
@@ -79,9 +81,10 @@ class Uri
     }
 
     /**
-     * Set the scheme of the url
+     * Set the scheme of the url.
      *
      * @param string $scheme
+     *
      * @return static
      */
     public function setScheme($scheme)
@@ -92,7 +95,7 @@ class Uri
     }
 
     /**
-     * Get url host
+     * Get url host.
      *
      * @return string|null
      */
@@ -102,9 +105,10 @@ class Uri
     }
 
     /**
-     * Set the host of the url
+     * Set the host of the url.
      *
      * @param string $host
+     *
      * @return static
      */
     public function setHost($host)
@@ -115,19 +119,20 @@ class Uri
     }
 
     /**
-     * Get url port
+     * Get url port.
      *
      * @return int|null
      */
     public function getPort()
     {
-        return ($this->port !== null) ? (int)$this->port : null;
+        return ($this->port !== null) ? (int) $this->port : null;
     }
 
     /**
-     * Set the port of the url
+     * Set the port of the url.
      *
      * @param int $port
+     *
      * @return static
      */
     public function setPort($port)
@@ -138,7 +143,7 @@ class Uri
     }
 
     /**
-     * Parse username from url
+     * Parse username from url.
      *
      * @return string|null
      */
@@ -148,9 +153,10 @@ class Uri
     }
 
     /**
-     * Set the username of the url
+     * Set the username of the url.
      *
      * @param string $username
+     *
      * @return static
      */
     public function setUsername($username)
@@ -161,7 +167,8 @@ class Uri
     }
 
     /**
-     * Parse password from url
+     * Parse password from url.
+     *
      * @return string|null
      */
     public function getPassword()
@@ -170,9 +177,10 @@ class Uri
     }
 
     /**
-     * Set the url password
+     * Set the url password.
      *
      * @param string $password
+     *
      * @return static
      */
     public function setPassword($password)
@@ -183,29 +191,31 @@ class Uri
     }
 
     /**
-     * Get path from url
+     * Get path from url.
+     *
      * @return string
      */
     public function getPath()
     {
-        return isset($this->path) ? $this->path :  '/';
+        return isset($this->path) ? $this->path : '/';
     }
 
     /**
-     * Set the url path
+     * Set the url path.
      *
      * @param string $path
+     *
      * @return static
      */
     public function setPath($path)
     {
-        $this->path = rtrim($path, '/') . '/';
+        $this->path = rtrim($path, '/').'/';
 
         return $this;
     }
 
     /**
-     * Get query-string from url
+     * Get query-string from url.
      *
      * @return array
      */
@@ -215,9 +225,10 @@ class Uri
     }
 
     /**
-     * Merge parameters array
+     * Merge parameters array.
      *
      * @param array $params
+     *
      * @return static
      */
     public function mergeParams(array $params)
@@ -226,9 +237,10 @@ class Uri
     }
 
     /**
-     * Set the url params
+     * Set the url params.
      *
      * @param array $params
+     *
      * @return static
      */
     public function setParams(array $params)
@@ -239,7 +251,7 @@ class Uri
     }
 
     /**
-     * Get query-string params as string
+     * Get query-string params as string.
      *
      * @return string
      */
@@ -249,7 +261,7 @@ class Uri
     }
 
     /**
-     * Get fragment from url (everything after #)
+     * Get fragment from url (everything after #).
      *
      * @return string|null
      */
@@ -259,9 +271,10 @@ class Uri
     }
 
     /**
-     * Set url fragment
+     * Set url fragment.
      *
      * @param string $fragment
+     *
      * @return static
      */
     public function setFragment($fragment)
@@ -284,6 +297,7 @@ class Uri
      * Returns -1 on failure.
      *
      * @param string $value
+     *
      * @return int
      */
     public function indexOf($value)
@@ -297,17 +311,19 @@ class Uri
      * Check if url contains value.
      *
      * @param string $value
+     *
      * @return bool
      */
     public function contains($value)
     {
-        return (stripos($this->getOriginalUrl(), $value) !== false);
+        return stripos($this->getOriginalUrl(), $value) !== false;
     }
 
     /**
      * Check if url contains parameter/query string.
      *
      * @param string $name
+     *
      * @return bool
      */
     public function hasParam($name)
@@ -316,7 +332,7 @@ class Uri
     }
 
     /**
-     * Removes parameter from query-string
+     * Removes parameter from query-string.
      *
      * @param string $name
      */
@@ -337,8 +353,9 @@ class Uri
      * Get parameter by name.
      * Returns parameter value or default value.
      *
-     * @param string $name
+     * @param string      $name
      * @param string|null $defaultValue
+     *
      * @return string|null
      */
     public function getParam($name, $defaultValue = null)
@@ -359,10 +376,13 @@ class Uri
 
     /**
      * UTF-8 aware parse_url() replacement.
+     *
      * @param string $url
-     * @param int $component
-     * @return array
+     * @param int    $component
+     *
      * @throws BadFormedUrlException
+     *
+     * @return array
      */
     public function parseUrl($url, $component = -1)
     {
@@ -384,19 +404,19 @@ class Uri
     }
 
     /**
-     * Convert array to query-string params
+     * Convert array to query-string params.
      *
      * @param array $getParams
-     * @param bool $includeEmpty
+     * @param bool  $includeEmpty
+     *
      * @return string
      */
     public static function arrayToParams(array $getParams = null, $includeEmpty = true)
     {
         if ($getParams) {
-
             if ($includeEmpty === false) {
                 $getParams = array_filter($getParams, function ($item) {
-                    return (trim($item) !== '');
+                    return trim($item) !== '';
                 });
             }
 
@@ -407,7 +427,7 @@ class Uri
     }
 
     /**
-     * Returns the relative url
+     * Returns the relative url.
      *
      * @return string
      */
@@ -416,32 +436,31 @@ class Uri
         $params = $this->getQueryString();
 
         $path = isset($this->path) ? $this->path : '';
-        $query = $params !== '' ? '?' . $params : '';
-        $fragment = $this->fragment !== null ? '#' . $this->fragment : '';
+        $query = $params !== '' ? '?'.$params : '';
+        $fragment = $this->fragment !== null ? '#'.$this->fragment : '';
 
-        return $path . $query . $fragment;
+        return $path.$query.$fragment;
     }
 
     /**
-     * Returns the absolute url
+     * Returns the absolute url.
      *
      * @return string
      */
     public function getAbsoluteUrl()
     {
-        $scheme = $this->scheme !== null ? $this->scheme . '://' : '';
+        $scheme = $this->scheme !== null ? $this->scheme.'://' : '';
         $host = isset($this->host) ? $this->host : '';
-        $port = $this->port !== null ? ':' . $this->port : '';
+        $port = $this->port !== null ? ':'.$this->port : '';
         $user = isset($this->username) ? $this->username : '';
-        $pass = $this->password !== null ? ':' . $this->password : '';
-        $pass = ($user || $pass) ? $pass . '@' : '';
+        $pass = $this->password !== null ? ':'.$this->password : '';
+        $pass = ($user || $pass) ? $pass.'@' : '';
 
-        return $scheme . $user . $pass . $host . $port . $this->getRelativeUrl();
+        return $scheme.$user.$pass.$host.$port.$this->getRelativeUrl();
     }
 
     public function __toString()
     {
         return $this->getRelativeUrl();
     }
-
 }

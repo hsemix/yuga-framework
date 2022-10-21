@@ -1,12 +1,10 @@
 <?php
+
 namespace Yuga\Database\Query\Exceptions;
 
 /**
- * Class NotNullException
- *
- * @package Yuga\Database\Query\Exceptions
+ * Class NotNullException.
  */
 class NotNullException extends DatabaseQueryException
 {
-
 }

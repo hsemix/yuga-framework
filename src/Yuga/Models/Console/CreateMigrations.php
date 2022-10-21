@@ -2,15 +2,15 @@
 
 namespace Yuga\Models\Console;
 
-use Yuga\Support\Inflect;
-use Yuga\Database\Elegant\Model;
 use Yuga\Database\Console\MakeMigrationCommand;
+use Yuga\Database\Elegant\Model;
+use Yuga\Support\Inflect;
 
 trait CreateMigrations
 {
     /**
-     * Make the scaffold for migrations
-     * 
+     * Make the scaffold for migrations.
+     *
      * @param \Yuga\Database\Elegant\Model $model
      * @param mixed
      */

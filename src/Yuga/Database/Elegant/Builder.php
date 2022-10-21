@@ -2,34 +2,30 @@
 
 namespace Yuga\Database\Elegant;
 
-use Closure;
 use Carbon\Carbon;
+use Closure;
 use ReflectionClass;
-use Yuga\Support\Str;
-use Yuga\Http\Request;
-use Yuga\Support\Inflect;
-use Yuga\Pagination\DataTable;
-use Yuga\Pagination\Paginator;
-use Yuga\Pagination\Pagination;
-use Yuga\Database\Elegant\Model;
-use Yuga\Database\Elegant\Collection;
 use Yuga\Database\Connection\Connection;
-use Yuga\Database\Migration\Schema\Table;
-use Yuga\Database\Query\Builder as QueryBuilder;
-use Yuga\Database\Elegant\Association\Association;
 use Yuga\Database\Elegant\Exceptions\ModelException;
 use Yuga\Database\Elegant\Exceptions\ModelNotFoundException;
+use Yuga\Database\Migration\Schema\Table;
 use Yuga\Database\Query\ActiveRecord\Row;
+use Yuga\Database\Query\Builder as QueryBuilder;
+use Yuga\Http\Request;
+use Yuga\Pagination\DataTable;
+use Yuga\Pagination\Pagination;
+use Yuga\Pagination\Paginator;
+use Yuga\Support\Str;
 
 class Builder
-{   
+{
     /**
-    * @var Model
-    */
+     * @var Model
+     */
     protected $model;
     /**
-    * @var QueryBuilder
-    */
+     * @var QueryBuilder
+     */
     protected $query;
     protected $results;
     protected $boot = [];
@@ -41,11 +37,11 @@ class Builder
     protected $searchables = ['*'];
 
     /**
-     * Make Builder instance
-     * 
+     * Make Builder instance.
+     *
      * @param Connection|null $connection
-     * @param Model $model
-     * 
+     * @param Model           $model
+     *
      * @return void
      */
     public function __construct(Connection $connection = null, Model $model)
@@ -55,43 +51,46 @@ class Builder
     }
 
     /**
-     * Return all results or the queried ones
-     * 
+     * Return all results or the queried ones.
+     *
      * @param array|null $columns
-     * 
+     *
      * @return Collection
      */
     public function all($columns = null)
     {
         $models = $this->getAll($columns);
+
         return $models;
     }
 
     /**
-     * Return all results including trashed ones
-     * 
+     * Return all results including trashed ones.
+     *
      * @param null
-     * 
+     *
      * @return static
      */
     public function withTrashed()
     {
-		$this->withTrashed = true;
-		return $this;
-	}
+        $this->withTrashed = true;
+
+        return $this;
+    }
 
     /**
-     * Return only Trashaed records i.e with deleted_at not null
-     * 
+     * Return only Trashaed records i.e with deleted_at not null.
+     *
      * @param null
-     * 
+     *
      * @return static
      */
     public function onlyTrashed()
     {
-		$this->onlyTrashed = true;
-		return $this;
-	}
+        $this->onlyTrashed = true;
+
+        return $this;
+    }
 
     public function addTablePrefix($field)
     {
@@ -99,10 +98,10 @@ class Builder
     }
 
     /**
-     * Query the database and return the results as model instances
-     * 
+     * Query the database and return the results as model instances.
+     *
      * @param array|null $columns
-     * 
+     *
      * @return Collection
      */
     public function getAll($columns = null)
@@ -112,18 +111,17 @@ class Builder
         }
         if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
             if ($this->withTrashed) {
-				
-			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			} else {
-				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			}
+            } elseif ($this->onlyTrashed) {
+                $this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
+            } else {
+                $this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
+            }
         }
-        
-        $models = $this->query->getAll($columns); 
-        
+
+        $models = $this->query->getAll($columns);
+
         $results = $this->getModel()->makeModels($models, $this->boot);
-        
+
         $this->getModel()->dispatchModelEvent('selected', [$this->query, $results]);
 
         return $results;
@@ -165,6 +163,7 @@ class Builder
         $table = is_object($table) ? $table->getTable() : $table;
         $this->table = $table;
         $this->query = $this->query->table($table);
+
         return $this;
     }
 
@@ -196,7 +195,7 @@ class Builder
         return $this;
     }
 
-    protected function processKey($column) 
+    protected function processKey($column)
     {
         $columnAndField = [];
         $columnField = explode('.', $column);
@@ -207,6 +206,7 @@ class Builder
             $columnAndField['field'] = $columnField[0];
             $columnAndField['table'] = null;
         }
+
         return $columnAndField;
     }
 
@@ -225,20 +225,20 @@ class Builder
             $classTable = strtolower(class_base($model));
             $modelTable = is_object($newQuery->getTable()) ? $newQuery->getModel()->getTable() : $newQuery->getTable();
             if (($table || $modelTable) && ($colon = strpos($field, $classTable.'_')) === false) {
-                $field = $classTable.'_'.$field;  
+                $field = $classTable.'_'.$field;
             }
             $newQuery->select($field);
         }
 
         if ($this->checkTableField($newQuery->getTable() ? (is_object($newQuery->getTable()) ? $newQuery->getModel()->getTable() : $newQuery->getTable()) : $model->getTable(), is_object($newQuery->getTable()) ? $newQuery->getModel()->getDeleteKey() : $model->getDeleteKey())) {
             if ($this->withTrashed) {
-                
             } elseif ($this->onlyTrashed) {
                 $newQuery->whereNotNull($this->addTablePrefix($model->getDeleteKey()));
             } else {
                 $newQuery->whereNull($this->addTablePrefix($model->getDeleteKey()));
             }
         }
+
         return $this->subQuery($model);
     }
 
@@ -247,13 +247,13 @@ class Builder
         $query = $model->getQuery();
         if ($this->checkTableField($model->getModel()->getTable(), $model->getModel()->getDeleteKey())) {
             if ($model->withTrashed) {
-                
             } elseif ($model->onlyTrashed) {
                 $query->whereNotNull($this->addTablePrefix($model->getModel()->getDeleteKey()));
             } else {
                 $query->whereNull($this->addTablePrefix($model->getModel()->getDeleteKey()));
             }
         }
+
         return $this->query->subQuery($query, $alias);
     }
 
@@ -261,12 +261,15 @@ class Builder
     {
         return $this->query->getQuery()->getBindings();
     }
+
     public function whereIn($key, $values)
     {
         if (is_array($values)) {
-            if (count($values) == 0)
+            if (count($values) == 0) {
                 $values[] = 0;
+            }
         }
+
         return $this->where($key, 'IN', $values);
     }
 
@@ -285,9 +288,11 @@ class Builder
     public function whereNotIn($key, $values)
     {
         if (is_array($values)) {
-            if (count($values) == 0)
+            if (count($values) == 0) {
                 $values[] = 0;
+            }
         }
+
         return $this->where($key, 'NOT IN', $values);
     }
 
@@ -337,17 +342,21 @@ class Builder
 
     public function orWhereIn($key, $values)
     {
-        if (count($values) == 0)
+        if (count($values) == 0) {
             $values[] = 0;
+        }
         $this->orWhere($key, 'IN', $values);
+
         return $this;
     }
 
     public function orWhereNotIn($key, $values)
     {
-        if (count($values) == 0)
+        if (count($values) == 0) {
             $values[] = 0;
+        }
         $this->orWhere($key, 'NOT IN', $values);
+
         return $this;
     }
 
@@ -389,7 +398,6 @@ class Builder
         return $this->all($columns);
     }
 
-
     public function find($ids, $columns = null)
     {
         if ($columns) {
@@ -403,9 +411,10 @@ class Builder
             }
         } else {
             $items = $this->whereIn($this->model->getPrimaryKey(), $ids)->get();
+
             return $items;
         }
-        
+
         return null;
     }
 
@@ -413,7 +422,7 @@ class Builder
     {
         $item = $this->find($id);
         if ($item === null) {
-            throw new ModelNotFoundException(get_class($this->model) . ' was not found');
+            throw new ModelNotFoundException(get_class($this->model).' was not found');
         }
 
         return $item;
@@ -422,8 +431,9 @@ class Builder
     /**
      * Execute the query and get the first result or call a callback.
      *
-     * @param  \Closure|array  $columns
-     * @param  \Closure|null  $callback
+     * @param \Closure|array $columns
+     * @param \Closure|null  $callback
+     *
      * @return \Yuga\Database\Elegant\Model|static|mixed
      */
     public function firstOr($columns = ['*'], Closure $callback = null)
@@ -448,12 +458,11 @@ class Builder
         }
         if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
             if ($this->withTrashed) {
-				
-			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			} else {
-				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			}
+            } elseif ($this->onlyTrashed) {
+                $this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
+            } else {
+                $this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
+            }
         }
         if ($columns) {
             if (is_array($columns) === false) {
@@ -465,13 +474,16 @@ class Builder
         }
 
         if ($item !== null) {
-            if ($item instanceof Row)
-                $item = (object)$item->toArray();
+            if ($item instanceof Row) {
+                $item = (object) $item->toArray();
+            }
             $model = $this->getModel()->newFromQuery($item, $this->boot);
             // $model->setQuery($this);
             $model->dispatchModelEvent('selected', [$this->query, $model]);
+
             return $model;
         }
+
         return $item;
     }
 
@@ -479,12 +491,11 @@ class Builder
     {
         if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
             if ($this->withTrashed) {
-				
-			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			} else {
-				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			}
+            } elseif ($this->onlyTrashed) {
+                $this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
+            } else {
+                $this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
+            }
         }
         if ($columns) {
             $item = $this->query->select($columns)->last();
@@ -492,11 +503,13 @@ class Builder
             $item = $this->query->last();
         }
         if ($item !== null) {
-            if ($item instanceof Row)
-                $item = (object)$item->toArray();
-            
+            if ($item instanceof Row) {
+                $item = (object) $item->toArray();
+            }
+
             return $this->getModel()->newFromQuery($item, $this->boot);
         }
+
         return $item;
     }
 
@@ -504,7 +517,7 @@ class Builder
     {
         $item = $this->first($columns);
         if ($item === null) {
-            throw new ModelNotFoundException(get_class($this->model) . ' was not found');
+            throw new ModelNotFoundException(get_class($this->model).' was not found');
         }
 
         return $item;
@@ -517,20 +530,23 @@ class Builder
 
     public function max($field)
     {
-        $result = $this->query->select($this->query->raw('MAX(' . $field . ') AS max'))->getAll();
-        return (int)$result[0]->max;
+        $result = $this->query->select($this->query->raw('MAX('.$field.') AS max'))->getAll();
+
+        return (int) $result[0]->max;
     }
 
     public function min($field)
     {
-        $result = $this->query->select($this->query->raw('MIN(' . $field . ') AS min'))->getAll();
-        return (int)$result[0]->min;
+        $result = $this->query->select($this->query->raw('MIN('.$field.') AS min'))->getAll();
+
+        return (int) $result[0]->min;
     }
 
     public function sum($field)
     {
-        $result = $this->query->select($this->query->raw('SUM(' . $field . ') AS sum'))->getAll();
-        return (int)$result[0]->sum;
+        $result = $this->query->select($this->query->raw('SUM('.$field.') AS sum'))->getAll();
+
+        return (int) $result[0]->sum;
     }
 
     protected function getValidData(array $data)
@@ -541,6 +557,7 @@ class Builder
                 $out[$key] = $value;
             }
         }
+
         return $out;
     }
 
@@ -557,7 +574,6 @@ class Builder
 
     public function create(array $data = [])
     {
-
         if (count($data) === 0) {
             throw new ModelException('There are no valid columns found to update.');
         }
@@ -565,7 +581,6 @@ class Builder
         $id = $this->query->insert($data);
 
         if ($id) {
-
             $this->model->{$this->model->getPrimaryKey()} = $id;
 
             return $this->model;
@@ -576,10 +591,10 @@ class Builder
 
     public function firstOrCreate(array $attributes = [])
     {
-        foreach($attributes as $attribute => $value){
-			$this->where($attribute, $value);
+        foreach ($attributes as $attribute => $value) {
+            $this->where($attribute, $value);
         }
-        
+
         if (!is_null($instance = $this->first())) {
             return $instance;
         }
@@ -588,14 +603,14 @@ class Builder
 
         $instance->save();
 
-		return $instance;
+        return $instance;
     }
 
     public function firstOrNew(array $attributes = [])
     {
-        foreach($attributes as $attribute => $value){
-			$this->where($attribute, $value);
-		}
+        foreach ($attributes as $attribute => $value) {
+            $this->where($attribute, $value);
+        }
         if (!is_null($instance = $this->first())) {
             return $instance;
         }
@@ -631,10 +646,10 @@ class Builder
     }
 
     /**
-     * An alias of setTable
-     * 
+     * An alias of setTable.
+     *
      * @param string|array $table
-     * 
+     *
      * @return QueryBuilder $query
      */
     public function from($table)
@@ -660,21 +675,21 @@ class Builder
      * Adds HAVING statement to the current query.
      *
      * @param string|Raw|\Closure $key
-     * @param string|mixed $operator
-     * @param string|mixed $value
-     * @param string $type
+     * @param string|mixed        $operator
+     * @param string|mixed        $value
+     * @param string              $type
      *
      * @return static
      */
     public function having($column, $operator = null, $value = null, $type = 'and')
     {
         if (func_num_args() == 2) {
-			$valueTaken = $operator;
-			$operatorSymbol = "=";
-		} else {
-			$valueTaken = $value;
-			$operatorSymbol = $operator;
-		}
+            $valueTaken = $operator;
+            $operatorSymbol = '=';
+        } else {
+            $valueTaken = $value;
+            $operatorSymbol = $operator;
+        }
         $this->query->having($column, $operatorSymbol, $valueTaken, $type);
 
         return $this;
@@ -684,28 +699,30 @@ class Builder
      * Adds OR HAVING statement to the current query.
      *
      * @param string|Raw|\Closure $key
-     * @param string|mixed $operator
-     * @param string|mixed $value
-     * @param string $type
+     * @param string|mixed        $operator
+     * @param string|mixed        $value
+     * @param string              $type
      *
      * @return static
      */
     public function orHaving($column, $operator = null, $value = null)
     {
-		if (func_num_args() == 2) {
-			$valueTaken = $operator;
-			$operatorSymbol = "=";
-		} else {
-			$valueTaken = $value;
-			$operatorSymbol = $operator;
-		}
-		return $this->having($column, $operatorSymbol, $valueTaken, 'or');
-	}
+        if (func_num_args() == 2) {
+            $valueTaken = $operator;
+            $operatorSymbol = '=';
+        } else {
+            $valueTaken = $value;
+            $operatorSymbol = $operator;
+        }
+
+        return $this->having($column, $operatorSymbol, $valueTaken, 'or');
+    }
 
     public function join($table, $key, $operator = null, $value = null, $type = 'inner')
     {
-        if ($table instanceof Model)
+        if ($table instanceof Model) {
             $table = $table->getTable();
+        }
         $this->query->join($table, $key, $operator, $value, $type);
 
         return $this;
@@ -715,17 +732,19 @@ class Builder
      * Adds new LEFT JOIN statement to the current query.
      *
      * @param string|Raw|\Closure|array $table
-     * @param string|Raw|\Closure $key
-     * @param string|null $operator
-     * @param string|Raw|\Closure|null $value
+     * @param string|Raw|\Closure       $key
+     * @param string|null               $operator
+     * @param string|Raw|\Closure|null  $value
+     *
+     * @throws Exception
      *
      * @return static
-     * @throws Exception
      */
     public function leftJoin($table, $key, $operator = null, $value = null)
     {
-        if ($table instanceof Model)
+        if ($table instanceof Model) {
             $table = $table->getTable();
+        }
         $this->query->leftJoin($table, $key, $operator, $value);
 
         return $this;
@@ -735,17 +754,19 @@ class Builder
      * Adds new RIGHT JOIN statement to the current query.
      *
      * @param string|Raw|\Closure|array $table
-     * @param string|Raw|\Closure $key
-     * @param string|null $operator
-     * @param string|Raw|\Closure|null $value
+     * @param string|Raw|\Closure       $key
+     * @param string|null               $operator
+     * @param string|Raw|\Closure|null  $value
+     *
+     * @throws Exception
      *
      * @return static
-     * @throws Exception
      */
     public function rightJoin($table, $key, $operator = null, $value = null)
     {
-        if ($table instanceof Model)
+        if ($table instanceof Model) {
             $table = $table->getTable();
+        }
         $this->query->rightJoin($table, $key, $operator, $value);
 
         return $this;
@@ -759,6 +780,7 @@ class Builder
     public function query($sql, array $bindings = [])
     {
         $this->query->query($sql, $bindings);
+
         return $this;
     }
 
@@ -767,8 +789,10 @@ class Builder
      */
     public function getModel(Pagination $pagination = null)
     {
-        if ($pagination)
+        if ($pagination) {
             $this->model->setPagination($pagination);
+        }
+
         return $this->model;
     }
 
@@ -778,6 +802,7 @@ class Builder
     public function setModel(Model $model)
     {
         $this->model = $model;
+
         return $this;
     }
 
@@ -790,24 +815,26 @@ class Builder
     }
 
     /**
-     * Return a printable representation of the Builder object
-     * 
+     * Return a printable representation of the Builder object.
+     *
      * @param string|null $raw
-     * 
+     *
      * @return string
      */
     public function toSql($raw = null)
     {
-        if($raw == 'raw')
+        if ($raw == 'raw') {
             return $this->getQuery()->getQuery()->getRawSql();
+        }
+
         return $this->getQuery()->getQuery()->getSql();
     }
 
     /**
-     * Return a printable representation of the Builder object
-     * 
+     * Return a printable representation of the Builder object.
+     *
      * @param string|null $raw
-     * 
+     *
      * @return string
      */
     public function toRawSql()
@@ -816,86 +843,88 @@ class Builder
     }
 
     /**
-     * Create dates for a created_at and updated_at
-     * 
+     * Create dates for a created_at and updated_at.
+     *
      * @param string $updated_at
      * @param string $created_at
-     * 
+     *
      * @return void
      */
     public function dates($updated_at, $created_at)
     {
-		if (!$this->checkTableField($this->model->getTable(), $created_at)) {
-			$this->createTableField($this->model->getTable(), $created_at);
-		}
+        if (!$this->checkTableField($this->model->getTable(), $created_at)) {
+            $this->createTableField($this->model->getTable(), $created_at);
+        }
 
-		if (!$this->checkTableField($this->model->getTable(), $updated_at)) {
-			$this->createTableField($this->model->getTable(), $updated_at);
-		}
+        if (!$this->checkTableField($this->model->getTable(), $updated_at)) {
+            $this->createTableField($this->model->getTable(), $updated_at);
+        }
     }
-    
+
     /**
-     * Check a database table for a given field
-     * 
+     * Check a database table for a given field.
+     *
      * @param string $table
      * @param string $field
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public function checkTableField($table, $field)
     {
-        $tableApi = '\Yuga\Database\Migration\Schema\\' . ucfirst(env('DATABASE_DRIVER', 'mysql')) . '\\Table';
+        $tableApi = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
+
         return (new $tableApi($table))->columnExists($field);
     }
 
     /**
-     * Create a new field in a database table i.e. columns for managing dates
-     * 
+     * Create a new field in a database table i.e. columns for managing dates.
+     *
      * @param string $table
      * @param string $field
-     * 
+     *
      * @return void
      */
     public function createTableField($table, $field)
     {
-        $tableApi = '\Yuga\Database\Migration\Schema\\' . ucfirst(env('DATABASE_DRIVER', 'mysql')) . '\\Table';
+        $tableApi = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
         $table = new $tableApi($table);
         $table->column($field)->nullable()->datetime();
         $table->addColumns();
     }
 
     /**
-     * Perform a delete on a record i.e. either permanent or soft
-     * 
-     * @param boolean|false $permanent
-     * 
+     * Perform a delete on a record i.e. either permanent or soft.
+     *
+     * @param bool|false $permanent
+     *
      * @return mixed
      */
     public function delete($permanent = false)
     {
-		if($permanent == true){
-			return $this->forceDelete();
-		}
-		return $this->softDelete();
-	}
+        if ($permanent == true) {
+            return $this->forceDelete();
+        }
+
+        return $this->softDelete();
+    }
 
     /**
-     * Permanently Delete a record from a table
-     * 
+     * Permanently Delete a record from a table.
+     *
      * @param null
-     * 
+     *
      * @return mixed
      */
     private function forceDelete()
     {
-		return $this->query->delete();
-	}
+        return $this->query->delete();
+    }
 
     /**
-     * Soft delete a record i.e. create a deleted_at key and populate it with date
-     * 
+     * Soft delete a record i.e. create a deleted_at key and populate it with date.
+     *
      * @param null
-     * 
+     *
      * @return Model
      */
     private function softDelete()
@@ -904,28 +933,29 @@ class Builder
         if (class_exists(Carbon::class)) {
             $carbon = Carbon::class;
         }
-		$time = $carbon::now()->toDateTimeString();
-		
-		if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
+        $time = $carbon::now()->toDateTimeString();
+
+        if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
             $this->update([$this->getModel()->getDeleteKey() => $time]);
-		} else {
-			$this->createTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey());
-			$this->update([$this->getModel()->getDeleteKey() => $time]);
-		}
-		return $this->getModel();
-	}
+        } else {
+            $this->createTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey());
+            $this->update([$this->getModel()->getDeleteKey() => $time]);
+        }
+
+        return $this->getModel();
+    }
 
     public function __clone()
     {
         // $this->query = $this->query;
         $this->query = clone $this->query;
     }
-    
+
     /**
-     * Format results and include whatever the user whats to be included in the results before being returned
-     * 
+     * Format results and include whatever the user whats to be included in the results before being returned.
+     *
      * @param array ...$relations
-     * 
+     *
      * @return static
      */
     public function with($relations)
@@ -947,8 +977,8 @@ class Builder
     }
 
     /**
-     * Scan a model for valid methods
-     * 
+     * Scan a model for valid methods.
+     *
      * @param Model $model
      * @param array|[] $methods
      */
@@ -965,39 +995,40 @@ class Builder
     }
 
     /**
-     * Paginate All results as they are returned
-     * 
-     * @param int $limit
+     * Paginate All results as they are returned.
+     *
+     * @param int        $limit
      * @param array|null $options
-     * 
+     *
      * @return Collection $results
      */
     public function simplePaginate($limit = 10, array $options = null)
     {
-        $request = new Request;
+        $request = new Request();
         $url = explode('?', $request->getUri());
         $page = 1;
         if (count($url) > 1) {
-            $page = (int) $request->get('page') ? : 1;
+            $page = (int) $request->get('page') ?: 1;
             if ($options) {
                 if (array_key_exists('url', $options)) {
-                    $page = (int) $request->get($options['url']) ? : 1;
+                    $page = (int) $request->get($options['url']) ?: 1;
                 }
             }
         }
-        if($this->checkTableField($this->model->getTable(), $this->model->getDeleteKey())){
+        if ($this->checkTableField($this->model->getTable(), $this->model->getDeleteKey())) {
             $this->whereNull($this->addTablePrefix($this->model->getDeleteKey()));
         }
         $this->pagination = $pagination = new Pagination($page, $limit, $this->count());
         $results = $this->limit($limit)->offset($pagination->offset())->getWith(['pagination' => $this->pagination])->get();
+
         return $results;
     }
 
     /**
-     * Paginate results
-     * 
-     * @param int $perPage
-     * @param int $per
+     * Paginate results.
+     *
+     * @param int    $perPage
+     * @param int    $per
      * @param string $pageName
      */
     public function paginate($perPage = null, $page = null, $pageName = 'page', $pathName = null)
@@ -1006,20 +1037,20 @@ class Builder
 
         $perPage = $perPage ?: $this->model->getPerPage();
 
-        $paths = explode('?', (new Request)->getUri(true));
+        $paths = explode('?', (new Request())->getUri(true));
 
         $this->pagination = $pagination = new Pagination($page, $perPage, $this->count(), $pageName);
         $options = [
-            'path' => $pathName ?: $paths[0],
-            'pageName' => $pageName,
-            'totalCount' => $pagination->getTotalCount()
+            'path'       => $pathName ?: $paths[0],
+            'pageName'   => $pageName,
+            'totalCount' => $pagination->getTotalCount(),
         ];
         $results = ($total = $pagination->getTotalCount())
                     ? $this->limit($perPage)->offset($pagination->offset())->getWith([
                         'pagination' => $this->pagination,
-                        'paginator' => $this->paginator($perPage, $page, $options) 
-                        ? $this->getModel()->getPaginator($perPage, $page, $options) 
-                        : new Paginator($perPage, $page, $options)
+                        'paginator'  => $this->paginator($perPage, $page, $options)
+                        ? $this->getModel()->getPaginator($perPage, $page, $options)
+                        : new Paginator($perPage, $page, $options),
                     ])->get()
                     : $this->model->newCollection();
 
@@ -1027,11 +1058,11 @@ class Builder
     }
 
     /**
-     * Process results into a datatable
-     * 
-     * @param int $length
+     * Process results into a datatable.
+     *
+     * @param int    $length
      * @param string $pageName
-     * @param int $draw
+     * @param int    $draw
      * @param string $pathName
      */
     public function datatable($length = 10, $draw = null, $pageName = 'draw', $pathName = null)
@@ -1040,7 +1071,7 @@ class Builder
 
         $perPage = $length ?: $this->model->getPerPage();
 
-        $request = new Request;
+        $request = new Request();
         $paths = explode('?', $request->getUri(true));
 
         $fields = $request->all();
@@ -1055,8 +1086,9 @@ class Builder
 
         foreach ($columns as $column) {
             if ($column['searchable'] === 'true') {
-                if (!in_array($column['data'], $this->getModel()->bootable))
+                if (!in_array($column['data'], $this->getModel()->bootable)) {
                     $searchable[] = $column['data'];
+                }
             }
         }
 
@@ -1064,7 +1096,7 @@ class Builder
         if ($search['value'] != '') {
             $newQuery->where(function ($query) use ($searchable, $search) {
                 foreach ($searchable as $searchField) {
-                    $query->orWhere($searchField, 'LIKE', '%' . $search['value'] . '%');
+                    $query->orWhere($searchField, 'LIKE', '%'.$search['value'].'%');
                 }
             });
         }
@@ -1073,32 +1105,32 @@ class Builder
             foreach ($orderBy as $filterI => $filter) {
                 $column = $columns[$filter['column']];
                 if ($column['orderable'] === 'true') {
-                    if (!in_array($column['data'], $this->getModel()->bootable))
+                    if (!in_array($column['data'], $this->getModel()->bootable)) {
                         $orderable[$column['data']] = $filter['dir'];
+                    }
                 }
             }
         }
-        
+
         if (count($orderable) > 0) {
             foreach ($orderable as $filterByKey => $dir) {
                 $newQuery->orderBy($filterByKey, $dir);
             }
         }
-        
+
         $this->pagination = $pagination = new Pagination($page, $perPage, $this->count(), $pageName);
         $options = [
-            'path' => $pathName ?: $paths[0],
-            'pageName' => $pageName,
-            'recordsTotal' => $this->count(),
-            'recordsFiltered' => $newQuery->count()
+            'path'            => $pathName ?: $paths[0],
+            'pageName'        => $pageName,
+            'recordsTotal'    => $this->count(),
+            'recordsFiltered' => $newQuery->count(),
         ];
+
         return $newQuery->limit($start, $perPage)->getWith(['pagination' => $this->pagination, 'paginator' => new DataTable($perPage, $page, $options)])->get();
     }
 
     /**
-     * Get paginator
-     * 
-     * 
+     * Get paginator.
      */
     protected function paginator($perPage, $page, array $options)
     {
@@ -1106,10 +1138,10 @@ class Builder
     }
 
     /**
-     * Get the Pagination instance
-     * 
+     * Get the Pagination instance.
+     *
      * @param null
-     * 
+     *
      * @return Pagination
      */
     public function getPagination()
@@ -1118,33 +1150,36 @@ class Builder
     }
 
     /**
-     * Get results with some constraints added
-     * 
+     * Get results with some constraints added.
+     *
      * @param array|[] $instances
-     * 
+     *
      * @return static
      */
     public function getWith(array $instances = [])
     {
         $this->boot = array_merge($this->boot, $instances);
+
         return $this;
     }
 
     /**
-     * Get unique identifier for current query
-     * @return string
+     * Get unique identifier for current query.
+     *
      * @throws Exception
+     *
+     * @return string
      */
     public function getQueryIdentifier()
     {
-        return md5(static::class . $this->getSql('raw'));
+        return md5(static::class.$this->getSql('raw'));
     }
 
     /**
-     * Query from a view instead of a table
-     * 
+     * Query from a view instead of a table.
+     *
      * @param string $view
-     * 
+     *
      * @return static
      */
     public function getFromView($view = null)
@@ -1155,18 +1190,20 @@ class Builder
             if (isset($this->getModel()->view_name)) {
                 $objectCallingView = $this->getModel()->view_name;
             } else {
-                $objectCallingView = strtolower(Str::deCamelize(class_base($this->getModel())))."_view";
+                $objectCallingView = strtolower(Str::deCamelize(class_base($this->getModel()))).'_view';
             }
         }
         $this->getModel()->setTable($objectCallingView);
+
         return $this->getModel();
     }
 
     /**
      * Chunk the results of the query.
      *
-     * @param  int  $count
-     * @param  callable  $callback
+     * @param int      $count
+     * @param callable $callback
+     *
      * @return void
      */
     public function chunk($count, callable $callback)
@@ -1185,8 +1222,9 @@ class Builder
     /**
      * Call the given model span on the underlying model.
      *
-     * @param  string  $span
-     * @param  array   $parameters
+     * @param string $span
+     * @param array  $parameters
+     *
      * @return \Yuga\Database\Elegant\Query\Builder
      */
     public function callSpan($span, $parameters)
@@ -1199,8 +1237,9 @@ class Builder
     /**
      * Dynamically handle calls into the query instance.
      *
-     * @param  string  $method
-     * @param  array   $parameters
+     * @param string $method
+     * @param array  $parameters
+     *
      * @return mixed
      */
     public function __call($method, $parameters)

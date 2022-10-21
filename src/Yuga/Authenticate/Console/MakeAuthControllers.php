@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Authenticate\Console;
 
 trait MakeAuthControllers

@@ -6,7 +6,6 @@ use Yuga\Interfaces\Queue\ShouldQueueInterface;
 
 trait DispatchableTrait
 {
-
     /**
      * Dispatch the job with the given arguments.
      *
@@ -25,7 +24,7 @@ trait DispatchableTrait
         if ($this instanceof ShouldQueueInterface) {
             $queue = app('queue');
             // return $this;
-            
+
             return $queue->createPayload($this);
         } else {
             return app()->call([$this, 'run']);

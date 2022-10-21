@@ -1,16 +1,18 @@
 <?php
+
 namespace Yuga\Database\Query\Grammar;
 
-use Yuga\Database\Query\Raw;
+use Yuga\Database\Connection\Connection;
 use Yuga\Database\Connection\Exception;
 use Yuga\Database\Query\NestedCriteria;
-use Yuga\Database\Connection\Connection;
+use Yuga\Database\Query\Raw;
 
 class BaseGrammar
 {
     const SANITIZER = '`';
     protected $container;
     protected $connection;
+
     public function __construct(Connection $connection = null)
     {
         $this->connection = $connection;
@@ -19,10 +21,10 @@ class BaseGrammar
 
     public function select($statements)
     {
-        if(!array_key_exists('selects', $statements)){
+        if (!array_key_exists('selects', $statements)) {
             $statements['selects'][] = '*';
         }
-         // From
+        // From
         $fromEnabled = false;
         $tables = '';
 
@@ -30,9 +32,8 @@ class BaseGrammar
             $tables = [];
 
             foreach ($statements['tables'] as $prefix => $table) {
-
                 if (is_numeric($prefix) === false) {
-                    $t =  $t = ($table instanceof Raw) ? $prefix : $this->wrapSanitizer($prefix) . ' AS ' . strtolower($table);
+                    $t = $t = ($table instanceof Raw) ? $prefix : $this->wrapSanitizer($prefix).' AS '.strtolower($table);
                 } else {
                     $t = ($table instanceof Raw) ? $table : $this->wrapSanitizer($table);
                 }
@@ -51,24 +52,24 @@ class BaseGrammar
         // Group bys
         $groupBys = '';
         if (isset($statements['groupBys']) && $groupBys = $this->arrayStr($statements['groupBys'], ', ')) {
-            $groupBys = 'GROUP BY ' . $groupBys;
+            $groupBys = 'GROUP BY '.$groupBys;
         }
 
         // Order bys
         $orderBys = '';
         if (isset($statements['orderBys']) && is_array($statements['orderBys'])) {
             foreach ($statements['orderBys'] as $orderBy) {
-                $orderBys .= $this->wrapSanitizer($orderBy['field']) . ' ' . $orderBy['type'] . ', ';
+                $orderBys .= $this->wrapSanitizer($orderBy['field']).' '.$orderBy['type'].', ';
             }
 
             if ($orderBys = trim($orderBys, ', ')) {
-                $orderBys = 'ORDER BY ' . $orderBys;
+                $orderBys = 'ORDER BY '.$orderBys;
             }
         }
 
         // Limit and offset
-        $limit = isset($statements['limit']) ? 'LIMIT ' . $statements['limit'] : '';
-        $offset = isset($statements['offset']) ? 'OFFSET ' . $statements['offset'] : '';
+        $limit = isset($statements['limit']) ? 'LIMIT '.$statements['limit'] : '';
+        $offset = isset($statements['offset']) ? 'OFFSET '.$statements['offset'] : '';
 
         // Having
         list($havingCriteria, $havingBindings) = $this->buildCriteriaWithType($statements, 'havings', 'HAVING');
@@ -77,7 +78,7 @@ class BaseGrammar
         $joinString = $this->buildJoin($statements);
 
         $sqlArray = [
-            'SELECT' . (isset($statements['distinct']) ? ' DISTINCT' : ''),
+            'SELECT'.(isset($statements['distinct']) ? ' DISTINCT' : ''),
             $selects,
             $fromEnabled ? 'FROM' : '',
             $tables,
@@ -102,11 +103,11 @@ class BaseGrammar
 
     /**
      * Array concatenating method, like implode.
-     * But it does wrap sanitizer and trims last glue
+     * But it does wrap sanitizer and trims last glue.
      *
      * @param array $pieces
      * @param       $glue
-     * @param bool $wrapSanitizer
+     * @param bool  $wrapSanitizer
      *
      * @return string
      */
@@ -119,17 +120,17 @@ class BaseGrammar
             }
 
             if (!is_int($key)) {
-                $piece = ($wrapSanitizer ? $this->wrapSanitizer($key) : $key) . ' AS ' . $piece;
+                $piece = ($wrapSanitizer ? $this->wrapSanitizer($key) : $key).' AS '.$piece;
             }
 
-            $str .= $piece . $glue;
+            $str .= $piece.$glue;
         }
 
         return trim($str, $glue);
     }
 
     /**
-     * Wrap values with adapter's sanitizer like, '`'
+     * Wrap values with adapter's sanitizer like, '`'.
      *
      * @param $value
      *
@@ -139,7 +140,7 @@ class BaseGrammar
     {
         // Its a raw query, just cast as string, object has __toString()
         if ($value instanceof Raw) {
-            return (string)$value;
+            return (string) $value;
         } elseif ($value instanceof \Closure) {
             return $value;
         }
@@ -148,14 +149,14 @@ class BaseGrammar
 
         foreach ($valueArr as $key => $subValue) {
             // Don't wrap if we have *, which is not a usual field
-            $valueArr[$key] = trim($subValue) === '*' ? $subValue : static::SANITIZER . $subValue . static::SANITIZER;
+            $valueArr[$key] = trim($subValue) === '*' ? $subValue : static::SANITIZER.$subValue.static::SANITIZER;
         }
         // Join these back with "." and return
         return implode('.', $valueArr);
     }
 
     /**
-     * Build criteria string and binding with various types added, like WHERE and Having
+     * Build criteria string and binding with various types added, like WHERE and Having.
      *
      * @param      $statements
      * @param      $key
@@ -174,7 +175,7 @@ class BaseGrammar
             list($criteria, $bindings) = $this->buildCriteria($statements[$key], $bindValues);
 
             if ($criteria) {
-                $criteria = $type . ' ' . $criteria;
+                $criteria = $type.' '.$criteria;
             }
         }
 
@@ -182,10 +183,11 @@ class BaseGrammar
     }
 
     /**
-     * Build generic criteria string and bindings from statements, like "a = b and c = ?"
+     * Build generic criteria string and bindings from statements, like "a = b and c = ?".
      *
      * @param array $statements
-     * @param bool $bindValues
+     * @param bool  $bindValues
+     *
      * @throws Exception
      *
      * @return array
@@ -218,10 +220,10 @@ class BaseGrammar
                 // Merge the bindings we get from nestedCriteria object
                 $bindings = array_merge($bindings, $queryObject->getBindings());
                 // Append the sql we get from the nestedCriteria object
-                $criteria .= strtoupper($statement['type']) . ' (' . $queryObject->getSql() . ') ';
+                $criteria .= strtoupper($statement['type']).' ('.$queryObject->getSql().') ';
             } elseif (is_array($value)) {
                 // where_in or between like query
-                $criteria .= strtoupper($statement['type']) . ' ' . $key . ' ' . $statement['operator'];
+                $criteria .= strtoupper($statement['type']).' '.$key.' '.$statement['operator'];
 
                 if ($statement['operator'] === 'BETWEEN') {
                     $bindings = array_merge($bindings, $statement['value']);
@@ -234,9 +236,8 @@ class BaseGrammar
                     }
 
                     $valuePlaceholder = trim($valuePlaceholder, ', ');
-                    $criteria .= ' (' . $valuePlaceholder . ') ';
+                    $criteria .= ' ('.$valuePlaceholder.') ';
                 }
-
             } elseif ($value instanceof Raw) {
                 $criteria .= "{$statement['type']} {$key} {$statement['operator']} $value ";
             } else {
@@ -247,24 +248,22 @@ class BaseGrammar
 
                     // We are not binding values, lets sanitize then
                     $value = $this->wrapSanitizer($value);
-                    $criteria .= $statement['type'] . ' ' . $key . ' ' . $statement['operator'] . ' ' . $value . ' ';
+                    $criteria .= $statement['type'].' '.$key.' '.$statement['operator'].' '.$value.' ';
                 } elseif ($statement['column'] instanceof Raw) {
-
                     if ($statement['operator'] !== null) {
                         $criteria .= "{$statement['type']} {$key} {$statement['operator']} ? ";
                         $bindings = array_merge($bindings, $statement['column']->getBindings());
                         $bindings[] = $value;
                     } else {
-                        $criteria .= $statement['type'] . ' ' . $key . ' ';
+                        $criteria .= $statement['type'].' '.$key.' ';
                         $bindings = array_merge($bindings, $statement['column']->getBindings());
                     }
-
                 } else {
                     // For wheres
 
                     $valuePlaceholder = '?';
                     $bindings[] = $value;
-                    $criteria .= $statement['type'] . ' ' . $key . ' ' . $statement['operator'] . ' ' . $valuePlaceholder . ' ';
+                    $criteria .= $statement['type'].' '.$key.' '.$statement['operator'].' '.$valuePlaceholder.' ';
                 }
             }
         }
@@ -276,10 +275,12 @@ class BaseGrammar
     }
 
     /**
-     * Build join string
+     * Build join string.
      *
      * @param $statements
+     *
      * @throws Exception
+     *
      * @return string
      */
     protected function buildJoin($statements)
@@ -293,10 +294,10 @@ class BaseGrammar
         foreach ($statements['joins'] as $joinArr) {
             if (is_array($joinArr['table'])) {
                 list($mainTable, $aliasTable) = $joinArr['table'];
-                $table = $this->wrapSanitizer($mainTable) . ' AS ' . $this->wrapSanitizer($aliasTable);
+                $table = $this->wrapSanitizer($mainTable).' AS '.$this->wrapSanitizer($aliasTable);
             } else {
                 $table = $joinArr['table'] instanceof Raw ?
-                    (string)$joinArr['table'] :
+                    (string) $joinArr['table'] :
                     $this->wrapSanitizer($joinArr['table']);
             }
 
@@ -329,14 +330,14 @@ class BaseGrammar
     {
         $str = '';
         foreach ($pieces as $piece) {
-            $str = trim($str) . ' ' . trim($piece);
+            $str = trim($str).' '.trim($piece);
         }
 
         return trim($str);
     }
 
     /**
-     * Build just criteria part of the query
+     * Build just criteria part of the query.
      *
      * @param      $statements
      * @param bool $bindValues
@@ -356,14 +357,15 @@ class BaseGrammar
     }
 
     /**
-     * Build a generic insert/ignore/replace query
+     * Build a generic insert/ignore/replace query.
      *
-     * @param array $statements
-     * @param array $data
+     * @param array  $statements
+     * @param array  $data
      * @param string $type
      *
-     * @return array
      * @throws Exception
+     *
+     * @return array
      */
     private function doInsert($statements, array $data, $type)
     {
@@ -372,7 +374,7 @@ class BaseGrammar
         foreach ($data as $key => $value) {
             $keys[] = $key;
             if ($value instanceof Raw) {
-                $values[] = (string)$value;
+                $values[] = (string) $value;
             } else {
                 $values[] = '?';
                 $bindings[] = $value;
@@ -380,11 +382,11 @@ class BaseGrammar
         }
 
         $sqlArray = [
-            $type . ' INTO',
+            $type.' INTO',
             $this->wrapSanitizer($table),
-            '(' . $this->arrayStr($keys, ',') . ')',
+            '('.$this->arrayStr($keys, ',').')',
             'VALUES',
-            '(' . $this->arrayStr($values, ',', false) . ')',
+            '('.$this->arrayStr($values, ',', false).')',
         ];
 
         if (isset($statements['onduplicate'])) {
@@ -392,21 +394,23 @@ class BaseGrammar
                 throw new Exception('No data given.', 4);
             }
             list($updateStatement, $updateBindings) = $this->getUpdateStatement($statements['onduplicate']);
-            $sqlArray[] = 'ON DUPLICATE KEY UPDATE ' . $updateStatement;
+            $sqlArray[] = 'ON DUPLICATE KEY UPDATE '.$updateStatement;
             $bindings = array_merge($bindings, $updateBindings);
         }
         $sql = $this->concatenateQuery($sqlArray);
+
         return compact('sql', 'bindings');
     }
 
     /**
-     * Build Insert query
+     * Build Insert query.
      *
      * @param       $statements
      * @param array $data
      *
-     * @return array
      * @throws Exception
+     *
+     * @return array
      */
     public function insert($statements, array $data)
     {
@@ -414,13 +418,14 @@ class BaseGrammar
     }
 
     /**
-     * Build Insert Ignore query
+     * Build Insert Ignore query.
      *
      * @param       $statements
      * @param array $data
      *
-     * @return array
      * @throws Exception
+     *
+     * @return array
      */
     public function insertIgnore($statements, array $data)
     {
@@ -428,13 +433,14 @@ class BaseGrammar
     }
 
     /**
-     * Build Insert Ignore query
+     * Build Insert Ignore query.
      *
      * @param       $statements
      * @param array $data
      *
-     * @return array
      * @throws Exception
+     *
+     * @return array
      */
     public function replace($statements, array $data)
     {
@@ -442,7 +448,7 @@ class BaseGrammar
     }
 
     /**
-     * Build fields assignment part of SET ... or ON DUBLICATE KEY UPDATE ... statements
+     * Build fields assignment part of SET ... or ON DUBLICATE KEY UPDATE ... statements.
      *
      * @param array $data
      *
@@ -454,24 +460,26 @@ class BaseGrammar
         $statement = '';
         foreach ($data as $key => $value) {
             if ($value instanceof Raw) {
-                $statement .= $this->wrapSanitizer($key) . '=' . $value . ',';
+                $statement .= $this->wrapSanitizer($key).'='.$value.',';
             } else {
-                $statement .= $this->wrapSanitizer($key) . '=?,';
+                $statement .= $this->wrapSanitizer($key).'=?,';
                 $bindings[] = $value;
             }
         }
         $statement = trim($statement, ',');
+
         return [$statement, $bindings];
     }
 
     /**
-     * Build update query
+     * Build update query.
      *
      * @param       $statements
      * @param array $data
      *
-     * @return array
      * @throws Exception
+     *
+     * @return array
      */
     public function update($statements, array $data)
     {
@@ -487,12 +495,12 @@ class BaseGrammar
         list($whereCriteria, $whereBindings) = $this->buildCriteriaWithType($statements, 'wheres', 'WHERE');
 
         // Limit
-        $limit = isset($statements['limit']) ? 'LIMIT ' . $statements['limit'] : '';
+        $limit = isset($statements['limit']) ? 'LIMIT '.$statements['limit'] : '';
 
         $sqlArray = [
             'UPDATE',
             $this->wrapSanitizer($table),
-            'SET ' . $updateStatement,
+            'SET '.$updateStatement,
             $whereCriteria,
             $limit,
         ];
@@ -505,12 +513,13 @@ class BaseGrammar
     }
 
     /**
-     * Build delete query
+     * Build delete query.
      *
      * @param $statements
      *
-     * @return array
      * @throws Exception
+     *
+     * @return array
      */
     public function delete($statements)
     {

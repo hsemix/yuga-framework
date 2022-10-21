@@ -2,19 +2,20 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Mailables;
 
-use Yuga\Providers\ServiceProvider;
-use Yuga\Mailables\Native\YugaMailer;
 use Yuga\Interfaces\Application\Application;
+use Yuga\Mailables\Native\YugaMailer;
+use Yuga\Providers\ServiceProvider;
 
 class MailableServiceProvider extends ServiceProvider
 {
     /**
-     * Register a service to the application
-     * 
+     * Register a service to the application.
+     *
      * @param \Yuga\Interfaces\Application\Application
-     * 
+     *
      * @return mixed
      */
     public function load(Application $app)
@@ -29,29 +30,30 @@ class MailableServiceProvider extends ServiceProvider
         } else {
             $mailableClass = '\Yuga\Mailables\\'.$mailable.'\\'.$mailable;
         }
-        
+
         $connection = $app->singleton('mailable', $mailableClass);
         $app->resolve('mailable', [
-            $settings
+            $settings,
         ]);
         $this->mailer($app, $app->make('mailable'), $settings);
     }
 
     /**
-     * Set the mailer used and return a new singleton instance of that mailer
-     * 
+     * Set the mailer used and return a new singleton instance of that mailer.
+     *
      * @param \Yuga\Interfaces\Application\Application $app
-     * @param object $mailable
-     * @param array $settings
-     * 
+     * @param object                                   $mailable
+     * @param array                                    $settings
+     *
      * @return \Yuga\Mailables\Mailer $mailer
      */
     protected function mailer(Application $app, $mailable, $settings)
     {
-        return $app->singleton('mailer', function() use ($mailable, $settings) {
-            $mailer = new Mailer;
+        return $app->singleton('mailer', function () use ($mailable, $settings) {
+            $mailer = new Mailer();
             $mailer->setArgs($settings);
             $mailer->setMailable($mailable);
+
             return $mailer;
         });
     }

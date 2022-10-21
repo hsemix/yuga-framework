@@ -2,10 +2,11 @@
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Session;
 
-use Yuga\Providers\ServiceProvider;
 use Yuga\Interfaces\Application\Application;
+use Yuga\Providers\ServiceProvider;
 
 class SessionServiceProvider extends ServiceProvider
 {

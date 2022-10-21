@@ -1,22 +1,22 @@
 <?php
+
 namespace Yuga\Http\Console;
 
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Yuga\Console\Command;
 use Yuga\Http\Middleware\MiddleWare;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
 
 class MakeMiddlewareCommand extends Command
 {
     protected $name = 'make:middleware';
-    
+
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Make A middleware class and register it globally';
-
 
     /**
      * Execute the console command.
@@ -42,7 +42,7 @@ class MakeMiddlewareCommand extends Command
     protected function makeMiddleware($name, $alias)
     {
         file_put_contents(
-            path('app/Middleware/'. $name. '.php'),
+            path('app/Middleware/'.$name.'.php'),
             $this->compileMiddlewareTemp($name)
         );
     }
@@ -55,6 +55,7 @@ class MakeMiddlewareCommand extends Command
     protected function compileMiddlewareTemp($name)
     {
         $middleware = str_replace('{namespace}', env('APP_NAMESPACE', 'App'), file_get_contents(__DIR__.'/temps/Middleware.temp'));
+
         return str_replace('{middleware}', $name, $middleware);
     }
 
@@ -70,7 +71,6 @@ class MakeMiddlewareCommand extends Command
         }
     }
 
-
     /**
      * Compiles the MiddlewWare temp.
      *
@@ -83,7 +83,7 @@ class MakeMiddlewareCommand extends Command
 
         $generatedMiddleware = '[';
         foreach ($middleware as $alias => $ware) {
-            $generatedMiddleware .= "\n\t'{$alias}' => \\". $ware. "::class,";
+            $generatedMiddleware .= "\n\t'{$alias}' => \\".$ware.'::class,';
         }
         $generatedMiddleware .= "\n]";
 
@@ -102,7 +102,7 @@ class MakeMiddlewareCommand extends Command
     protected function getOptions()
     {
         return [
-            ['alias', 'a', InputOption::VALUE_REQUIRED, 'Provide an alias for your middleware', null]
+            ['alias', 'a', InputOption::VALUE_REQUIRED, 'Provide an alias for your middleware', null],
         ];
     }
 

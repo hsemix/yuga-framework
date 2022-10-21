@@ -8,6 +8,5 @@ class UserLoggedOut implements HandlerInterface
 {
     public function handle($event)
     {
-        
     }
 }

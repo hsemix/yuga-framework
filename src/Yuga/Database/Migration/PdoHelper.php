@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration;
 
 use Yuga\Support\Integer;
@@ -15,9 +16,11 @@ class PdoHelper
     }
 
     /**
-     * Escapes query and formats it with arguments
-     * @param string $query
+     * Escapes query and formats it with arguments.
+     *
+     * @param string     $query
      * @param array|null $args
+     *
      * @return string
      */
     public static function formatQuery($query, $args = null)
@@ -63,5 +66,4 @@ class PdoHelper
     {
         return trim(Pdo::getInstance()->getConnection()->quote($value), '\'');
     }
-
 }
