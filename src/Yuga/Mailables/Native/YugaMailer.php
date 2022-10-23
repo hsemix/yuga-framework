@@ -460,7 +460,7 @@ class YugaMailer extends Mailable
 		}
 
 		// prepare the display name
-		if ($name !== '') {
+		if ($name !== '' && !is_null($name)) {
 			// only use Q encoding if there are characters that would require it
 			if (!preg_match('/[\200-\377]/', $name)) {
 				// add slashes for non-printing characters, slashes, and double quotes, and surround it in double quotes
@@ -495,7 +495,7 @@ class YugaMailer extends Mailable
 			$this->validateEmail($this->stringToArray($replyto));
 		}
 
-		if ($name !== '') {
+		if ($name !== '' && !is_null($name)) {
 			// only use Q encoding if there are characters that would require it
 			if (!preg_match('/[\200-\377]/', $name)) {
 				// add slashes for non-printing characters, slashes, and double quotes, and surround it in double quotes
@@ -1439,7 +1439,7 @@ class YugaMailer extends Mailable
 	public function send($template = null, array $data = null, $auto_clear = true)
 	{
 		if ($template) {
-			$this->view->setTemplateDirectory('mailables');
+			$this->view->setTemplateDirectory(path('mailables'));
 			$this->message(($template instanceof ViewModel) ? $template : $this->view->render($template, $data));
 		}
 		if (!isset($this->headers['From'])) {
