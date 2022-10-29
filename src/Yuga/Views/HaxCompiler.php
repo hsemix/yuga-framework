@@ -73,7 +73,6 @@ class HaxCompiler extends View
             }
         }
         
-
         event('on:hax-instance', ['compiler' => $this]);
     }
 

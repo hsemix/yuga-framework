@@ -4,8 +4,11 @@ namespace Yuga\Scheduler;
 
 use Config\Services;
 use CodeIgniter\Events\Events;
+use Symfony\Component\Process\Process;
 use Yuga\Exceptions\SchedulerException;
+use Symfony\Component\Process\ProcessUtils;
 use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Process\PhpExecutableFinder;
 
 /**
  * Class Job
@@ -35,6 +38,17 @@ class Job
 		'event',
 		'url',
 	];
+
+	protected $backgroundTasks = [
+		'shell', 'command',
+	];
+
+	/**
+     * The user the command should run as.
+     *
+     * @var string
+     */
+    public $user;
 
 	/**
 	 * The type of action.
@@ -81,6 +95,34 @@ class Job
      * @var bool
      */
     public $runInBackground = false;
+
+	/**
+     * The location that output should be sent to.
+     *
+     * @var string
+     */
+    public $output = '/dev/null';
+
+    /**
+     * Indicates whether output should be appended.
+     *
+     * @var bool
+     */
+    protected $shouldAppendOutput = false;
+
+	/**
+     * Indicates if the command should not overlap itself.
+     *
+     * @var bool
+     */
+    public $withoutOverlapping = false;
+
+    /**
+     * The amount of time the mutex should be valid.
+     *
+     * @var int
+     */
+    public $expiresAt = 1440;
 
 	/**
 	 * @param mixed  $action
@@ -151,20 +193,32 @@ class Job
 	 */
 	public function run()
 	{	
-
-		$mutex = new \SyncMutex("UniqueName");
-
-		echo 'kdkdkdd';
-		// print_r($mutex);
-		die();
-		// print_r($this->type);
-		// die();
 		$method = 'run' . ucfirst($this->type);
+
+		if ($this->withoutOverlapping) {
+            return;
+        }
+
+		if (\in_array($this->type, $this->backgroundTasks)) {
+			return $this->canRunInBackground($this->type);
+		}
+		
 		if (!method_exists($this, $method)) {
 			throw SchedulerException::forInvalidTaskType( $this->type );
 		}
-
 		return $this->$method();
+	}
+
+	protected function canRunInBackground($job)
+	{	
+		// $process = new Process($this->buildCommand(), path(), null, null, null);
+		$process = Process::fromShellCommandline($this->buildCommand());
+
+		if ($this->runInBackground) {
+			$process->disableOutput();
+		}
+
+		$process->run();
 	}
 
 	/**
@@ -175,7 +229,7 @@ class Job
 	 */
 	public function shouldRun( \Datetime $testTime = null ) : bool
 	{
-		$cron = \Cron\CronExpression::factory( $this->getExpression() );
+		$cron = new \Cron\CronExpression( $this->getExpression() );
 
 		$testTime = ( $testTime ) ? $testTime : 'now';
 		
@@ -193,6 +247,104 @@ class Job
 
         return $this;
     }
+
+	/**
+     * Do not allow the event to overlap each other.
+     *
+     * @param  int  $expiresAt
+     * @return $this
+     */
+    public function withoutOverlapping($expiresAt = 1440)
+    {
+        $this->withoutOverlapping = true;
+
+        $this->expiresAt = $expiresAt;
+
+		return $this;
+
+        // return $this->then(function ()
+        // {
+        //     $this->mutex->forget($this);
+
+        // })->skip(function ()
+        // {
+        //     return $this->mutex->exists($this);
+        // });
+    }
+
+	/**
+     * Build the command string.
+     *
+     * @return string
+     */
+    public function buildCommand()
+    {
+        $command = $this->compileCommand();
+
+        if (!is_null($this->user) && ! windows_os()) {
+            return 'sudo -u ' .$this->user .' -- sh -c \'' .$command .'\'';
+        }
+
+        return $command;
+    }
+
+	/**
+     * Build a command string with mutex.
+     *
+     * @return string
+     */
+    protected function compileCommand()
+    {
+        $output = escapeshellarg($this->output);
+
+        $redirect = $this->shouldAppendOutput ? ' >> ' : ' > ';
+
+        if (!$this->runInBackground) {
+            return 'php yuga '.$this->getAction().$redirect.$output .' 2>&1';
+        }
+
+
+        $phpBinary = escapeshellarg((new PhpExecutableFinder)->find(false));
+
+        $yugaBinary = escapeshellarg('yuga');
+
+        return $phpBinary .' ' . $yugaBinary . ' '.$this->getAction().$redirect.$output.' 2>&1 &';
+    }
+
+	/**
+     * Get the mutex path for the scheduled command.
+     *
+     * @return string
+     */
+    public function mutexName()
+    {
+        return storage('scheduler'.DIRECTORY_SEPARATOR.'schedule-' .sha1($this->expression .$this->getAction()));
+    }
+
+	/**
+     * Get the default output depending on the OS.
+     *
+     * @return string
+     */
+    protected function getDefaultOutput()
+    {
+        return windows_os() ? 'NUL' : '/dev/null';
+    }
+
+
+	/**
+     * Set which user the command should run as.
+     *
+     * @param  string  $user
+     * @return $this
+     */
+    public function user($user)
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
 
 	/**
 	 * Restricts this task to run within only

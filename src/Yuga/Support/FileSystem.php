@@ -33,6 +33,16 @@ final class FileSystem
 		return @file_exists($path);
 	}
 
+	public static function isDir(string $path): bool
+	{
+		return \is_dir($path);
+	}
+
+	public static function isFile(string $path): bool
+	{
+		return \is_file($path);
+	}
+
 
 	/**
 	 * Copies a file or directory.

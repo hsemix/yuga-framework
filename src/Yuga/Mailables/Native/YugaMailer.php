@@ -2,6 +2,7 @@
 namespace Yuga\Mailables\Native;
 
 use Yuga\App;
+use Yuga\Views\View;
 use Yuga\View\ViewModel;
 use Yuga\Mailables\Mailable;
 use Yuga\Application\Application;

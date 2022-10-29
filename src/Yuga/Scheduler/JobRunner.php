@@ -177,7 +177,7 @@ class JobRunner
 				}
 			}
 
-			$fileName = 'jobs_' . date('Y-m-d--H-i-s') . '.json';
+			$fileName = 'jobs_' . date('Y-m-d-H-i-s') . '.json';
 
 			// write the file with json content
 			file_put_contents(

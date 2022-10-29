@@ -123,9 +123,9 @@ class View
 		return false;
 	}
 
-	public static function make(string $view)
+	public static function make(string $view, array $data = [])
 	{
-		return new static($view);
+		return new static($view, $data);
 	}
 
 	public function __call($method, $parameters)

@@ -6,6 +6,15 @@ use Yuga\Interfaces\Providers\IServiceProvider;
 
 abstract class ServiceProvider implements IServiceProvider
 {
+    protected $app;
+    
+    /**
+     * The paths that should be published.
+     *
+     * @var array
+     */
+    protected static $publishes = [];
+
     /**
      * Register a service provider to the container and resolve it or later
      * 
@@ -26,6 +35,45 @@ abstract class ServiceProvider implements IServiceProvider
      * @return void
      */
     abstract public function load(Application $app);
+
+    /**
+     * Register paths to be published by the publish command.
+     *
+     * @param  array  $paths
+     * @param  string  $group
+     * @return void
+     */
+    protected function publishes(array $paths, $group)
+    {
+        if (! array_key_exists($group, static::$publishes)) {
+            static::$publishes[$group] = [];
+        }
+
+        static::$publishes[$group] = array_merge(static::$publishes[$group], $paths);
+    }
+
+    /**
+     * Get the paths to publish.
+     *
+     * @param  string|null  $group
+     * @return array
+     */
+    public static function pathsToPublish($group = null)
+    {
+        if (is_null($group)) {
+            $paths = [];
+
+            foreach (static::$publishes as $class => $publish) {
+                $paths = array_merge($paths, $publish);
+            }
+
+            return array_unique($paths);
+        } else if (array_key_exists($group, static::$publishes)) {
+            return static::$publishes[$group];
+        }
+
+        return [];
+    }
 
     /**
      * Register the package's custom Yuga commands.

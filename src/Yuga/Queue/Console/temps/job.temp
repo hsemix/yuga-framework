@@ -2,13 +2,12 @@
 
 namespace {{namespace}}\Jobs;
 
-use Yuga\Queue\QueueableTrait;
 use Yuga\Queue\DispatchableTrait;
 
 
 class {{className}}
 {
-    use DispatchableTrait, QueueableTrait;
+    use DispatchableTrait;
 
 
     /**

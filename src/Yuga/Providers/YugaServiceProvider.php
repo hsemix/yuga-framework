@@ -27,6 +27,7 @@ use Yuga\Queue\Console\MakeQueueMonitorCommand;
 use Yuga\Queue\Console\MakeQueueRestartCommand;
 use Yuga\Events\Console\MakeEventHandlerCommand;
 use Yuga\Database\Console\MakeMigrationUpCommand;
+use Yuga\Providers\Console\PackagePublishCommand;
 use Yuga\Controllers\Console\MakeControllerCommand;
 use Yuga\Database\Console\MakeMigrationDownCommand;
 use Yuga\Database\Console\MakeMigrationSeedCommand;
@@ -75,6 +76,7 @@ class YugaServiceProvider extends ServiceProvider
         'MakeQueueRetry'        => 'yuga.command.queue.retry.make',
         'MakeQueueJob'          => 'yuga.command.queue.job.make',
         'DiscoverPackage'       => 'yuga.command.module.discover',
+        'PackagePublish'       => 'yuga.command.modules.publish',
     ];
 
     public function __construct(Application $app)
@@ -447,7 +449,7 @@ class YugaServiceProvider extends ServiceProvider
     }
 
     /**
-     * Make Auth command i.e all classes responsible for the authentication of a user (login, register, forgot password, remember me, reset password)
+     * Discover All Yuga Packages and register them as services
      * 
      * @param string command
      * @param Application $app
@@ -458,6 +460,21 @@ class YugaServiceProvider extends ServiceProvider
     {
         $app->singleton($command, function () {
             return new DiscoverPackageCommand;
+        });
+    }
+
+    /**
+     * Publish all vendor assets that belong to a package to their respective directories or locations
+     * 
+     * @param string command
+     * @param Application $app
+     * 
+     * @return void
+     */
+    protected function registerPackagePublishCommand($command, $app)
+    {
+        $app->singleton($command, function () {
+            return new PackagePublishCommand;
         });
     }
 
