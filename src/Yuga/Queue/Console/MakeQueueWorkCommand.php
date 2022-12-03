@@ -42,6 +42,8 @@ class MakeQueueWorkCommand extends Command
         $queue = $this->option('queue') ?? config('queue')['default'];
         $cli->writeLine('Working Queue: ' . $queue, 'yellow');
 
+		$shouldStop = $this->option('stop');
+
         $response      = true;
 		$jobsProcessed = 0;
 		$startTime     = time();
@@ -49,11 +51,11 @@ class MakeQueueWorkCommand extends Command
 		if ($queue != 'wait') {
 			$maxTries = 5;
 			do {
-				retry:
 				try {
-					// $this->stopIfNecessary($startTime, $jobsProcessed);
+					if ($shouldStop == true)
+						$this->stopIfNecessary($startTime, $jobsProcessed);
 	
-					$response = $this->yuga['queue']->fetch([$this, 'fire'], $queue);
+					$response = $this->yuga['queue']->fetch([$this, 'fire'], $queue, $shouldStop);
 	
 					// echo $response;
 					$jobsProcessed++;
@@ -195,6 +197,8 @@ class MakeQueueWorkCommand extends Command
     {
         return [
             ['queue',  null, InputOption::VALUE_OPTIONAL, 'The queue to listen on'],
+			['stop',  null, InputOption::VALUE_NONE, 'Whether to stop the the queue run when it is idle'],
+			['sleep',  null, InputOption::VALUE_OPTIONAL, 'Number of seconds to sleep when no job is available', 3],
         ];
     }
 

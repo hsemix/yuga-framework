@@ -2,7 +2,10 @@
 
 namespace Yuga\Scheduler;
 
+use Closure;
 use Config\Services;
+use Yuga\Application\Application;
+use Yuga\Container\Container;
 use CodeIgniter\Events\Events;
 use Symfony\Component\Process\Process;
 use Yuga\Exceptions\SchedulerException;
@@ -130,6 +133,22 @@ class Job
 	 *
 	 * @throws SchedulerException
 	 */
+
+	/**
+     * The array of callbacks to be run before the job is started.
+     *
+     * @var array
+     */
+    protected $beforeCallbacks = [];
+
+	protected $mutex;
+
+    /**
+     * The array of callbacks to be run after the job is finished.
+     *
+     * @var array
+     */
+    protected $afterCallbacks = [];
 	public function __construct(String $type, $action)
 	{
 		if (!in_array($type, $this->types, true)) {
@@ -138,6 +157,8 @@ class Job
 
 		$this->type   = $type;
 		$this->action = $action;
+
+		$this->mutex = new CacheMutex();
 	}
 
 	public function setApplication($app)
@@ -195,10 +216,11 @@ class Job
 	{	
 		$method = 'run' . ucfirst($this->type);
 
-		if ($this->withoutOverlapping) {
+		if ($this->withoutOverlapping && !$this->mutex->create($this)) {
             return;
         }
 
+		$this->callBeforeCallbacks($this->app);
 		if (\in_array($this->type, $this->backgroundTasks)) {
 			return $this->canRunInBackground($this->type);
 		}
@@ -206,7 +228,11 @@ class Job
 		if (!method_exists($this, $method)) {
 			throw SchedulerException::forInvalidTaskType( $this->type );
 		}
-		return $this->$method();
+		
+		$this->$method();
+		$this->callAfterCallbacks($this->app);
+
+		return $this;
 	}
 
 	protected function canRunInBackground($job)
@@ -219,6 +245,8 @@ class Job
 		}
 
 		$process->run();
+		$this->callAfterCallbacks($this->app);
+		return $this;
 	}
 
 	/**
@@ -249,7 +277,33 @@ class Job
     }
 
 	/**
-     * Do not allow the event to overlap each other.
+     * Call all of the "before" callbacks for the job.
+     *
+     * @param  \Yuga\Container\Container  $container
+     * @return void
+     */
+    public function callBeforeCallbacks(Container $container)
+    {
+        foreach ($this->beforeCallbacks as $callback) {
+            $container->call($callback);
+        }
+    }
+
+	/**
+     * Call all of the "after" callbacks for the job.
+     *
+     * @param  \Yuga\Container\Container  $container
+     * @return void
+     */
+    public function callAfterCallbacks(Application $container)
+    {
+        foreach ($this->afterCallbacks as $callback) {
+            $container->call($callback);
+        }
+    }
+
+	/**
+     * Do not allow the job to overlap each other.
      *
      * @param  int  $expiresAt
      * @return $this
@@ -260,16 +314,46 @@ class Job
 
         $this->expiresAt = $expiresAt;
 
-		return $this;
+        return $this->then(function () {	
+            $this->mutex->forget($this);
+        });
+    }
 
-        // return $this->then(function ()
-        // {
-        //     $this->mutex->forget($this);
+	/**
+     * Register a callback to be called before the operation.
+     *
+     * @param  \Closure  $callback
+     * @return $this
+     */
+    public function before(Closure $callback)
+    {
+        $this->beforeCallbacks[] = $callback;
 
-        // })->skip(function ()
-        // {
-        //     return $this->mutex->exists($this);
-        // });
+        return $this;
+    }
+
+    /**
+     * Register a callback to be called after the operation.
+     *
+     * @param  \Closure  $callback
+     * @return $this
+     */
+    public function after(Closure $callback)
+    {
+        return $this->then($callback);
+    }
+
+    /**
+     * Register a callback to be called after the operation.
+     *
+     * @param  \Closure  $callback
+     * @return $this
+     */
+    public function then(Closure $callback)
+    {
+        $this->afterCallbacks[] = $callback;
+
+        return $this;
     }
 
 	/**
@@ -299,16 +383,22 @@ class Job
 
         $redirect = $this->shouldAppendOutput ? ' >> ' : ' > ';
 
-        if (!$this->runInBackground) {
-            return 'php yuga '.$this->getAction().$redirect.$output .' 2>&1';
-        }
-
-
-        $phpBinary = escapeshellarg((new PhpExecutableFinder)->find(false));
-
-        $yugaBinary = escapeshellarg('yuga');
-
-        return $phpBinary .' ' . $yugaBinary . ' '.$this->getAction().$redirect.$output.' 2>&1 &';
+		if ($this->type == 'shell') {
+			if (!$this->runInBackground) {
+				return $this->getAction().$redirect.$output .' 2>&1';
+			}
+			return $this->getAction().$redirect.$output.' 2>&1 &';
+		} else {
+			if (!$this->runInBackground) {
+				return 'php yuga '.$this->getAction().$redirect.$output .' 2>&1';
+			}
+	
+			$phpBinary = escapeshellarg((new PhpExecutableFinder)->find(false));
+	
+			$yugaBinary = escapeshellarg('yuga');
+	
+			return $phpBinary .' ' . $yugaBinary . ' '.$this->getAction().$redirect.$output.' 2>&1 &';
+		} 
     }
 
 	/**
@@ -318,7 +408,7 @@ class Job
      */
     public function mutexName()
     {
-        return storage('scheduler'.DIRECTORY_SEPARATOR.'schedule-' .sha1($this->expression .$this->getAction()));
+		return $this->buildName();
     }
 
 	/**
@@ -408,12 +498,7 @@ class Job
 	 */
 	protected function runClosure()
 	{	
-		
-		// $sem = sem_get(1234, 1);
-		// if (sem_acquire($sem)) {
-			return $this->getAction()->__invoke();
-		// }
-		
+		$this->getAction()->__invoke();	
 	}
 
 	/**

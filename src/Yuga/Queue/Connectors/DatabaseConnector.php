@@ -102,7 +102,7 @@ class DatabaseConnector extends BaseConnector
 	 * @param  string   $queue
 	 * @return boolean  whether callback is done or not.
 	 */
-	public function fetch(callable $callback, string $queue = ''): bool
+	public function fetch(callable $callback, string $queue = '', $shouldStop = false): bool
 	{
 		$row = $this->db->table($this->table)
 			->where('queue', $queue !== '' ? $queue : $this->defaultQueue)
@@ -117,7 +117,8 @@ class DatabaseConnector extends BaseConnector
 		if (!$row) {
 			$this->housekeeping();
 			usleep($this->timeout * 1000000);
-			return true;
+			return !(bool) $shouldStop;
+			// return true;
 		}
 
 		//set the status to executing if it hasn't already been taken.

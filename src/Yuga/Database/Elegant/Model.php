@@ -391,11 +391,11 @@ abstract class Model implements ArrayAccess, JsonSerializable
     /**
      * Change the model to a json string
      * 
-     * @param int|null $options
+     * @param int $options
      * 
      * @return string
      */
-    public function toJson($options = null)
+    public function toJson($options = 0)
     {
         return json_encode($this->jsonSerialize(), $options);
     }

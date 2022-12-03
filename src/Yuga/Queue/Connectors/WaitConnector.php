@@ -38,7 +38,7 @@ class WaitConnector extends BaseConnector
 	 * @param  string   $queue
 	 * @return boolean  whether callback is done or not.
 	 */
-	public function fetch(callable $callback, string $queue = '') : bool
+	public function fetch(callable $callback, string $queue = '', $shouldStop = false) : bool
     {
 
     }

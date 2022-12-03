@@ -45,13 +45,15 @@ class View
 	 */
 	public function __toString()
 	{
+		$obLevel = ob_get_level();
 		try {
 			return $this->viewEngine->display($this->viewFile);
 		} catch (\Throwable $e) {
-			if ($this->processHaxRuntime() !== false)
-				trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()} \n({$this->processHaxRuntime()}): {$e->getLine()}", E_USER_ERROR);
-			else
-				trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
+			return $this->handleViewException($e, $obLevel);
+			// if ($this->processHaxRuntime() !== false)
+			// 	trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()} \n({$this->processHaxRuntime()}): {$e->getLine()}", E_USER_ERROR);
+			// else
+			// 	trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
 		}
 	}
 
@@ -137,4 +139,13 @@ class View
         }
 		return call_user_func_array([$this->viewEngine, $method], $parameters);
 	}
+
+	protected function handleViewException($e, $obLevel)
+    {
+        while (ob_get_level() > $obLevel) {
+            ob_end_clean();
+        }
+
+        throw $e;
+    }
 }

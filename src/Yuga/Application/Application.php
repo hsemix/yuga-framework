@@ -31,10 +31,10 @@ use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '4.3.0';
+    const VERSION = '4.3.2';
     const CHARSET_UTF8 = 'UTF-8';
 
-     /**
+    /**
      * Start the mvvm application by defaut
      * <code>$this->getSite()</code> from a ViewModel returns $this->site
      */

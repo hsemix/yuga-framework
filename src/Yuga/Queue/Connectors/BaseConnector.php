@@ -75,7 +75,7 @@ abstract class BaseConnector
 	 * @param  string   $queue
 	 * @return boolean  whether callback is done or not.
 	 */
-	abstract public function fetch(callable $callback, string $queue = '') : bool;
+	abstract public function fetch(callable $callback, string $queue = '', $shouldStop = false) : bool;
 
 	/**
 	 * Receive message from queueing system.

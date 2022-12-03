@@ -80,14 +80,12 @@ class MakeQueueJobCommand extends Command
 
         $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Jobs');
 
-        // $namespace->addUse('Yuga\Queue\QueueableTrait');
 		$namespace->addUse('Yuga\Queue\DispatchableTrait');
         $namespace->addUse('Yuga\Interfaces\Queue\JobInterface');
 
         $class = $namespace->addClass(trim($name));
 
         $class->addImplement('Yuga\Interfaces\Queue\JobInterface');
-		// $class->addTrait('Yuga\Queue\QueueableTrait');
 		$class->addTrait('Yuga\Queue\DispatchableTrait');
 
 		$classConstructor = $class->addMethod('__construct')->setBody('//');
@@ -98,31 +96,6 @@ class MakeQueueJobCommand extends Command
         
         return $file;
     }
-
-    // protected function processAppConfigFiles($commandName)
-    // {
-    //     $commands = [];
-    //     if (\file_exists(path('config/AppCommands.php'))) {
-    //         $commands = require path('config/AppCommands.php');
-    //     }
-    //     $commandToMake = env('APP_NAMESPACE', 'App') . '\\Commands\\' . $commandName;
-    //     if (!in_array($commandToMake, $commands))
-    //         $commands[] = $commandToMake;
-
-    //     $generatedCommands = '[';
-    //     foreach ($commands as $command) {
-    //         $generatedCommands .= "\n\t\\". $command. "::class,";
-    //     }
-    //     $generatedCommands .= "\n];";
-
-    //     $commandsFile = str_replace(
-    //         '{commands}',
-    //         $generatedCommands,
-    //         file_get_contents(__DIR__ . '/temps/commands.temp')
-    //     );
-
-    //     return $commandsFile;
-    // }
 
     /**
      * Get the console command arguments.

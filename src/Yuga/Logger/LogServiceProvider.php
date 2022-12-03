@@ -9,6 +9,10 @@ class LogServiceProvider extends ServiceProvider
 {
     protected $app;
 
+    protected static $publishes = [
+        'Storage.php' => 'app/Storage.php',
+    ];
+
     public function __construct(Application $app)
     {
         $this->app = $app;
