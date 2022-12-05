@@ -278,8 +278,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
     public function map(Closure $callback)
     {
-        array_map($callback, $this->items);
-        return $this;
+        return new static(array_map($callback, $this->items));
     }
 
     public function each(Closure $callback)
