@@ -3,14 +3,10 @@
 namespace Yuga\Scheduler;
 
 use Closure;
-use Config\Services;
 use Yuga\Application\Application;
 use Yuga\Container\Container;
-use CodeIgniter\Events\Events;
 use Symfony\Component\Process\Process;
 use Yuga\Exceptions\SchedulerException;
-use Symfony\Component\Process\ProcessUtils;
-use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Process\PhpExecutableFinder;
 
 /**

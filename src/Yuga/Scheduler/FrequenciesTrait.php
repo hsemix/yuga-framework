@@ -2,6 +2,8 @@
 
 namespace Yuga\Scheduler;
 
+use Yuga\Exceptions\SchedulerException;
+
 /**
  * Trait FrequenciesTrait
  *
@@ -10,7 +12,7 @@ namespace Yuga\Scheduler;
  * @package Yuga\Scheduler
  */
 
-use Yuga\Scheduler\Exceptions\CronJobException;
+
 
 trait FrequenciesTrait
 {
@@ -49,10 +51,10 @@ trait FrequenciesTrait
 	public function cron(string $expression)
 	{
 		if (!\Cron\CronExpression::isValidExpression($expression)) {
-			throw CronJobException::forInvalidExpression();
+			throw SchedulerException::forInvalidExpression();
 		}
 
-		$this->expression = \Cron\CronExpression::factory($expression)->getExpression();
+		$this->expression = (new \Cron\CronExpression($expression))->getExpression();
 
 		return $this;
 	}
@@ -72,7 +74,7 @@ trait FrequenciesTrait
 			[$min, $hour] = $this->parseTime( $time );
 		}
 
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		$cron->setPart(0, $min);
 		$cron->setPart(1, $hour);
@@ -89,7 +91,7 @@ trait FrequenciesTrait
 	 */
 	public function hourly(int $minute = null)
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		$minute = ( $minute ) ? $minute : '0';
 
@@ -111,7 +113,7 @@ trait FrequenciesTrait
 	 */
 	public function everyHour( int $hour = 1, $minute = null )
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		$minute = ( $minute ) ? $minute : '0';
 		$hour = ( $hour === 1 ) ? '*' : '*/' . $hour;
@@ -133,7 +135,7 @@ trait FrequenciesTrait
 	 */
 	public function betweenHours( int $fromHour, int $toHour )
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 		$cron->setPart( 1, $fromHour . "-" . $toHour );
 		
 		$this->expression = $cron->getExpression();
@@ -149,7 +151,7 @@ trait FrequenciesTrait
 	 */
 	public function hours( array $hours )
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !is_array( $hours ) ) { $hours = [$hours]; }
 
@@ -171,7 +173,7 @@ trait FrequenciesTrait
 	{
 		$minute = is_null( $minute ) ? "*" : '*/' . $minute;
 
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 		$cron->setPart( 0, $minute );
 
 		$this->expression = $cron->getExpression();
@@ -219,7 +221,7 @@ trait FrequenciesTrait
 	 */
 	public function betweenMinutes( int $fromMinute, int $toMinute )
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		$cron->setPart( 0, $fromMinute . "-" . $toMinute );
 		
@@ -236,7 +238,7 @@ trait FrequenciesTrait
 	 */
 	public function minutes( array $minutes )
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !is_array( $minutes ) ) { $minutes = [ $minutes ]; }
 
@@ -256,7 +258,7 @@ trait FrequenciesTrait
 	 */
 	public function days( $days )
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !is_array( $days ) ) { $days = [ $days ]; }
 
@@ -367,7 +369,7 @@ trait FrequenciesTrait
 			[ $min, $hour ] = $this->parseTime( $time );
 		}
 
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		$cron->setPart( 0, $min );
 		$cron->setPart( 1, $hour );
@@ -386,7 +388,7 @@ trait FrequenciesTrait
 	 */
 	public function daysOfMonth( $days )
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !is_array( $days ) ){ $days = [ $days ]; }
 
@@ -405,7 +407,7 @@ trait FrequenciesTrait
 	 */
 	public function months(array $months = [])
 	{
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		$cron->setPart( 3, implode(",", $months) );
 
@@ -426,7 +428,7 @@ trait FrequenciesTrait
 	{
 		$min = $hour = 0;
 
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !empty( $time ) )
 		{
@@ -454,7 +456,7 @@ trait FrequenciesTrait
 	{
 		$min = $hour = 0;
 
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !empty( $time ) )
 		{
@@ -482,7 +484,7 @@ trait FrequenciesTrait
 	{
 		$min = $hour = 0;
 
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !empty( $time ) )
 		{
@@ -509,7 +511,7 @@ trait FrequenciesTrait
 	{
 		$min = $hour = 0;
 
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !empty( $time ) )
 		{
@@ -538,7 +540,7 @@ trait FrequenciesTrait
 	{
 		$min = $hour = '*';
 
-		$cron = \Cron\CronExpression::factory( $this->expression );
+		$cron = new \Cron\CronExpression( $this->expression );
 
 		if( !empty( $time ) )
 		{

@@ -31,7 +31,7 @@ use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '4.3.3';
+    const VERSION = '4.3.4';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
@@ -205,7 +205,7 @@ class Application extends Container implements IApplication
     public function run()
     {
         $this->singleton('config', Config::class);
-        $this->config = $this->resolve('config');
+        $this->config = $this->get('config');
         // load default class alias here
         $this->setVendorDir($this->basePath.DIRECTORY_SEPARATOR.'vendor');
         if (!$this->runningInConsole()) {

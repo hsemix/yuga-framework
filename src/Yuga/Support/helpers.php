@@ -411,9 +411,17 @@ if (!function_exists('token')) {
 }
 
 if (!function_exists('config')) {
-    function config($key, $default = 'Yuga')
+    function config($key = null, $default = 'Yuga')
     {
-        return app()->config->load('config.Settings')->get($key, $default);
+        if ($key) {
+            $fileKeys = explode('.', $key);
+            $file = array_shift($fileKeys);
+            if (file_exists(path('config/' . $file . '.php'))) {
+                return app()->config->load('config.' . $file)->get(implode('.', $fileKeys), $default);
+            }
+            return app()->config->load('config.Settings')->get($key, $default);
+        }
+        return app()->config;
     }
 }
 
