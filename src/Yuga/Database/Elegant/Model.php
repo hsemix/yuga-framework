@@ -435,12 +435,15 @@ abstract class Model implements ArrayAccess, JsonSerializable
             }
         }
     
-        $attributes = array_map(function($attribute) {
+        $attributes = array_map(function ($attribute) {
             if (!is_array($attribute)) {
                 if (!is_object($attribute)) {
-                    $json_attribute = json_decode($attribute, true);
-                    if (json_last_error() == JSON_ERROR_NONE)
-                        return $json_attribute;
+                    if (!empty($attribute)) {
+                        $json_attribute = json_decode($attribute, true);
+                        if (json_last_error() == JSON_ERROR_NONE)
+                            return $json_attribute;
+                    }
+                    return (array)$attribute;
                 } else {
                     return (array)$attribute;
                 }
