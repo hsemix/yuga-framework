@@ -163,9 +163,15 @@ abstract class Route implements IRoute
         }
 
         if (is_array($callback) === true) {
-            $middleware = $callback['middleware'];
-            $callback = $callback[0];
-            $this->runMiddleware($request, $middleware);
+            if (isset($callback['middleware'])) {
+                $middleware = $callback['middleware'];
+                $callback = $callback[0];
+                $this->runMiddleware($request, $middleware);
+            }
+
+            $controller = $callback[0];
+            $class = $this->loadClass($controller);
+            $method = $callback[1];
         }
 
         /* Render callback function */
@@ -188,38 +194,36 @@ abstract class Route implements IRoute
 
         }
 
-        // echo '<pre>';
-        // print_r($callback);
-        // die();
-
         if (is_object($callback) === true) {
             if ($callback instanceof ViewModel) {
                 echo $callback;
                 return;
             }
         }
-        
-        /* When the callback is a class + method */
-        $controller = explode('@', $callback);
 
-        $namespace = $this->getNamespace();
+        if (is_string($callback) === true) {
+            /* When the callback is a class + method */
+            $controller = explode('@', $callback);
 
-        if (count($controller) === 1) {
-            $viewModel = $this->loadClass($controller[0]);
-            if ($viewModel instanceof ViewModel) {
-                echo $viewModel;
-                return;
-            } else {
-                $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
-                throw new NotFoundHttpException(sprintf('Method not provided for controller class "%s"', $className), 404);
+            $namespace = $this->getNamespace();
+
+            if (count($controller) === 1) {
+                $viewModel = $this->loadClass($controller[0]);
+                if ($viewModel instanceof ViewModel) {
+                    echo $viewModel;
+                    return;
+                } else {
+                    $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
+                    throw new NotFoundHttpException(sprintf('Method not provided for controller class "%s"', $className), 404);
+                }
             }
+            
+            $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
+
+            $class = $this->loadClass($className);
+            $method = $controller[1];
         }
         
-        $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
-
-        $class = $this->loadClass($className);
-        $method = $controller[1];
-
         
         if (method_exists($class, $method) === false) {
             $exception = NotFoundHttpException::class;

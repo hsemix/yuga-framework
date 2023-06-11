@@ -31,7 +31,7 @@ use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '4.3.7';
+    const VERSION = '4.3.8';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
