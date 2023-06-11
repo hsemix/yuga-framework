@@ -15,6 +15,7 @@ class View
     protected $template_cache_dir = './storage/hax/';
     protected $vars = [];
     protected $dataView = []; 
+    protected $viewModel;
     
     public function setTemplateDirectory($dir = 'resources/views')
     {
@@ -458,4 +459,29 @@ class View
         }
         return null;
     }
+
+    public function viewModel($viewModel)
+	{
+        if (!is_object($viewModel)) {
+            $viewModel = app($viewModel);
+        }
+        $this->viewModel = $viewModel;
+        $this->viewModel->bindViewToModel();
+
+        
+        request()->setModel($this->viewModel->getModel());
+
+        $event = app('events');
+
+        $event->on('on:request:start', function ($request) {
+            echo 'yes';
+            // return $request->setModel($this->viewModel->getModel());
+        });
+
+        // echo '<pre>';
+        // print_r($event);
+        // die();
+        return $this;
+        // request()->setModel($this->viewModel->getModel());
+	}
 }

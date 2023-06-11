@@ -35,6 +35,8 @@ class Request
      */
     protected $formFields = [];
 
+    protected $model;
+
     public function __construct()
     {
         $this->parseHeaders();
@@ -44,6 +46,8 @@ class Request
         $this->method = strtolower($this->input->get('_method', $this->getHeader('request-method'), 'post'));
         // $this->app = Application::getInstance();
         $this->data = $this->except(['_token']);
+
+        event('on:request:start', ['request' => $this]);
     }
 
     protected function parseHeaders()
@@ -529,6 +533,17 @@ class Request
     public function getRouteParams($key = null)
     {   
         return $this->getLoadedRoute()->getParams($key);
+    }
+
+    public function model()
+    {
+        return $this->model;
+    }
+
+    public function setModel($model)
+    {
+        $this->model = $model;
+        return $this;
     }
 
 }

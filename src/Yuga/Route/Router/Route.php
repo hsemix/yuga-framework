@@ -7,6 +7,7 @@ use Yuga\Http\Request;
 use ReflectionFunction;
 use Yuga\Http\Redirect;
 use Yuga\View\ViewModel;
+use Yuga\Pipeline\Pipeline;
 use Yuga\Container\Container;
 use Yuga\Route\Shared\Shared;
 use Yuga\Route\Support\IRoute;
@@ -86,33 +87,18 @@ abstract class Route implements IRoute
         $reflection = new ReflectionFunction($callback);
         $classes = [];
         $app = Application::getInstance();
+
         foreach ($reflection->getParameters() as $param) {
+
             if ($param->getType() !== null) {
                 $class = $param->getType()->getName();
-                if (array_key_exists($param->name, $params)) {
-                    $modelBindingSettings = $this->processBindings($request);
-                    $field = $dependency::getPrimaryKey();
-                    if (in_array($param->name, array_keys($modelBindingSettings))) {
-                        $field = $modelBindingSettings[$param->name];
-                    }
-
-                    $value = $params[$param->name];
-                    $modelBound = $modelBound = $dependency::where($field, $value)->first();
-
-                    if ($modelBound) {
-                        $dependecies[$param->name] = $modelBound;
-                        if (env('MODEL_BIND_VAR', false))
-                            $dependecies[$param->name . '_var'] = $params[$param->name];
-                    } else
-                        throw new ModelNotFoundException("Model $dependency with $field = '$value' not found");
-
+                
+                if($binding = $this->isSingleton($app, $class)) {
+                    $classes[$param->name] = $binding;
                 } else {
-                    if($binding = $this->isSingleton($app, $class)) {
-                        $classes[] = $binding;
-                    } else {
-                        $classes[] = $app->resolve($class);
-                    }
+                    $classes[$param->name] = $app->resolve($class);
                 }
+                
             } else {
                 if (array_key_exists($param->name, $this->getParameters())) {
                     $classes[$param->name] = $this->getParameters()[$param->name];
@@ -120,8 +106,6 @@ abstract class Route implements IRoute
             }
             
         }
-        // $classes[] = $app;
-
         return $classes;
     }
 
@@ -154,27 +138,19 @@ abstract class Route implements IRoute
             }  
         }
         
+        $result = Pipeline::send($request)->through($routeMiddlewares)->thenReturn();
 
-        foreach ($routeMiddlewares as $mWare) {
-            if (($mWare instanceof IMiddleware) === false) {
-                throw new HttpException($mWare . ' must inherit the IMiddleware interface');
+        if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+            echo $result;
+        } elseif ($result instanceof Redirect) {
+            if ($result->getPath() !== null) {
+                $result->header('Location: ' . $result->getPath());
+                exit();
+            } else {
+                throw new NotFoundHttpException("You have not provided a Redirect URL");
             }
-
-            $result = $mWare->run($request, function ($request) {
-                return $request;
-            });
-
-            if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
-                echo $result;
-            } elseif ($result instanceof Redirect) {
-                if ($result->getPath() !== null) {
-                    $result->header('Location: ' . $result->getPath());
-                    exit();
-                } else {
-                    throw new NotFoundHttpException("You have not provided a Redirect URL");
-                }
-            }
-            return;
+        } elseif (is_scalar($result)) {
+            echo $result;
         } 
     }
 

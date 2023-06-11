@@ -16,7 +16,7 @@ use Yuga\Database\Elegant\Collection;
 use Yuga\Views\Widgets\Form\FormMessage;
 use Yuga\Shared\Controller as SharedController;
 
-class BaseView implements ArrayAccess
+abstract class BaseView implements ArrayAccess
 {
     use SharedController;
     
