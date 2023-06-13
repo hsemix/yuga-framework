@@ -528,7 +528,7 @@ class Builder implements IteratorAggregate
      *
      * @return array PDOStatement and execution time as float
      */
-    public function statement($sql, $bindings = [])
+    public function statement(string $sql, array $bindings = []): array
     {
         try {
             $pdoStatement = $this->pdo->prepare($sql); 
