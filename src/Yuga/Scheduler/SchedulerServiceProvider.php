@@ -26,11 +26,11 @@ class SchedulerServiceProvider extends ServiceProvider
     {   
         if ($this->scheduler) {
             if (env('RUN_DB_BACKUP', false)) {
-                $this->scheduler->command('db:backup')->daily('4:30 am')->runInBackground();
+                $this->scheduler->command('db:backup')->daily('4:30 am')->runInBackground()->named('Database Backup Dump');
             }
             
             if (env('RUN_QUEUE_WORKER', false)) {
-                $this->scheduler->command('queue:work --stop')->everyMinute()->withoutOverlapping()->runInBackground();
+                $this->scheduler->command('queue:work --stop')->everyMinute()->withoutOverlapping()->runInBackground()->named('Queue Worker');
             }
             
             $this->schedule($this->scheduler);
