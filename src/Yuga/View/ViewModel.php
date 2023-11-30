@@ -592,6 +592,8 @@ class ViewModel extends BaseView
             extract($this->data);
             include $this->contentTemplate;
             $this->contentHtml = ob_get_contents();
+
+            // $this->contentHtml = str_replace('</body>', '', $this->contentHtml);
             ob_end_clean();
         }
     }
@@ -602,6 +604,8 @@ class ViewModel extends BaseView
             ob_start();
             include $this->template;
             $this->contentHtml = ob_get_contents();
+            $newHtml = "<script type='text/javascript' src='" . host('yuga/js/jQuery/jquery-2.2.3.min.js') . "'></script>\n<script type='text/javascript' src='" . host('yuga/js/yuga.client.js') . "'></script>\n</body>";
+            $this->contentHtml = str_replace('</body>', $newHtml, $this->contentHtml);
             ob_end_clean();
         }
     }

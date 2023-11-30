@@ -5,7 +5,6 @@ namespace Yuga\Application;
 use Yuga\Debug;
 use Yuga\Boolean;
 use Tracy\Debugger;
-use Yuga\Providers\Composer\PackageManager;
 use Yuga\Route\Route;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
@@ -24,6 +23,7 @@ use Yuga\Invocation\CallableResolver;
 use Yuga\Database\Tracy\DatabasePanel;
 use Yuga\Providers\YugaServiceProvider;
 use Yuga\Database\ElegantServiceProvider;
+use Yuga\Providers\Composer\PackageManager;
 use Yuga\Providers\ClassAliasServiceProvider;
 use Yuga\Interfaces\Providers\IServiceProvider;
 use Yuga\Route\Exceptions\NotFoundHttpExceptionHandler;
@@ -103,6 +103,12 @@ class Application extends Container implements IApplication
      * composer vendor directory
      */
     protected $vendorDir;
+
+    protected $defaultLocale;
+
+    protected $debug;
+
+    protected $timezone;
 
     /**
      * The prefixes of absolute cache paths for use during normalization.
@@ -222,9 +228,7 @@ class Application extends Container implements IApplication
         
         if (!$this->runningInConsole()) {
             $this->make('session')->delete('errors');
-        }
-
-        
+        }  
         return $this;
     }
 
@@ -257,11 +261,13 @@ class Application extends Container implements IApplication
      */
     protected function registerConfig()
     {
+        
         if (!static::$app) {
             static::$app = $this;
         }
         $providers = $this->config->load('config.ServiceProviders');
         $this->registerConfigProviders();
+        
         foreach ($this->config->getAll() as $name => $provider) {
             if (class_exists($provider)) {
                 $this->singleton($name, $provider);
@@ -269,7 +275,7 @@ class Application extends Container implements IApplication
                 $this->registerProvider($provider);
             }
         }
-
+        
         if (env('ROUTER_BOOTED', false)) {
             if (env('ENABLE_MVP_ROUTES', false)) {
                 
@@ -287,7 +293,6 @@ class Application extends Container implements IApplication
                 
             }
         }
-        
     }
 
     /**
@@ -395,7 +400,7 @@ class Application extends Container implements IApplication
      * @return void
      */
     protected function registerDefaultProviders()
-    {
+    {  
         $this->registerProvider(new ElegantServiceProvider($this));
 
         $this->registerProvider(new LogServiceProvider($this));
@@ -455,10 +460,11 @@ class Application extends Container implements IApplication
             if (method_exists($provider, 'register')) {
                 $provider->register($this);
                 $this->bootProvider($provider);
+                $this->prodviderScheduler($provider);
             }
             $this->loadedProviders[] = get_class($provider);
             return $this;
-        }
+        }        
     }
 
     public function getProviders()
@@ -475,6 +481,15 @@ class Application extends Container implements IApplication
     {
         if (method_exists($provider, 'boot')) {
             return $this->call([$provider, 'boot']);
+        }
+    }
+
+    protected function prodviderScheduler(IServiceProvider $provider)
+    {
+        if ($this->make('scheduler')) {
+            if (method_exists($provider, 'scheduler')) {
+                return call_user_func([$provider, 'scheduler'], $this->make('scheduler'));
+            }
         }
     }
 

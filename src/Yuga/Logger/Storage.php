@@ -20,4 +20,20 @@ class Storage implements LoggerInterface
         else 
             file_put_contents($loggerFile, $message);
     }
+
+    /**
+     * Log messages
+     * 
+     * @author <semix.hamidouh@gmail.com>
+     * 
+     * @return void
+     */
+    public static function log($message, ?string $fileName = null)
+    {
+        if (!$fileName)
+            $fileName = 'log-' . date('Y-m-d');
+        $outf = fopen(storage() . "logs/{$fileName}.log", "a");
+        fwrite($outf, date("c") . ": $message\n\n");
+        fclose($outf);
+    }
 }

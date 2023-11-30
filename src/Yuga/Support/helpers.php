@@ -1,5 +1,6 @@
 <?php
 
+use Yuga\Async\Async;
 use Yuga\Support\Arr;
 use Yuga\Support\Str;
 use Yuga\Database\Elegant\Collection;
@@ -609,5 +610,65 @@ if (!function_exists('windows_os')) {
     function windows_os()
     {
         return strtolower(substr(PHP_OS, 0, 3)) === 'win';
+    }
+}
+
+
+if (!function_exists('async')) {
+    /**
+     * Run an asynchronous operation
+     *
+     * @return mixed
+     */
+    function async($callable)
+    {   
+        if (is_callable($callable)) {
+            $main = new \Fiber($callable);
+            $main->start();
+            // return $main->start();
+            return $main;
+        } else {
+            throw new Exception("'$callable' is not a callable");
+        }
+        
+    }
+}
+
+if (!function_exists('suspend')) {
+    /**
+     * Run an asynchronous operation
+     *
+     * @return mixed
+     */
+    function suspend()
+    {   
+        return \Fiber::suspend();
+    }
+}
+
+if (!function_exists('awaitable')) {
+    /**
+     * Alias for suspend()
+     *
+     * @return mixed
+     */
+    function awaitable()
+    {   
+        return suspend();
+    }
+}
+
+if (!function_exists('await')) {
+    /**
+     * awaitable operation
+     *
+     * @return mixed
+     */
+    function await($operation)
+    {   
+        if (!$operation instanceof \Fiber)
+            $operation = async(fn() => $operation);
+
+        return Async::await($operation);     
     }
 }
