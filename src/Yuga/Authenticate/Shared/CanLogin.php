@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Authenticate\Shared;
 
 use Yuga\Validate\Message;
@@ -64,12 +65,15 @@ trait CanLogin
     protected function verifyPassword($user, $password, $passwordField, $loginFormPasswordField)
     {
         $this->hash->setAlgorithm($this->getAuthMethod());
+
+        $salt = $this->getSalt($user);
+
         $crypt_password = $this->hash->password($password, $this->getSalt($user));
         
         $userPassword = $user->$passwordField;
         $this->validate->addRuleMessage('found', 'Password or and Username mismatch!');
-        $this->validate->addRule('found', function ($field, $value, $args) use ($crypt_password) {
-            return $crypt_password === $args;
+        $this->validate->addRule('found', function ($field, $value, $args) use ($crypt_password, $password, $salt) {
+            return ($crypt_password === $args || $this->hash->passwordVerify($password, $args, $salt));
         });
         $validation = $this->validate->validator([
             $loginFormPasswordField => [

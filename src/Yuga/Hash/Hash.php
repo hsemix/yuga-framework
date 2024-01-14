@@ -1,11 +1,11 @@
 <?php
+
 namespace Yuga\Hash;
 
 use Yuga\Database\Elegant\Model;
 
 class Hash
 {
-    
     private $crypt;
     private $algorithm = 'sha256';
     protected static $instance;
@@ -21,11 +21,17 @@ class Hash
 
     public function make($string, $salt = '')
     {
-        if ($salt == '' || is_null($salt)) 
+        if ($salt == '' || is_null($salt)) {
             $salt = env('APP_SECRET', 'NoApplicationSecret');
-    
-        if ($this->algorithm == 'crypt')
+        }
+            
+        if ($this->algorithm == 'crypt') {
             return crypt($string, $salt);
+        }
+            
+        if ($this->algorithm == 'bcrypt') {
+            return password_hash($string.$salt, \PASSWORD_BCRYPT);
+        }
 
         return hash($this->getAlgorithm(), $string . $salt);
     }
@@ -38,15 +44,8 @@ class Hash
 
     public static function salt($length = 8)
     {
-        if (version_compare(\PHP_VERSION, '7.2.0', '<')) {
-            if (function_exists('mcrypt_create_iv')) {
-                $salt = mcrypt_create_iv($length);
-            } else {
-                $salt = random_bytes($length);
-            }
-        } else {
-            $salt = random_bytes($length);
-        }
+        $salt = random_bytes($length);
+        
         return substr(bin2hex($salt), 0, $length);
     }
 
@@ -90,5 +89,16 @@ class Hash
             $modelUserSalt = $model->$modelUserSalt?:$appSecret;
         }
         return $modelUserSalt;
+    }
+
+    public function passwordVerify($password, $passwordHash, $salt = '')
+    {
+        if ($this->algorithm == 'bcrypt') {
+            return password_verify($password.$salt, $passwordHash);
+        }
+        
+        $crypt_password = $this->password($password, $salt);
+
+        return $crypt_password === $passwordHash;
     }
 }
