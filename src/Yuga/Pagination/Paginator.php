@@ -67,7 +67,7 @@ class Paginator extends Collection
 
         $this->perPage = $perPage;
         $this->currentPage = $this->setCurrentPage($currentPage);
-        $this->path = $this->path !== '/' ? rtrim($this->path, '/') : $this->path;
+        $this->path = ($this->path !== '/' && !is_null($this->path)) ? rtrim($this->path, '/') : $this->path;
     }
 
     /**
