@@ -148,4 +148,14 @@ class View
 
         throw $e;
     }
+
+	public function asString()
+	{
+		ob_start();
+        $this->__toString();
+        $string = ob_get_contents();
+        ob_end_clean();
+
+		return $string;
+	}
 }
