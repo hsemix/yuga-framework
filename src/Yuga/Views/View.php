@@ -149,6 +149,11 @@ class View
         throw $e;
     }
 
+	/**
+	 * return this view as a string
+	 * 
+	 * @return string
+	 */
 	public function asString()
 	{
 		ob_start();
