@@ -431,7 +431,9 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
         if (!empty($this->relations)) {
             foreach ($this->relations as $field => $relations) {
-                $attributes[$field] = $relations->toArray();
+                if (!is_null($relations)) {
+                    $attributes[$field] = $relations->toArray();
+                }
             }
         }
     
