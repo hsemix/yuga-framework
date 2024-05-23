@@ -443,7 +443,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
                         if (json_last_error() == JSON_ERROR_NONE)
                             return $json_attribute;
                     }
-                    return (array)$attribute;
+                    return $attribute;
                 } else {
                     return (array)$attribute;
                 }
