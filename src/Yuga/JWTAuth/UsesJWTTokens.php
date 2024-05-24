@@ -47,7 +47,7 @@ trait UsesJWTTokens
             }
 
             if (!isset($payload['iss'])) {
-                $payload['iss'] = $expiryAt->getTimestamp();
+                $payload['iss'] = $host;
             }
 
             return $payload;
