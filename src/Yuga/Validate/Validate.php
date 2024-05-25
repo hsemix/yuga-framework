@@ -13,7 +13,7 @@ class Validate
     protected $app;
     protected $items;
     protected $message;
-    protected $rules = [
+    protected array $rules = [
         'required',
         'min',
         'max',
@@ -28,7 +28,7 @@ class Validate
         'confirmed',
     ];
 
-    public $messages = [
+    public array $messages = [
         'required'  => '{field} is required!',
         'min'       => '{field} must be a minimum of {satisfy} characters',
         'max'       => '{field} must be a maximum of {satisfy} characters',
@@ -43,7 +43,7 @@ class Validate
         'confirmed' => '{field} Confirmation does not match'
     ];
 
-    public $messagesArray = [
+    public array $messagesArray = [
         'required'  => '{field} are required!',
         'min'       => 'All of ({value}) must be a minimum of {satisfy} characters',
         'max'       => 'All of ({value}) must be a maximum of {satisfy} characters',
@@ -58,12 +58,13 @@ class Validate
         'confirmed' => '{field} Confirmation do not match'
     ];
 
-    public $fieldMessages = [];
-    public $customRules = [];
-    protected $response;
-    protected $session;
-    protected $fields = [];
-    protected $fieldRules = [];
+    public array $fieldMessages = [];
+    public array $customRules = [];
+    protected Request $request;
+    protected Response $response;
+    protected Session $session;
+    protected array $fields = [];
+    protected array $fieldRules = [];
     public function __construct(Message $message, Response $response, Session $session, App $app, Request $request)
     {
         $this->app = $app;
