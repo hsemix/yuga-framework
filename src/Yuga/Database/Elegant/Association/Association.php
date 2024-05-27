@@ -9,9 +9,9 @@ use Yuga\Interfaces\Database\Elegant\Association\Association as Relation;
 
 abstract class Association implements Relation
 {
-    private $query;
-    private $parent;
-    private $child;
+    protected $query;
+    protected $parent;
+    protected $child;
     static $conditions;
 
     public function __construct(Builder $query, Model $parent)
