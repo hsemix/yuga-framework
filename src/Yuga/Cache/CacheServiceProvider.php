@@ -30,7 +30,7 @@ class CacheServiceProvider extends ServiceProvider
                 return new Console\ForgetCommand($app['cache']);
             });
 
-            $this->commands(['command.cache.clear', 'command.cache.forget']);
+            $this->commands('command.cache.clear', 'command.cache.forget');
         }
     }
 }
