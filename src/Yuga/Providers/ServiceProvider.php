@@ -81,7 +81,7 @@ abstract class ServiceProvider implements IServiceProvider
      * @param  array  $commands
      * @return void
      */
-    public function commands($commands)
+    public function commands(...$commands)
     {
         $commands = is_array($commands) ? $commands : func_get_args();
 
