@@ -81,9 +81,9 @@ abstract class ServiceProvider implements IServiceProvider
      * @param  array  $commands
      * @return void
      */
-    public function commands(string|array ...$commands)
+    public function commands(string|array $commands)
     {
-        // $commands = is_array($commands) ? $commands : func_get_args();
+        $commands = is_array($commands) ? $commands : func_get_args();
 
         // To register the commands with Yuga, we will grab each of the arguments
         // passed into the method and listen for Yuga "start" an event which will
