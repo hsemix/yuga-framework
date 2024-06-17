@@ -766,7 +766,7 @@ class Builder implements IteratorAggregate
      * @throws Exception
      * @return array|string
      */
-    private function doInsert($data, $type)
+    protected function doInsert($data, $type)
     {
         // If first value is not an array
         // Its not a batch insert
