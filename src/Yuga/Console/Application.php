@@ -64,8 +64,6 @@ class Application extends Console
      */
     public static function make($app)
     {
-        print_r($app['console.events']);
-        die();
         $console = new static(YugaApplication::getInstance(), $app['console.events'], 'Yuga Framework', $app::VERSION);
 
         $app->singleton('yuga', $console);
