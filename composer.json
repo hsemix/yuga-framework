@@ -12,12 +12,12 @@
     ],
     "require": {
         "php": ">= 7.1",
-        "tracy/tracy": "^2.6",
+        "tracy/tracy": "^2.10",
         "josegonzalez/dotenv": "dev-master",
         "symfony/console": "~4.0",
         "symfony/process": "^5.3",
         "symfony/finder": "^5.3",
-        "nette/php-generator": "^3.2",
+        "nette/php-generator": "^4.1",
         "dragonmantank/cron-expression": "^3.1"
     },
     "require-dev": {
