@@ -64,10 +64,11 @@ class HaxCompiler extends View
         if ($templateDir) {
             $this->template_dir = $templateDir;
         }
-        $this->vars['session'] = App::make('session');
-        $this->vars['request'] = new Request;
-        $this->vars['errors'] = new Message;
+        
         if (!app()->runningInConsole()) {
+            $this->vars['session'] = App::make('session');
+            $this->vars['request'] = new Request;
+            $this->vars['errors'] = new Message;
             if ($this->session->exists('errors')) {
                 $this->vars['errors'] = $this->session->get('errors');
             }

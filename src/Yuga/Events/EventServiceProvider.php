@@ -53,6 +53,7 @@ class EventServiceProvider extends ServiceProvider
         });
         if ($app->runningInConsole()) {
             $app->singleton('console.events', function () use ($app) {
+                echo 'Yes';
                 return new YugaStart($app);
             });
         }

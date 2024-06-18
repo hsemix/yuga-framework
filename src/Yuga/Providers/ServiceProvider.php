@@ -88,7 +88,7 @@ abstract class ServiceProvider implements IServiceProvider
         // To register the commands with Yuga, we will grab each of the arguments
         // passed into the method and listen for Yuga "start" an event which will
         // give us the Yuga console instance which we will give commands to.
-        $events = $this->app['console.events'];
+        $events = $this->app['console.eventsd'];
 
         $events->attach('yuga.start', function($event, $yuga) use ($commands) {
             $yuga->resolveCommands($commands);
