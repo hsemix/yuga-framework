@@ -7,11 +7,11 @@ use Yuga\Database\Elegant\Builder;
 
 class HasOne extends Association
 {
-    private $child;
-    private $query;
-    private $parent;
-    private $otherKey;
-    private $foreignKey;
+    protected $child;
+    protected $query;
+    protected $parent;
+    protected $otherKey;
+    protected $foreignKey;
     
     public function __construct(Builder $query, Model $parent, $foreignKey, $otherKey)
     {
