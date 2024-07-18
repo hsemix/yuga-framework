@@ -867,7 +867,12 @@ abstract class Model implements ArrayAccess, JsonSerializable
                     $result = $model->$name();
 
                     if ($result instanceof Relation) {
-                        $result = $result->get();
+                        if ($result instanceof HasOne || $result instanceof BelongsTo) {
+                            $result = $result->first();
+                        } else {
+                            $result = $result->get();
+                        }
+                        
                     }
                 } else {
                     $result = $with;
@@ -921,7 +926,14 @@ abstract class Model implements ArrayAccess, JsonSerializable
             $result = $model->$method();
             if ($result instanceof Relation) {
                 unset($names[0]);
-                $result = $result->with(implode('.', $names))->get();
+                $result = $result->with(implode('.', $names));//->get();
+
+                if ($result instanceof HasOne || $result instanceof BelongsTo) {
+                    $result = $result->first();
+                } else {
+                    $result = $result->get();
+                }
+
             } else {
                 if (in_array($method, $this->virtualRelations)) {
                     if ($result instanceof Model) {
