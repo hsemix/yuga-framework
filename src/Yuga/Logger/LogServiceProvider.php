@@ -27,17 +27,12 @@ class LogServiceProvider extends ServiceProvider
     {   
         $message = date("Y-m-d H:i:s - ");
         $message .= "Error: [" . $errorNumber ."], " . "$errorString in $errorFile on line $errorLine \r\n";
-        // $message .= "\nVariables: " . print_r($errorContext, true) . "\r\n";
-        // $this->app->registerProvider(EventServiceProvider::class);
-        // $this->app['events']->dispatch('on:error');
-        // echo $message;
-        // die();
-        $loggerFile = storage('logs/errors.log');
+        
+        $loggerFile = storage('logs/errors-' . date('Y-m-d') . '.log');
         if (!is_file($directory = storage('logs'))) {
             mkdir($directory, 0755, true);
         }
         \file_put_contents($loggerFile, $message, FILE_APPEND);
-        // error_log($message, 3, $loggerFile);
-        // die("There was a problem, please try again.<br />");
+        
     }
 }

@@ -18,7 +18,8 @@ class Session implements ISession
 	private $sessionName = 'yuga_session';
 	public function __construct(Application $app)
 	{
-		if (session_status() == PHP_SESSION_NONE) {
+		if (session_status() === PHP_SESSION_NONE) {
+			session_name(env('SESSION_NAME', 'yuga_session_id'));
 			@session_start();
 		}
 		// $this->app = $app;

@@ -22,6 +22,7 @@ use Yuga\Http\Request as HttpRequest;
 use Yuga\Invocation\CallableResolver;
 use Yuga\Database\Tracy\DatabasePanel;
 use Yuga\Providers\YugaServiceProvider;
+use Yuga\Session\SessionServiceProvider;
 use Yuga\Database\ElegantServiceProvider;
 use Yuga\Providers\Composer\PackageManager;
 use Yuga\Providers\ClassAliasServiceProvider;
@@ -31,7 +32,7 @@ use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '4.4.5';
+    const VERSION = '4.4.7';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
@@ -227,7 +228,7 @@ class Application extends Container implements IApplication
         $this['events']->dispatch('on:app-start');
         
         if (!$this->runningInConsole()) {
-            $this->make('session')->delete('errors');
+            // $this->make('session')->delete('errors');
         }  
         return $this;
     }
@@ -265,10 +266,10 @@ class Application extends Container implements IApplication
         if (!static::$app) {
             static::$app = $this;
         }
-        $providers = $this->config->load('config.ServiceProviders');
+
         $this->registerConfigProviders();
         
-        foreach ($this->config->getAll() as $name => $provider) {
+        foreach ($this->config->load('config.ServiceProviders')->getAll() as $name => $provider) {
             if (class_exists($provider)) {
                 $this->singleton($name, $provider);
                 $provider = $this->resolve($name);
@@ -391,6 +392,7 @@ class Application extends Container implements IApplication
      */
     protected function registerConfigProviders()
     {
+        $this->registerProvider(new SessionServiceProvider($this));
         $this->registerProvider(new EventServiceProvider($this));
     }
 
