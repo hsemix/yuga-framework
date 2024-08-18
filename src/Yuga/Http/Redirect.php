@@ -57,6 +57,9 @@ class Redirect
 
         $url = (route($url) == '') ? $url : route($url);
         $this->setPath($url);
+
+        $this->header('Location: ' . $url);
+        exit();
         return $this;
     }
 
@@ -88,8 +91,8 @@ class Redirect
                 $route = rtrim(request()->processHost().Route::getUrl($name, $parameters, $getParams), '/');
             }
         }
-        $this->header('location: ' . $route);
-        die();
+        $this->header('Location: ' . $route);
+        exit();
     }
 
     protected function isValidUri($uri)
