@@ -39,6 +39,7 @@ class Builder
     protected $returnWithRelations = false;
     public $table;
     protected $searchables = ['*'];
+    protected $selectables;
 
     /**
      * Make Builder instance
