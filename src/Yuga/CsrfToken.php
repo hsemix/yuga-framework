@@ -10,82 +10,74 @@ class CsrfToken
 {
     const CSRF_KEY = 'CSRF-TOKEN';
 
-    protected $token;
-
     /**
-     * Generate random identifier for CSRF token
+     * Generate a random identifier for the CSRF token.
      *
      * @throws \RuntimeException
      * @return string
      */
-    public static function generateToken()
+    public static function generateToken(): string
     {
         if (function_exists('random_bytes')) {
             return bin2hex(random_bytes(32));
         }
 
         $isSourceStrong = false;
-
         $random = bin2hex(openssl_random_pseudo_bytes(32, $isSourceStrong));
-        if ($isSourceStrong === false || $random === false) {
+
+        if (!$isSourceStrong || !$random) {
             throw new \RuntimeException('IV generation failed');
         }
-        
+
         return $random;
     }
 
     /**
-     * Validate valid CSRF token
+     * Validate the CSRF token.
      *
      * @param string $token
      * @return bool
      */
-    public function validate($token)
+    public function validate(?string $token): bool
     {
-        if (function_exists('hash_equals')) {
-            if ($token !== null && $this->getToken() !== null) {
-                return hash_equals($token, $this->getToken());
-            }
-        } else {
-            if ($token !== null && $this->getToken() !== null) {
-                return ($token === $this->getToken())?:false;
-            }
+        $currentToken = $this->getToken();
+        if ($token !== null && $currentToken !== null) {
+            return function_exists('hash_equals') 
+                ? hash_equals($token, $currentToken) 
+                : $token === $currentToken;
         }
-        
 
         return false;
     }
 
     /**
-     * Set csrf token cookie
+     * Set the CSRF token in a cookie.
      *
-     * @param $token
+     * @param string $token
+     * @return void
      */
-    public function setToken($token)
+    public function setToken(string $token): void
     {
         Cookie::put(static::CSRF_KEY, $token, 60 * 120);
     }
 
     /**
-     * Get csrf token
+     * Get the CSRF token from the cookie.
+     *
      * @return string|null
      */
-    public function getToken()
+    public function getToken(): ?string
     {
-        if ($this->hasToken() === true) {
-            return Cookie::get(static::CSRF_KEY);
-        }
-
-        return null;
+        return $this->hasToken() ? Cookie::get(static::CSRF_KEY) : null;
     }
 
     /**
-     * Returns whether the csrf token has been defined
+     * Check if the CSRF token is defined.
+     *
      * @return bool
      */
-    public function hasToken()
+    public function hasToken(): bool
     {
         return Cookie::exists(static::CSRF_KEY);
     }
-
 }

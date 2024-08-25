@@ -111,15 +111,8 @@ class Builder
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
             return false;
         }
-        if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
-            if ($this->withTrashed) {
-				
-			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			} else {
-				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			}
-        }
+        
+        $this->deletable();
         
         $models = $this->query->getAll($columns); 
         
@@ -447,15 +440,9 @@ class Builder
         if ($this->getModel()->dispatchModelEvent('selecting', [$this->query, $this->getModel()]) === false) {
             return false;
         }
-        if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
-            if ($this->withTrashed) {
-				
-			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			} else {
-				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			}
-        }
+        
+        $this->deletable();
+
         if ($columns) {
             if (is_array($columns) === false) {
                 $columns = func_get_args();
@@ -478,15 +465,8 @@ class Builder
 
     public function last($columns = null)
     {
-        if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
-            if ($this->withTrashed) {
-				
-			} elseif ($this->onlyTrashed) {
-				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			} else {
-				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
-			}
-        }
+        $this->deletable();
+
         if ($columns) {
             $item = $this->query->select($columns)->last();
         } else {
@@ -511,25 +491,43 @@ class Builder
         return $item;
     }
 
+    protected function deletable()
+    {
+        if ($this->checkTableField($this->getModel()->getTable(), $this->getModel()->getDeleteKey())) {
+            if ($this->withTrashed) {
+				
+			} elseif ($this->onlyTrashed) {
+				$this->query->whereNotNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
+			} else {
+				$this->query->whereNull($this->addTablePrefix($this->getModel()->getDeleteKey()));
+			}
+        }
+        return $this;
+    }
+
     public function count($field = '*')
     {
+        $this->deletable();
         return $this->query->count($field);
     }
 
     public function max($field)
     {
+        $this->deletable();
         $result = $this->query->select($this->query->raw('MAX(' . $field . ') AS max'))->getAll();
         return (int)$result[0]->max;
     }
 
     public function min($field)
     {
+        $this->deletable();
         $result = $this->query->select($this->query->raw('MIN(' . $field . ') AS min'))->getAll();
         return (int)$result[0]->min;
     }
 
     public function sum($field)
     {
+        $this->deletable();
         $result = $this->query->select($this->query->raw('SUM(' . $field . ') AS sum'))->getAll();
         return (int)$result[0]->sum;
     }

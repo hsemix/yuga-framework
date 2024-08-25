@@ -1,6 +1,7 @@
 <?php
 
 use Yuga\Async\Async;
+use Yuga\Route\Route;
 use Yuga\Support\Arr;
 use Yuga\Support\Str;
 use Yuga\Database\Elegant\Collection;
@@ -670,5 +671,31 @@ if (!function_exists('await')) {
             $operation = async(fn() => $operation);
 
         return Async::await($operation);     
+    }
+}
+
+if (!function_exists('trans')) {
+    /**
+     * Translates a string into a language
+     */
+    function translate($text, $language = 'en') 
+    {
+        // Attempt to load the exact language file first
+        $lang_file = __DIR__ . "/lang/{$language}.php";
+        
+        // If the exact language file does not exist, try the base language (e.g., en for en-US)
+        if (!file_exists($lang_file)) {
+            $base_language = substr($language, 0, 2);
+            $lang_file = __DIR__ . "/lang/{$base_language}.php";
+        }
+        
+        // Load the translation file if it exists
+        if (file_exists($lang_file)) {
+            $translations = include($lang_file);
+            return $translations[$text] ?? $text;
+        }
+        
+        // Return the original text if no translation is found
+        return $text;
     }
 }

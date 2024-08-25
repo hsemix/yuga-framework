@@ -60,6 +60,7 @@ class Redirect
 
         $this->header('Location: ' . $url);
         exit();
+
         return $this;
     }
 

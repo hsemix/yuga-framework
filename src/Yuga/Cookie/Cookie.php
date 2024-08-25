@@ -1,38 +1,79 @@
 <?php
+
 namespace Yuga\Cookie;
 
 class Cookie
 {
-    public static function exists($name)
+    /**
+     * Check if a cookie exists.
+     *
+     * @param string $name
+     * @return bool
+     */
+    public static function exists($name): bool
     {
-        return (isset($_COOKIE[$name])) ? true : false;
+        return isset($_COOKIE[$name]);
     }
 
-    public static function get($name)
+    /**
+     * Get the value of a cookie.
+     *
+     * @param string $name
+     * @return string|null
+     */
+    public static function get($name): ?string
     {
-        return $_COOKIE[$name];
+        return $_COOKIE[$name] ?? null;
     }
 
-    public static function put($name, $value, $expiry = null, $domain = null, $secure = true, $path = '/')
+    /**
+     * Set a cookie with the given parameters.
+     *
+     * @param string $name
+     * @param string $value
+     * @param int|null $expiry
+     * @param string|null $domain
+     * @param bool $secure
+     * @param string $path
+     * @return bool
+     */
+    public static function put($name, $value, $expiry = null, $domain = null, $secure = false, $path = '/'): bool
     {
         return self::create($name, $value, $expiry, $domain, $secure, $path);
     }
 
-    public static function create($name, $value, $expiry = null, $domain = null, $secure = true, $path = '/')
+    /**
+     * Create a cookie with the given parameters.
+     *
+     * @param string $name
+     * @param string $value
+     * @param int|null $expiry
+     * @param string|null $domain
+     * @param bool $secure
+     * @param string $path
+     * @return bool
+     */
+    public static function create($name, $value, $expiry = null, $domain = null, $secure = true, $path = '/'): bool
     {
-        if (!empty($name) && !is_null($name)) {
-            if ($domain === null) {
-                $sub = explode('.', request()->getHost());
-                $domain = (count($sub) > 2) ? request()->getHost() :  request()->getHost();
-            }
-            $expiry = ($expiry === null) ? time() + 60 * 60 * 24 * 6004 : time() + $expiry;
-
-            return setcookie($name, $value, (($expiry > 0) ? $expiry : null), $path, $domain, $secure);
+        if (empty($name)) {
+            return false;
         }
+
+        $host = request()->getHost();
+        $domain = $domain ?? (count(explode('.', $host)) > 2 ? $host : $host);
+        $expiryTime = $expiry !== null ? time() + $expiry : time() + 60 * 60 * 24 * 6004;
+
+        return setcookie($name, $value, $expiryTime, $path, $domain, $secure);
     }
-    
-    public static function delete($name)
+
+    /**
+     * Delete a cookie.
+     *
+     * @param string $name
+     * @return bool
+     */
+    public static function delete($name): bool
     {
-        return self::put($name, '', - 1);
+        return self::put($name, '', -1);
     }
 }
