@@ -8,31 +8,24 @@ use Tracy\Debugger;
 use Yuga\Route\Route;
 use Yuga\Support\Str;
 use Yuga\Http\Request;
-use Yuga\Http\Redirect;
-use Yuga\Http\Response;
 use Yuga\Support\Config;
-use Yuga\View\Client\Jquery;
 use Yuga\Container\Container;
 use Yuga\Views\UI\Site as UI;
 use App\Middleware\WebMiddleware;
 use Yuga\Logger\LogServiceProvider;
 use Yuga\Route\RouteServiceProvider;
 use Yuga\Events\EventServiceProvider;
-use Yuga\Http\Request as HttpRequest;
-use Yuga\Invocation\CallableResolver;
-use Yuga\Database\Tracy\DatabasePanel;
 use Yuga\Providers\YugaServiceProvider;
 use Yuga\Session\SessionServiceProvider;
 use Yuga\Database\ElegantServiceProvider;
 use Yuga\Providers\Composer\PackageManager;
-use Yuga\Providers\ClassAliasServiceProvider;
 use Yuga\Interfaces\Providers\IServiceProvider;
 use Yuga\Route\Exceptions\NotFoundHttpExceptionHandler;
 use Yuga\Interfaces\Application\Application as IApplication;
 
 class Application extends Container implements IApplication
 {
-    const VERSION = '4.5.0';
+    const VERSION = '4.5.1';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
