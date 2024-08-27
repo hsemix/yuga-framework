@@ -91,6 +91,8 @@ trait Controller
         $request = request();
         $ware = (array) $ware;
 
+        if (is_null($except)) $except = [];
+
         if (!in_array(ltrim(request()->getUri(), '/'), $except)) {
 
             $next = function ($next) use ($middleWare, $request) {
