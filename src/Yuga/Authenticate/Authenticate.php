@@ -1,7 +1,9 @@
 <?php
+
 namespace Yuga\Authenticate;
 
 use Closure;
+use Yuga\Models\Auth;
 use Yuga\Http\Request;
 use Yuga\Validate\Message;
 use Yuga\Shared\Controller;
@@ -100,9 +102,26 @@ class Authenticate extends BaseController implements IMiddleware
      */
     public function run(Request $request, Closure $next)
     {
+        
         if ($this->guest()) {
-            return (\Auth::authRoutesExist()) ? $this->response->redirect('login') : $this->response->redirect(env('DEFAULT_LOGIN_REDIRECT', route('login')));
-            die();
+
+            if ($this->guest()) {
+                session()->put('yuga-user-link-session', $request->getUri());
+                if (Auth::authRoutesExist()) {
+                    $this->response->redirect('login');
+                }
+    
+                return $this->response->redirect(env('DEFAULT_LOGIN_REDIRECT', route('login')));
+                exit();
+            } else {
+                if (session()->exists('yuga-user-link-session')) {
+                    $uri = session('yuga-user-link-session');
+                    session()->delete('yuga-user-link-session');
+    
+                    return $this->response->redirect($uri);
+                    exit();
+                }
+            }
         }
 
         return $next($request);
