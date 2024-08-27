@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Http\Middleware;
 
 class MiddleWare
@@ -24,5 +25,10 @@ class MiddleWare
     {
         $this->except = $except;
         return $this;
+    }
+
+    public function run($request, $next)
+    {
+        return $next($request);
     }
 }

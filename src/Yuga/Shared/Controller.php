@@ -87,45 +87,18 @@ trait Controller
         if ($except) {
             $middleWare->except = $except;
         }
-        if (is_array($ware)) {
-            foreach ($ware as $controllerMiddleware) {
-                if (isset($wares[$controllerMiddleware])) {
-                    $routeMiddleWare = App::resolve($wares[$controllerMiddleware]);
-                    $request = request();
-                    if (($routeMiddleWare instanceof IMiddleware) === false) {
-                        throw new HttpException($controllerMiddleware . ' must inherit the IMiddleware interface');
-                    }
-                    $result = $routeMiddleWare->run($request, function($request) {
-                        return $request;
-                    }, $middleWare->except);
+        
+        $request = request();
+        $ware = (array) $ware;
 
-                    if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
-                        echo $result;
-                    } elseif ($result instanceof Redirect) {
-                        if ($result->getPath() !== null) {
-                            $result->header('location: ' . $result->getPath());
-                            exit();
-                        } else {
-                            throw new NotFoundHttpException("You have not provided a Redirect URL");
-                        }
-                    }
-                    return;
-                } else {
-                    throw new HttpException($controllerMiddleware . ' Middleware is not yet defined');
-                }
-            }
-        } else {
-            if (isset($wares[$ware])) {
-                $routeMiddleWare = App::resolve($wares[$ware]);
-                $request = request();
-                if (($routeMiddleWare instanceof IMiddleware) === false) {
-                    throw new HttpException($ware . ' must inherit the IMiddleware interface');
-                }
-                $result = $routeMiddleWare->run($request, function($request) {
-                    return $request;
-                }, $middleWare->except);
+        if (!in_array(ltrim(request()->getUri(), '/'), $except)) {
 
-                if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+            $next = function ($next) use ($middleWare, $request) {
+                $result = $middleWare->run($request, function ($next) {
+                    return $next;
+                });
+                
+                if ($result instanceof ViewModel || is_string($result) || $result instanceof View || is_scalar($result)) {
                     echo $result;
                 } elseif ($result instanceof Redirect) {
                     if ($result->getPath() !== null) {
@@ -135,13 +108,53 @@ trait Controller
                         throw new NotFoundHttpException("You have not provided a Redirect URL");
                     }
                 }
-                return;
-            } else {
-                throw new HttpException($ware . ' Middleware is not yet defined');
+            };
+            
+            foreach ($ware as $controllerMiddleware) {
+                if (isset($wares[$controllerMiddleware])) {
+                    $routeMiddleWare = App::resolve($wares[$controllerMiddleware]);
+                    
+                    if (($routeMiddleWare instanceof IMiddleware) === false) {
+                        throw new HttpException($controllerMiddleware . ' must inherit the IMiddleware interface');
+                    }
+                    // $result = $routeMiddleWare->run($request, function($request) {
+                    //     return $request;
+                    // }, $middleWare->except);
+
+                    // if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+                    //     echo $result;
+                    // } elseif ($result instanceof Redirect) {
+                    //     if ($result->getPath() !== null) {
+                    //         $result->header('Location: ' . $result->getPath());
+                    //         exit();
+                    //     } else {
+                    //         throw new NotFoundHttpException("You have not provided a Redirect URL");
+                    //     }
+                    // }
+
+                    $next = function ($request) use ($routeMiddleWare, $next) {
+                        $result = $routeMiddleWare->run($request, $next);
+
+                        if ($result instanceof ViewModel || is_string($result) || $result instanceof View || is_scalar($result)) {
+                            echo $result;
+                        } elseif ($result instanceof Redirect) {
+                            if ($result->getPath() !== null) {
+                                $result->header('Location: ' . $result->getPath());
+                                exit();
+                            } else {
+                                throw new NotFoundHttpException("You have not provided a Redirect URL");
+                            }
+                        } 
+                    };
+
+                    // return;
+                } else {
+                    throw new HttpException($controllerMiddleware . ' Middleware is not yet defined');
+                }
             }
+            
+            return $next($request);
         }
-		
-        return $middleWare;
     }
     
     public function getView()

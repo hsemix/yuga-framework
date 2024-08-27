@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Route\Router;
 
 use ReflectionClass;
@@ -129,29 +130,67 @@ abstract class Route implements IRoute
             if (is_string($middleware) === true) {
                 $middlewares = [$middleware];
             }
+
+            $next = function ($next) use ($routeMiddleware, $request) {
+                $result = $routeMiddleware->run($request, function ($next) {
+                    return $next;
+                });
+                
+                if ($result instanceof ViewModel || is_string($result) || $result instanceof View || is_scalar($result)) {
+                    echo $result;
+                } elseif ($result instanceof Redirect) {
+                    if ($result->getPath() !== null) {
+                        $result->header('Location: ' . $result->getPath());
+                        exit();
+                    } else {
+                        throw new NotFoundHttpException("You have not provided a Redirect URL");
+                    }
+                }
+            };
+
             foreach ($middlewares as $ware) {
-               if (isset($wares[$ware])) {
-                    $routeMiddlewares[] = $this->loadClass($wares[$ware]);
+                if (isset($wares[$ware])) {
+                    $loadedMiddleware = $this->loadClass($wares[$ware]);
+                    $routeMiddlewares[] = $loadedMiddleware;
+
+                    $next = function ($request) use ($loadedMiddleware, $next) {
+                        $result = $loadedMiddleware->run($request, $next);
+
+                        if ($result instanceof ViewModel || is_string($result) || $result instanceof View || is_scalar($result)) {
+                            echo $result;
+                        } elseif ($result instanceof Redirect) {
+                            if ($result->getPath() !== null) {
+                                $result->header('Location: ' . $result->getPath());
+                                exit();
+                            } else {
+                                throw new NotFoundHttpException("You have not provided a Redirect URL");
+                            }
+                        } 
+                    };
                 } else {
                     throw new NotFoundHttpException(sprintf('Middleware "%s" does not exist', $ware), 404);
                 } 
             }  
+            
+            return $next($request);
         }
-        
-        $result = Pipeline::send($request)->through($routeMiddlewares)->thenReturn();
 
-        if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
-            echo $result;
-        } elseif ($result instanceof Redirect) {
-            if ($result->getPath() !== null) {
-                $result->header('Location: ' . $result->getPath());
-                exit();
-            } else {
-                throw new NotFoundHttpException("You have not provided a Redirect URL");
-            }
-        } elseif (is_scalar($result)) {
-            echo $result;
-        } 
+        
+        
+        // $result = Pipeline::send($request)->through($routeMiddlewares)->thenReturn();
+
+        // if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
+        //     echo $result;
+        // } elseif ($result instanceof Redirect) {
+        //     if ($result->getPath() !== null) {
+        //         $result->header('Location: ' . $result->getPath());
+        //         exit();
+        //     } else {
+        //         throw new NotFoundHttpException("You have not provided a Redirect URL");
+        //     }
+        // } elseif (is_scalar($result)) {
+        //     echo $result;
+        // } 
     }
 
     public function renderRoute(Request $request)
