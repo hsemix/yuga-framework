@@ -31,7 +31,7 @@ class RedirectIfAuthenticated implements IMiddleware
      */
     public function run(Request $request, Closure $next, $except = null)
     {
-        if (!Auth::guest() && !Auth::except($except)) {
+        if (!Auth::guest()) {
             return redirect('/home');
         }
         return $next($request);
