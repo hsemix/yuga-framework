@@ -104,26 +104,23 @@ class Authenticate extends BaseController implements IMiddleware
     {
         
         if ($this->guest()) {
+            session()->put('yuga-user-link-session', $request->getUri());
+            if (Auth::authRoutesExist()) {
+                $this->response->redirect('login');
+            }
 
-            if ($this->guest()) {
-                session()->put('yuga-user-link-session', $request->getUri());
-                if (Auth::authRoutesExist()) {
-                    $this->response->redirect('login');
-                }
-    
-                return $this->response->redirect(env('DEFAULT_LOGIN_REDIRECT', route('login')));
+            return $this->response->redirect(env('DEFAULT_LOGIN_REDIRECT', route('login')));
+            exit();
+        } else {
+            if (session()->exists('yuga-user-link-session')) {
+                $uri = session('yuga-user-link-session');
+                session()->delete('yuga-user-link-session');
+
+                return $this->response->redirect($uri);
                 exit();
-            } else {
-                if (session()->exists('yuga-user-link-session')) {
-                    $uri = session('yuga-user-link-session');
-                    session()->delete('yuga-user-link-session');
-    
-                    return $this->response->redirect($uri);
-                    exit();
-                }
             }
         }
-
+        
         return $next($request);
     }
 
