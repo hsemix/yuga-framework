@@ -1126,7 +1126,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
         if(!$this->getDirty()) {
             return;
         }
-        if ($this->dispatchModelEvent('updating', [$query]) === false) {
+        if ($this->dispatchModelEvent('updating', [$query, $this]) === false) {
             return false;
         }
         if($this->timestamps) {
