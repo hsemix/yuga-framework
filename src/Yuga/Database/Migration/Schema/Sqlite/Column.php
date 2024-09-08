@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration\Schema\Sqlite;
 
 use Yuga\Database\Migration\PDO;
@@ -93,6 +94,9 @@ class Column
         self::TYPE_LINESTRING,
         self::TYPE_POLYGON,
     ];
+
+    protected $relation;
+    protected $change;
 
     // Default values
 
@@ -247,7 +251,7 @@ class Column
         }
 
         $query = 'ALTER TABLE ' . $this->table . ' MODIFY COLUMN ' . $this->getQuery() . $index . ';';
-        Pdo::getInstance()->nonQuery($query);
+        PDO::getInstance()->nonQuery($query);
     }
 
     public function getQuery($includeRelations = true)

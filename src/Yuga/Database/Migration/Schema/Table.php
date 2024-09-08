@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration\Schema;
 
 abstract class Table
@@ -8,4 +9,10 @@ abstract class Table
      * @return Column
      */
     abstract public function column($name);
+    
+    /**
+     * Create timestamp columns
+     * @return static $this
+     */
+    abstract public function timestamps(): static;
 }

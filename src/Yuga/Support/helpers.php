@@ -4,6 +4,7 @@ use Yuga\Async\Async;
 use Yuga\Route\Route;
 use Yuga\Support\Arr;
 use Yuga\Support\Str;
+use App\Commands\Queue\ClosureJob;
 use Yuga\Database\Elegant\Collection;
 use Yuga\Interfaces\Queue\JobDispatcherInterface;
 /**
@@ -697,5 +698,25 @@ if (!function_exists('trans')) {
         
         // Return the original text if no translation is found
         return $text;
+    }
+}
+
+/**
+ * Push a job to the queue to be processed in the background
+ * 
+ * @param Closure $callback
+ * @param array $data
+ */
+if (! function_exists('queue'))
+{
+    /**
+     * Push a job to the queue to be processed in the background
+     * 
+     * @param Closure $callback
+     * @param array $data
+     */
+    function queue(Closure $callback, $data = [])
+    {
+        return ClosureJob::dispatch($callback, $data);
     }
 }

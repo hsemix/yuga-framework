@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration\Schema;
 
 class Schema
