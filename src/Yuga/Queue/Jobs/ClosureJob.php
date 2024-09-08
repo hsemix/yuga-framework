@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Commands\Queue;
+namespace Yuga\Queue\Jobs;
 
 use Yuga\Queue\DispatchableTrait;
 use Opis\Closure\SerializableClosure;
