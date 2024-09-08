@@ -4,7 +4,7 @@ use Yuga\Async\Async;
 use Yuga\Route\Route;
 use Yuga\Support\Arr;
 use Yuga\Support\Str;
-use App\Commands\Queue\ClosureJob;
+use Yuga\Queue\Jobs\ClosureJob;
 use Yuga\Database\Elegant\Collection;
 use Yuga\Interfaces\Queue\JobDispatcherInterface;
 /**
