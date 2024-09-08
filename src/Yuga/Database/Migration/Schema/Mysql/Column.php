@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration\Schema\Mysql;
 
 use Yuga\Database\Migration\PDO;
@@ -127,6 +128,9 @@ class Column
         self::RELATION_TYPE_RESTRICT,
         self::RELATION_TYPE_SET_NULL,
     ];
+
+    protected $relation;
+    protected $change;
 
     // Default values
 
@@ -300,7 +304,7 @@ class Column
         }
 
         $query = 'ALTER TABLE `' . $this->table . '` MODIFY COLUMN ' . $this->getQuery() . $index . ';';
-        Pdo::getInstance()->nonQuery($query);
+        PDO::getInstance()->nonQuery($query);
     }
 
     public function getQuery($includeRelations = true)

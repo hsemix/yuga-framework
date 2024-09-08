@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Migration\Schema\Mysql;
 
 use Yuga\Database\Migration\PDO;
@@ -49,7 +50,7 @@ class Table extends SqlTable
      * Create timestamp columns
      * @return static $this
      */
-    public function timestamps()
+    public function timestamps(): static
     {
         $this->column('updated_at')->datetime()->nullable()->index();
         $this->column('created_at')->datetime()->index();

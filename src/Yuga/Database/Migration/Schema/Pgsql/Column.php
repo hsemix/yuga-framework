@@ -2,6 +2,9 @@
 
 namespace Yuga\Database\Migration\Schema\Pgsql;
 
+use Yuga\Database\Migration\PDO;
+use Yuga\Database\Migration\PdoHelper;
+
 class Column
 {
     protected $table;
@@ -128,6 +131,9 @@ class Column
         self::RELATION_TYPE_RESTRICT,
         self::RELATION_TYPE_SET_NULL,
     ];
+
+    protected $relation;
+    protected $change;
 
     public function __construct($table)
     {
@@ -471,7 +477,7 @@ class Column
         }
 
         $query = 'ALTER TABLE "' . $this->table . '" MODIFY COLUMN ' . $this->getQuery() . $index . ';';
-        Pdo::getInstance()->nonQuery($query);
+        PDO::getInstance()->nonQuery($query);
     }
 
     public function getQuery($includeRelations = true)

@@ -102,7 +102,6 @@ class Authenticate extends BaseController implements IMiddleware
      */
     public function run(Request $request, Closure $next)
     {
-        
         if ($this->guest()) {
             session()->put('yuga-user-link-session', $request->getUri());
             if (Auth::authRoutesExist()) {
@@ -120,7 +119,7 @@ class Authenticate extends BaseController implements IMiddleware
                 exit();
             }
         }
-        
+
         return $next($request);
     }
 
