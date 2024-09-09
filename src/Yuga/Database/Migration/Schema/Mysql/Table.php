@@ -290,7 +290,7 @@ class Table extends SqlTable
         return $this;
     }
 
-    public function renameColumn($fromName, $toName)
+    public function renameColumn(string $fromName, string $toName)
     {
         if ($this->exists()) {
             if ($this->columnExists($fromName)) {

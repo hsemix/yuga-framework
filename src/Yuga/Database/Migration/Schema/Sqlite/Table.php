@@ -9,6 +9,7 @@ class Table extends SqlTable
 {
     protected $name;
     protected $columns = [];
+    
     public function __construct($name = null, $getTableSchema = false)
     {
         $this->name = $name;
@@ -287,7 +288,7 @@ class Table extends SqlTable
         return $newTable;
     }
 
-    public function renameColumn($fromName, $toName)
+    public function renameColumn(string $fromName, string $toName)
     {
         if ($this->exists()) {
             if ($this->columnExists($fromName)) {
