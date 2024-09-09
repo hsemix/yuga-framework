@@ -44,25 +44,25 @@ class Auth
    * Call all \Yuga\Authenticate\Authenticate methods statically through \Auth
    * 
    * @param string $method
-   * @param string $args
+   * @param array $args
    * 
    * @return (new \Yuga\Authenticate\Authenticate)->$method($args)
    */
   public static function __callStatic($method, $args) 
   {
-    return call_user_func_array([new Authenticate, $method], [$args]);
+    return call_user_func_array([new Authenticate, $method], $args);
   }
 
   /**
    * Call all \Yuga\Authenticate\Authenticate methods through \Auth
    * 
    * @param string $method
-   * @param any $args
+   * @param array $args
    * 
    * @return (new \Yuga\Authenticate\Authenticate)->$method($args)
    */
   public function __call($method, $args) 
   {
-    return call_user_func_array([new Authenticate, $method], [$args]);
+    return call_user_func_array([new Authenticate, $method], $args);
   }
 }
