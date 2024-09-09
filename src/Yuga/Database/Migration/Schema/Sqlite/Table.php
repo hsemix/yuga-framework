@@ -150,10 +150,10 @@ class Table extends SqlTable
 
             /* @var $column Column */
             foreach ($this->columns as $column) {
-                PDO::getInstance()->nonQuery(sprintf('ALTER TABLE `%s` CHANGE `%s` %s', $this->name, $column->getName(), $column->getQuery(false)));
+                PDO::getInstance()->nonQuery(sprintf('ALTER TABLE %s CHANGE %s %s', $this->name, $column->getName(), $column->getQuery(false)));
                 
                 if ($column->getKeyRelationsQuery() !== '') {
-                    PDO::getInstance()->nonQuery(sprintf('ALTER TABLE `%s` ADD %s', $this->name, $column->getKeyRelationsQuery()));
+                    PDO::getInstance()->nonQuery(sprintf('ALTER TABLE %s ADD %s', $this->name, $column->getKeyRelationsQuery()));
                 }   
             }
         }
@@ -168,19 +168,19 @@ class Table extends SqlTable
     public function dropIndex(array $indexes)
     {
         foreach ($indexes as $index) {
-            PDO::getInstance()->nonQuery('ALTER TABLE `' . $this->name . '` DROP INDEX `' . $index . '`');
+            PDO::getInstance()->nonQuery('ALTER TABLE ' . $this->name . ' DROP INDEX ' . $index . '');
         }
     }
 
     public function dropPrimary()
     {
-        PDO::getInstance()->nonQuery('ALTER TABLE `' . $this->name . '` DROP PRIMARY KEY');
+        PDO::getInstance()->nonQuery('ALTER TABLE ' . $this->name . ' DROP PRIMARY KEY');
     }
 
     public function dropForeign(array $indexes)
     {
         foreach ($indexes as $index) {
-            PDO::getInstance()->nonQuery('ALTER TABLE `' . $this->name . '` DROP FOREIGN KEY `' . $index . '`');
+            PDO::getInstance()->nonQuery('ALTER TABLE ' . $this->name . ' DROP FOREIGN KEY ' . $index . '');
         }
     }
 
@@ -285,5 +285,14 @@ class Table extends SqlTable
         }
 
         return $newTable;
+    }
+
+    public function renameColumn($fromName, $toName)
+    {
+        if ($this->exists()) {
+            if ($this->columnExists($fromName)) {
+                PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" RENAME COLUMN "%s" TO %s', $this->name, $fromName, $toName));
+            }
+        }
     }
 }

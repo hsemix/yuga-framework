@@ -709,12 +709,6 @@ if (!function_exists('trans')) {
  */
 if (! function_exists('queue'))
 {
-    /**
-     * Push a job to the queue to be processed in the background
-     * 
-     * @param Closure $callback
-     * @param array $data
-     */
     function queue(Closure $callback, $data = [])
     {
         return ClosureJob::dispatch($callback, $data);

@@ -244,4 +244,13 @@ class Table extends SqlTable
         }
         return $this;
     }
+
+    public function renameColumn($fromName, $toName)
+    {
+        if ($this->exists()) {
+            if ($this->columnExists($fromName)) {
+                PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" RENAME COLUMN "%s" TO %s', $this->name, $fromName, $toName));
+            }
+        }
+    }
 }

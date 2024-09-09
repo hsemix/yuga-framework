@@ -33,10 +33,14 @@ class Table extends SqlTable
     protected $name;
     protected $engine;
 
-    public function __construct($name = null)
+    public function __construct($name = null, $getTableSchema = false)
     {
         $this->name = $name;
         $this->engine = self::ENGINE_INNODB;
+
+        if ($getTableSchema) {
+            $this->getTableColumns();
+        }
     }
 
     public function name($name)
@@ -255,6 +259,44 @@ class Table extends SqlTable
     public function rememberToken()
     {
         return $this->column('remember_token')->string(100)->nullable();
+    }
+
+    public function getTableColumns()
+    {
+        if ($this->exists()) {
+            $result = PDO::getInstance()->doQuery(sprintf('SHOW COLUMNS FROM `%s`', $this->name));
+
+            $columns = $result->fetchAll(\PDO::FETCH_ASSOC);
+            foreach ($columns as $column) {
+                $tableColumn = $this->column($column['Field']);
+                $tableColumn->setType($column['Type']);
+                if ($column['Null'] != 'NO') {
+                    $tableColumn->nullable();
+                }
+
+                if ($column['Key'] == 'PRI') {
+                    $tableColumn->primary();
+                }
+
+                if ($column['Extra'] == 'auto_increment') {
+                    $tableColumn->setIncrement(true);
+                }
+
+                if ($column['Default'] != null) {
+                    $tableColumn->setDefaultValue($column['Default']);
+                }
+            }
+        }
+        return $this;
+    }
+
+    public function renameColumn($fromName, $toName)
+    {
+        if ($this->exists()) {
+            if ($this->columnExists($fromName)) {
+                PDO::getInstance()->nonQuery(sprintf('ALTER TABLE `%s` RENAME COLUMN `%s` TO %s', $this->name, $fromName, $toName));
+            }
+        }
     }
 
 }
