@@ -9,6 +9,7 @@ class Column
 {
     protected $table;
     protected $name;
+    protected $renameTo;
     protected $type;
     protected $length;
     protected $defaultValue;
@@ -516,6 +517,12 @@ class Column
         }
 
         return $query;
+    }
+
+    public function renameTo(string $name)
+    {
+        $this->renameTo = $name;
+        return $this;
     }
 
     public function getKeyRelationsQuery()
