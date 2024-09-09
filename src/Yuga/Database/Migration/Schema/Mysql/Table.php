@@ -29,7 +29,7 @@ class Table extends SqlTable
     /**
      * @var array
      */
-    protected $columns;
+    protected $columns = [];
     protected $name;
     protected $engine;
 
