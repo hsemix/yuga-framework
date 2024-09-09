@@ -15,4 +15,6 @@ abstract class Table
      * @return static $this
      */
     abstract public function timestamps(): static;
+
+    abstract public function renameColumn(string $fromName, string $toName);
 }

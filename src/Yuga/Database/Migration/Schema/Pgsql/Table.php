@@ -10,6 +10,7 @@ class Table extends SqlTable
 {
     protected $name;
     protected $columns = [];
+    
     public function __construct($name = null, $getTableSchema = false)
     {
         $this->name = $name;
@@ -139,7 +140,7 @@ class Table extends SqlTable
 
     public function alter()
     {
-        if ($this->exists()) {
+        if ($this->exists() && count($this->columns) > 0) {
 
             /* @var $column Column */
             foreach ($this->columns as $column) {
@@ -175,7 +176,7 @@ class Table extends SqlTable
 
     public function addColumns()
     {
-        if ($this->exists()) {
+        if ($this->exists() && count($this->columns) > 0) {
             foreach ($this->columns as $column) {
                 if (!$this->columnExists($column->getName())) {
                     PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" ADD %s', $this->name, $column->getQuery()));
@@ -245,7 +246,7 @@ class Table extends SqlTable
         return $this;
     }
 
-    public function renameColumn($fromName, $toName)
+    public function renameColumn(string $fromName, string $toName)
     {
         if ($this->exists()) {
             if ($this->columnExists($fromName)) {
