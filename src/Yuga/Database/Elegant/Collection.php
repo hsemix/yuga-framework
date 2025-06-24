@@ -10,13 +10,11 @@ use Countable;
 use ArrayAccess;
 use JsonSerializable;
 use Yuga\Support\Arr;
-use Yuga\Support\Inflect;
 use Yuga\Pagination\Pagination;
 use Yuga\Route\Exceptions\NotFoundHttpException;
 
 class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 {
-    
     protected $query;
     protected $items = [];
     protected $pagination;
@@ -35,6 +33,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     public function addItem($item)
     {
         $this->items = $item;
+        return $this;
     }
 
     public function getItems()
@@ -145,7 +144,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     public function valid()
     {
         $key = key($this->items);
-        $var = ($key !== NULL && $key !== FALSE);
+        $var = ($key !== null && $key !== false);
         return $var;
     }
 
@@ -167,7 +166,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
      * 
      * @return static
      */
-    public function filter(callable $callback = null)
+    public function filter(?callable $callback = null)
     {
         if ($callback) {
             $return = [];
@@ -278,7 +277,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
     public function map(Closure $callback)
     {
-        return new static(array_map($callback, $this->items));
+        return $this->addItem(array_map($callback, $this->items));
     }
 
     public function each(Closure $callback)
@@ -298,7 +297,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         return new static(array_fetch($this->items, $key));
     }
 
-    public function pagination(array $options = null)
+    public function pagination(?array $options = null)
     {
         return count($this->items) > 0 ? ((is_object($this->items[0]->getPagination())) ? $this->items[0]->getPagination()->render($options) : null) : null;
     }
@@ -515,7 +514,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
         }
     }
 
-    public function pages(array $options = null)
+    public function pages(?array $options = null)
     {
         return $this->pagination($options);
     }

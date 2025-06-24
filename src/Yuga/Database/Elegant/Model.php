@@ -705,7 +705,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
      * 
      * @return Collection
      */
-    public function makeModels($items, array $bootable = null)
+    public function makeModels($items, ?array $bootable = null)
     { 
         // make models from plain arrays got from db
         $instance = new static;

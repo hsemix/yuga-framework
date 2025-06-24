@@ -764,7 +764,7 @@ class Builder
     /**
      * @return Model
      */
-    public function getModel(Pagination $pagination = null)
+    public function getModel(?Pagination $pagination = null)
     {
         if ($pagination)
             $this->model->setPagination($pagination);
@@ -971,7 +971,7 @@ class Builder
      * 
      * @return Collection $results
      */
-    public function simplePaginate($limit = 10, array $options = null)
+    public function simplePaginate($limit = 10, ?array $options = null)
     {
         $request = new Request;
         $url = explode('?', $request->getUri());
