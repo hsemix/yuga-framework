@@ -43,13 +43,11 @@ abstract class Mask
      */
     protected static function resolveMaskInstance($name)
     {
-        if (is_object($name)) return $name;
-
-        if (isset(static::$resolvedInstance[$name])) {
-            return static::$resolvedInstance[$name];
+        if (is_object($name)) {
+            return $name;
         }
 
-        return static::$resolvedInstance[$name] = static::$app[$name];// ?? app()[$name];
+        return static::$resolvedInstance[$name] ?? static::$resolvedInstance[$name] = static::$app[$name];// ?? app()[$name];
     }
 
     /**

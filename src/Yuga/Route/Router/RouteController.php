@@ -7,15 +7,13 @@ use Yuga\Route\Support\IControllerRoute;
 class RouteController extends LoadableRoute implements IControllerRoute
 {
     protected $defaultMethod = 'index';
-    protected $controller;
     protected $method;
     protected $names = [];
 
-    public function __construct($url, $controller)
+    public function __construct($url, protected $controller)
     {
         $this->setUrl($url);
         $this->setName(trim(str_replace('/', '.', $url), '/'));
-        $this->controller = $controller;
     }
 
     /**
@@ -24,6 +22,7 @@ class RouteController extends LoadableRoute implements IControllerRoute
      * @param string $name
      * @return bool
      */
+    #[\Override]
     public function hasName($name)
     {
         if ($this->name === null) {
@@ -31,11 +30,11 @@ class RouteController extends LoadableRoute implements IControllerRoute
         }
 
         /* Remove method/type */
-        if (strpos($name, '.') !== false) {
+        if (str_contains($name, '.')) {
             $method = substr($name, strrpos($name, '.') + 1);
             $newName = substr($name, 0, strrpos($name, '.'));
 
-            if (in_array($method, $this->names, false) === true && strtolower($this->name) === strtolower($newName)) {
+            if (in_array($method, $this->names, false) && strtolower($this->name) === strtolower($newName)) {
                 return true;
             }
         }
@@ -49,10 +48,11 @@ class RouteController extends LoadableRoute implements IControllerRoute
      * @param string|null $name
      * @return string
      */
+    #[\Override]
     public function findUrl($method = null, $parameters = null, $name = null)
     {
-        if (strpos($name, '.') !== false) {
-            $found = array_search(substr($name, strrpos($name, '.') + 1), $this->names, false);
+        if (str_contains((string) $name, '.')) {
+            $found = array_search(substr((string) $name, strrpos((string) $name, '.') + 1), $this->names, false);
             if ($found !== false) {
                 $method = (string)$found;
             }
@@ -66,8 +66,8 @@ class RouteController extends LoadableRoute implements IControllerRoute
             /* Remove requestType from method-name, if it exists */
             foreach (static::$requestTypes as $requestType) {
 
-                if (stripos($method, $requestType) === 0) {
-                    $method = (string)substr($method, strlen($requestType));
+                if (stripos($method, (string) $requestType) === 0) {
+                    $method = substr($method, strlen((string) $requestType));
                     break;
                 }
             }
@@ -81,7 +81,7 @@ class RouteController extends LoadableRoute implements IControllerRoute
             $url .= '//' . $group->getDomains()[0];
         }
 
-        $url .= '/' . trim($this->getUrl(), '/') . '/' . strtolower($method) . join('/', $parameters);
+        $url .= '/' . trim((string) $this->getUrl(), '/') . '/' . strtolower((string) $method) . implode('/', $parameters);
 
         return '/' . trim($url, '/') . '/';
     }
@@ -101,7 +101,7 @@ class RouteController extends LoadableRoute implements IControllerRoute
         if (count($path) > 0) {
 
             $method = (isset($path[0]) === false || trim($path[0]) === '') ? $this->defaultMethod : $path[0];
-            $this->method = $request->getMethod() . ucfirst($method);
+            $this->method = $request->getMethod() . ucfirst((string) $method);
 
             $this->parameters = array_slice($path, 1);
 
@@ -142,6 +142,7 @@ class RouteController extends LoadableRoute implements IControllerRoute
      *
      * @return string
      */
+    #[\Override]
     public function getMethod()
     {
         return $this->method;
@@ -153,6 +154,7 @@ class RouteController extends LoadableRoute implements IControllerRoute
      * @param string $method
      * @return static
      */
+    #[\Override]
     public function setMethod($method)
     {
         $this->method = $method;
@@ -163,10 +165,10 @@ class RouteController extends LoadableRoute implements IControllerRoute
     /**
      * Merge with information from another route.
      *
-     * @param array $values
      * @param bool $merge
      * @return static
      */
+    #[\Override]
     public function setSettings(array $values, $merge = false)
     {
         if (isset($values['names'])) {

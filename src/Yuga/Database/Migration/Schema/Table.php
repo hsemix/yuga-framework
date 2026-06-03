@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yuga\Database\Migration\Schema;
 
 abstract class Table

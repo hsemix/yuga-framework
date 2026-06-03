@@ -34,47 +34,47 @@ class MakeMigrationCommand extends Command
      * 
      * @param string|null $name
      */
-    public function processMigration($name = null, array $scaffold = null)
+    public function processMigration($name = null, ?array $scaffold = null)
     {
         $this->createDirectories();
         file_put_contents(
             path('database/migrations/' . $this->formatName($name) . '.php'),
-            $this->compileMigrationTemp(trim($name ? $name : $this->argument('name')), $scaffold)
+            $this->compileMigrationTemp(trim($name ?: $this->argument('name')), $scaffold)
         );
 
         file_put_contents(
             path('config/migrations.php'),
-            $this->compileYugaMigrationsTemp(trim($name ? $name : $this->argument('name')))
+            $this->compileYugaMigrationsTemp(trim($name ?: $this->argument('name')))
         );
     }
 
-    protected function compileMigrationTemp($model, array $scaffold = null)
+    protected function compileMigrationTemp($model, ?array $scaffold = null)
     {
-        $table = strtolower($model);
+        $table = strtolower((string) $model);
         $migration = str_replace('{table}', $table, file_get_contents(__DIR__.'/temps/Migration.temp'));
-        if ($scaffold) {
-            if (count($scaffold) > 0)
-                $migration = $this->processMigrationTemp($table, $scaffold);
+        if ($scaffold && count($scaffold) > 0) {
+            $migration = $this->processMigrationTemp($table, $scaffold);
         }
         
         return str_replace(
             '{class}',
-            'Create'.ucfirst($model).'Table',
+            'Create'.ucfirst((string) $model).'Table',
             $migration
         );
     }
 
-    protected function processMigrationTemp($table, array $fields = [])
+    protected function processMigrationTemp($table, ?array $fields = [])
     {
         $scaffold = '';
         $i = 0;
         foreach ($fields as $field => $type) {
             $dataType = $this->processFieldType($type);
             
-            if ($i != (count($fields) - 1))
-                $scaffold .= "$" . "table->column('" . $field . "')->" . $dataType . "->nullable();\n\t\t\t";
-            else
-                $scaffold .= "$" . "table->column('" . $field . "')->" . $dataType . "->nullable();";
+            if ($i !== count($fields) - 1) {
+                $scaffold .= '$table->column(\'' . $field . "')->" . $dataType . "->nullable();\n\t\t\t";
+            } else {
+                $scaffold .= '$table->column(\'' . $field . "')->" . $dataType . "->nullable();";
+            }
             $i++;
         }
 
@@ -91,9 +91,8 @@ class MakeMigrationCommand extends Command
      */
     protected function formatName($name = null)
     {
-        $table = trim($name ? $name : $this->argument('name'));
-        $table = (new \DateTime)->format('YmdHis') . '_create_' . strtolower($table) . '_table';
-        return $table;
+        $table = trim((string) ($name ?: $this->argument('name')));
+        return (new \DateTime)->format('YmdHis') . '_create_' . strtolower($table) . '_table';
     }
 
     /**
@@ -101,6 +100,7 @@ class MakeMigrationCommand extends Command
      *
      * @return void
      */
+    #[\Override]
     protected function createDirectories()
     {
         if (!is_dir($directory = path('database/migrations'))) {
@@ -113,6 +113,7 @@ class MakeMigrationCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [
@@ -128,9 +129,10 @@ class MakeMigrationCommand extends Command
     protected function compileYugaMigrationsTemp($name)
     {
         $migrations = require path('config/migrations.php');
-        $table = 'Create' . ucfirst($name) . 'Table';
-        if (!in_array($table, $migrations['migrate']))
+        $table = 'Create' . ucfirst((string) $name) . 'Table';
+        if (!in_array($table, $migrations['migrate'])) {
             $migrations['migrate'][] = $table;
+        }
         
 
         $generatedMigrations = '[';
@@ -151,12 +153,10 @@ class MakeMigrationCommand extends Command
             file_get_contents(__DIR__ . '/temps/config.temp')
         );
 
-        $migration = str_replace(
+        return str_replace(
             '{seeds}',
             $generatedSeeds,
             $migration
         );
-
-        return $migration;
     }
 }

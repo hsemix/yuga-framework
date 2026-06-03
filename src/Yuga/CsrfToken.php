@@ -14,7 +14,6 @@ class CsrfToken
      * Generate a random identifier for the CSRF token.
      *
      * @throws \RuntimeException
-     * @return string
      */
     public static function generateToken(): string
     {
@@ -36,7 +35,6 @@ class CsrfToken
      * Validate the CSRF token.
      *
      * @param string $token
-     * @return bool
      */
     public function validate(?string $token): bool
     {
@@ -52,9 +50,6 @@ class CsrfToken
 
     /**
      * Set the CSRF token in a cookie.
-     *
-     * @param string $token
-     * @return void
      */
     public function setToken(string $token): void
     {
@@ -63,8 +58,6 @@ class CsrfToken
 
     /**
      * Get the CSRF token from the cookie.
-     *
-     * @return string|null
      */
     public function getToken(): ?string
     {
@@ -73,8 +66,6 @@ class CsrfToken
 
     /**
      * Check if the CSRF token is defined.
-     *
-     * @return bool
      */
     public function hasToken(): bool
     {

@@ -57,20 +57,20 @@ final class FileSystem
 			throw new Exception("File or directory '$dest' already exists.");
 
 		} elseif (is_dir($source)) {
-			static::createDir($dest);
+			self::createDir($dest);
 			foreach (new FilesystemIterator($dest) as $item) {
-				static::delete($item->getPathname());
+				self::delete($item->getPathname());
 			}
 			foreach ($iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST) as $item) {
 				if ($item->isDir()) {
-					static::createDir($dest . '/' . $iterator->getSubPathName());
+					self::createDir($dest . '/' . $iterator->getSubPathName());
 				} else {
-					static::copy($item->getPathname(), $dest . '/' . $iterator->getSubPathName());
+					self::copy($item->getPathname(), $dest . '/' . $iterator->getSubPathName());
 				}
 			}
 
 		} else {
-			static::createDir(dirname($dest));
+			self::createDir(dirname($dest));
 			if (($s = @fopen($source, 'r')) && ($d = @fopen($dest, 'w')) && @stream_copy_to_stream($s, $d) === false) { // @ is escalated to exception
 				throw new Exception("Unable to copy file '$source' to '$dest'. " . self::getLastError());
 			}
@@ -92,7 +92,7 @@ final class FileSystem
 
 		} elseif (is_dir($path)) {
 			foreach (new FilesystemIterator($path) as $item) {
-				static::delete($item->getPathname());
+				self::delete($item->getPathname());
 			}
 			if (!@rmdir($path)) { // @ is escalated to exception
 				throw new Exception("Unable to delete directory '$path'. " . self::getLastError());
@@ -115,9 +115,9 @@ final class FileSystem
 			throw new Exception("File or directory '$name' not found.");
 
 		} else {
-			static::createDir(dirname($newName));
+			self::createDir(dirname($newName));
 			if (realpath($name) !== realpath($newName)) {
-				static::delete($newName);
+				self::delete($newName);
 			}
 			if (!@rename($name, $newName)) { // @ is escalated to exception
 				throw new Exception("Unable to rename file or directory '$name' to '$newName'. " . self::getLastError());
@@ -146,7 +146,7 @@ final class FileSystem
 	 */
 	public static function write(string $file, string $content, $flags = 0, ?int $mode = 0666): void
 	{
-		static::createDir(dirname($file));
+		self::createDir(dirname($file));
 		if (@file_put_contents($file, $content, $flags) === false) { // @ is escalated to exception
 			throw new Exception("Unable to write file '$file'. " . self::getLastError());
 		}

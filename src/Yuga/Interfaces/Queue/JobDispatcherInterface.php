@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yuga\Interfaces\Queue;
 
 use Closure;
@@ -28,7 +30,6 @@ interface JobDispatcherInterface
     /**
      * Set the pipes commands should be piped through before dispatching.
      *
-     * @param  array  $pipes
      * @return $this
      */
     public function pipeThrough(array $pipes);

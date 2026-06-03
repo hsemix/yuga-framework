@@ -62,7 +62,7 @@ class PackagePublishCommand extends Command
         foreach ($paths as $from => $to) {
             if (FileSystem::isFile($from)) {
                 $this->publishFile($from, $to);
-            } else if (is_dir($from)) {
+            } elseif (is_dir($from)) {
                 $this->publishDirectory($from, $to);
             } else {
                 $this->error("Can't locate path: <{$from}>");
@@ -148,7 +148,7 @@ class PackagePublishCommand extends Command
             // The current item is a file.
             if (FileSystem::exists($target) && !$this->option('force')) {
                 continue;
-            } else if (!FileSystem::copy($item->getPathname(), $target)) {
+            } elseif (!FileSystem::copy($item->getPathname(), $target)) {
                 return false;
             }
         }
@@ -178,6 +178,7 @@ class PackagePublishCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [
@@ -190,6 +191,7 @@ class PackagePublishCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [

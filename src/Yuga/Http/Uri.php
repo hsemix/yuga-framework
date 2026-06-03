@@ -3,9 +3,8 @@ namespace Yuga\Http;
 
 use Yuga\Http\Exceptions\BadFormedUrlException;
 
-class Uri
+class Uri implements \Stringable
 {
-    private $originalUrl;
     private $scheme;
     private $host;
     private $port;
@@ -18,29 +17,27 @@ class Uri
     /**
      * Url constructor.
      *
-     * @param string $url
+     * @param string $originalUrl
      * @throws BadFormedUrlException
      */
-    public function __construct($url)
+    public function __construct(private $originalUrl)
     {
-        $this->originalUrl = $url;
+        if ($this->originalUrl !== null && $this->originalUrl !== '/') {
+            $data = $this->parseUrl($this->originalUrl);
 
-        if ($url !== null && $url !== '/') {
-            $data = $this->parseUrl($url);
+            $this->scheme = $data['scheme'] ?? null;
+            $this->host = $data['host'] ?? null;
+            $this->port = $data['port'] ?? null;
+            $this->username = $data['user'] ?? null;
+            $this->password = $data['pass'] ?? null;
 
-            $this->scheme = isset($data['scheme']) ? $data['scheme'] : null;
-            $this->host = isset($data['host']) ? $data['host'] : null;
-            $this->port = isset($data['port']) ? $data['port'] : null;
-            $this->username = isset($data['user']) ? $data['user'] : null;
-            $this->password = isset($data['pass']) ? $data['pass'] : null;
-
-            if (isset($data['path']) === true) {
+            if (isset($data['path'])) {
                 $this->setPath($data['path']);
             }
 
-            $this->fragment = isset($data['fragment']) ? $data['fragment'] : null;
+            $this->fragment = $data['fragment'] ?? null;
 
-            if (isset($data['query']) === true) {
+            if (isset($data['query'])) {
                 $params = [];
                 parse_str($data['query'], $params);
                 $this->setParams($params);
@@ -55,7 +52,7 @@ class Uri
      */
     public function isSecure()
     {
-        return (strtolower($this->getScheme()) === 'https');
+        return (strtolower((string) $this->getScheme()) === 'https');
     }
 
     /**
@@ -188,7 +185,7 @@ class Uri
      */
     public function getPath()
     {
-        return isset($this->path) ? $this->path :  '/';
+        return $this->path ?? '/';
     }
 
     /**
@@ -217,7 +214,6 @@ class Uri
     /**
      * Merge parameters array
      *
-     * @param array $params
      * @return static
      */
     public function mergeParams(array $params)
@@ -228,7 +224,6 @@ class Uri
     /**
      * Set the url params
      *
-     * @param array $params
      * @return static
      */
     public function setParams(array $params)
@@ -368,36 +363,31 @@ class Uri
     {
         $encodedUrl = preg_replace_callback(
             '/[^:\/@?&=#]+/u',
-            function ($matches) {
-                return urlencode($matches[0]);
-            },
+            fn($matches) => urlencode($matches[0]),
             $url
         );
 
-        $parts = parse_url($encodedUrl, $component);
+        $parts = parse_url((string) $encodedUrl, $component);
 
         if ($parts === false) {
             throw new BadFormedUrlException(sprintf('Failed to parse url: "%s"', $url));
         }
 
-        return array_map('urldecode', $parts);
+        return array_map(urldecode(...), $parts);
     }
 
     /**
      * Convert array to query-string params
      *
-     * @param array $getParams
      * @param bool $includeEmpty
      * @return string
      */
-    public static function arrayToParams(array $getParams = null, $includeEmpty = true)
+    public static function arrayToParams(?array $getParams = null, $includeEmpty = true)
     {
         if ($getParams) {
 
             if ($includeEmpty === false) {
-                $getParams = array_filter($getParams, function ($item) {
-                    return (trim($item) !== '');
-                });
+                $getParams = array_filter($getParams, fn($item) => trim((string) $item) !== '');
             }
 
             return http_build_query($getParams);
@@ -415,7 +405,7 @@ class Uri
     {
         $params = $this->getQueryString();
 
-        $path = isset($this->path) ? $this->path : '';
+        $path = $this->path ?? '';
         $query = $params !== '' ? '?' . $params : '';
         $fragment = $this->fragment !== null ? '#' . $this->fragment : '';
 
@@ -430,16 +420,16 @@ class Uri
     public function getAbsoluteUrl()
     {
         $scheme = $this->scheme !== null ? $this->scheme . '://' : '';
-        $host = isset($this->host) ? $this->host : '';
+        $host = $this->host ?? '';
         $port = $this->port !== null ? ':' . $this->port : '';
-        $user = isset($this->username) ? $this->username : '';
+        $user = $this->username ?? '';
         $pass = $this->password !== null ? ':' . $this->password : '';
         $pass = ($user || $pass) ? $pass . '@' : '';
 
         return $scheme . $user . $pass . $host . $port . $this->getRelativeUrl();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getRelativeUrl();
     }

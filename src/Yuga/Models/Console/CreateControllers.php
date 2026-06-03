@@ -9,19 +9,19 @@ trait CreateControllers
 {
     /**
      * Make the scaffold for a controller
-     * 
-     * @param \Yuga\Database\Elegant\Model $model
+     *
      * @param mixed
      */
     protected function processControllers(Model $model)
     {
         $name = \class_base($model);
-        $property = \strtolower($name);
+        $property = \strtolower((string) $name);
 
         $fields = "";
         $modelFields = array_keys($model->scaffold);
-        for ($i = 0; $i < count($modelFields); $i++) {
-            if ($i != (count($modelFields) - 1)) {
+        $counter = count($modelFields);
+        for ($i = 0; $i < $counter; $i++) {
+            if ($i !== count($modelFields) - 1) {
                 $fields .= "'{$modelFields[$i]}' => 'required',\n\t\t\t";
             } else {
                 $fields .= "'{$modelFields[$i]}' => 'required',";

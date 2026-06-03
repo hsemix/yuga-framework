@@ -31,15 +31,16 @@ class Message
 
     public function addField($field)
     {
-        if (!in_array($field, $this->fields))
+        if (!in_array($field, $this->fields)) {
             $this->fields[] = $field;
+        }
         return $this;
     }
 
     public function all($key = null) 
     {
         if ($key) {
-            return isset($this->messages[$key]) ? $this->messages[$key] : '';
+            return $this->messages[$key] ?? '';
         }
         return $this->flattenArray($this->messages);
     }
@@ -62,12 +63,12 @@ class Message
 
     public function first($key) 
     {
-        return isset($this->all($key)[0]) ? $this->all($key)[0] : '';
+        return $this->all($key)[0] ?? '';
     }
 
     public function has($key)
     {
-        return isset($this->messages[$key])?:false;
+        return isset($this->messages[$key]);
     }
 
     public function getFirst()

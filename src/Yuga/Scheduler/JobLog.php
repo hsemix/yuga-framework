@@ -4,9 +4,6 @@ use Yuga\Scheduler\Job;
 
 class JobLog
 {
-	/**
-	 * @var Job
-	 */
 	protected Job $task;
 
 	/**
@@ -32,11 +29,9 @@ class JobLog
 	protected $error;
 
 	/**
-	 * TaskLog constructor.
-	 *
-	 * @param array $data
-	 */
-	public function __construct(Array $data)
+     * TaskLog constructor.
+     */
+    public function __construct(Array $data)
 	{
 		foreach ($data as $key => $value) {
 			if (property_exists($this, $key)) {
@@ -54,7 +49,7 @@ class JobLog
 	public function duration()
 	{
 		$diff = $this->runEnd->getTimestamp() - $this->runStart->getTimestamp();
-		
+
 		// $dif = $this->runEnd->difference( $this->runStart );
 
 		// $minutes = (int) $dif->getMinutes( true );
@@ -67,13 +62,12 @@ class JobLog
 	}
 
 	/**
-	 * Magic getter
-	 *
-	 * @param string $key
-	 *
-	 * @return mixed
-	 */
-	public function __get(string $key)
+     * Magic getter
+     *
+     *
+     * @return mixed
+     */
+    public function __get(string $key)
 	{
 		if (property_exists($this, $key)) {
 			return $this->{$key};

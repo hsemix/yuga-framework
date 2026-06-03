@@ -33,33 +33,26 @@ class Scheduler
 	}
 
 	//--------------------------------------------------------------------
-
-	/**
-	 * Schedules a closure to run.
-	 *
-	 * @param \Closure $func
-	 */
-	public function call(\Closure $func)
+    /**
+     * Schedules a closure to run.
+     */
+    public function call(\Closure $func)
 	{
 		return $this->createTask('closure', $func);
 	}
 
 	/**
-	 * Schedules a console command to run.
-	 *
-	 * @param string $command
-	 */
-	public function command(string $command)
+     * Schedules a console command to run.
+     */
+    public function command(string $command)
 	{
 		return $this->createTask('command', $command);
 	}
 
 	/**
-	 * Schedules a local function to be exec'd
-	 *
-	 * @param string $command
-	 */
-	public function shell(string $command)
+     * Schedules a local function to be exec'd
+     */
+    public function shell(string $command)
 	{
 		return $this->createTask('shell', $command);
 	}
@@ -75,24 +68,19 @@ class Scheduler
 	}
 
 	/**
-	 * Schedules a cURL command to a remote URL
-	 *
-	 * @param string $url
-	 */
-	public function url(string $url)
+     * Schedules a cURL command to a remote URL
+     */
+    public function url(string $url)
 	{
 		return $this->createTask('url', $url);
 	}
 
 	//--------------------------------------------------------------------
-
-	/**
-	 * @param string $type
-	 * @param mixed  $action
-	 *
-	 * @return Task
-	 */
-	protected function createTask(string $type, $action)
+    /**
+     * @param mixed  $action
+     * @return Task
+     */
+    protected function createTask(string $type, $action)
 	{
 		$task = new Job($type, $action);
 		$task->setApplication($this->app);

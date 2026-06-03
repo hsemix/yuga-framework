@@ -10,9 +10,8 @@ use Yuga\Session\Session;
 
 class Validate
 {
-    protected $app;
+    protected \App $app;
     protected $items;
-    protected $message;
     protected array $rules = [
         'required',
         'min',
@@ -60,18 +59,11 @@ class Validate
 
     public array $fieldMessages = [];
     public array $customRules = [];
-    protected Request $request;
-    protected Response $response;
-    protected Session $session;
     protected array $fields = [];
     protected array $fieldRules = [];
-    public function __construct(Message $message, Response $response, Session $session, App $app, Request $request)
+    public function __construct(protected \Yuga\Validate\Message $message, protected Response $response, protected Session $session, App $app, protected Request $request)
     {
         $this->app = $app;
-        $this->message = $message;
-        $this->response = $response;
-        $this->session = $session;
-        $this->request = $request;
     }
 
     public function check(array $items, $rules)
@@ -99,8 +91,8 @@ class Validate
         $rulesArray = [];
         $labelsArrary = [];
         foreach ($rules as $field => $rules) {
-            if (($pipe = strpos($field, '|')) !== false) {
-                $labels = explode("|", $field);
+            if (($pipe = strpos((string) $field, '|')) !== false) {
+                $labels = explode("|", (string) $field);
                 $fieldArray[] = $labels[0];
                 $rulesArray[$labels[0]] = $rules;
                 $labelsArrary[$labels[0]] = $labels[1];
@@ -191,8 +183,8 @@ class Validate
     {
         $validators = [];
         foreach ($rule as $validate) {
-            if (($colon = strpos($validate, ':')) !== false) {
-                $validates = explode(':', $validate); 
+            if (($colon = strpos((string) $validate, ':')) !== false) {
+                $validates = explode(':', (string) $validate); 
                 $validators[$validates[0]] = $this->parseRule($validate);
             } else {
                 $validators[$validate] = $this->parseRule($validate);
@@ -214,7 +206,7 @@ class Validate
     {
         $parameters = $string;
 
-        if (strpos($parameters, ',') !== false) {
+        if (str_contains($parameters, ',')) {
             $parameters = explode(',', $parameters);
         }
 
@@ -224,9 +216,9 @@ class Validate
     protected function parseRule($rule)
 	{
 		$parameters = true;
-		if (($colon = strpos($rule, ':')) !== false) {
-            $rules = explode(':', $rule);           
-            $parameters = $this->getCommaSeparatedValues(substr($rule, $colon + 1));
+		if (($colon = strpos((string) $rule, ':')) !== false) {
+            $rules = explode(':', (string) $rule);           
+            $parameters = $this->getCommaSeparatedValues(substr((string) $rule, $colon + 1));
         } else {
             $parameters = true;
         }
@@ -270,11 +262,10 @@ class Validate
         }
         if (in_array($field, array_keys($rules['labels']))) {
             $label = $rules['labels'][$field];
+        } elseif (str_contains((string) $field, '_')) {
+            $label = ucwords(str_replace('_', ' ', $field));
         } else {
-            if (strpos($field, '_') !== false)
-                $label = ucwords(str_replace('_', ' ', $field));
-            else
-                $label = ucfirst($field);
+            $label = ucfirst((string) $field);
         }
         
         if (is_array($this->items[$field])) {
@@ -283,10 +274,8 @@ class Validate
             $message = str_replace(['{field}', '{satisfy}', '{value}'], [$label, $satisfy, $this->items[$field]], $this->messages[$rule]);
         }
         
-        if (isset($this->fieldMessages[$field])) {
-            if (strstr($message, $field) && isset($this->fieldMessages[$field][$rule])) {
-                $message = $this->fieldMessages[$field][$rule];
-            }
+        if (isset($this->fieldMessages[$field]) && (strstr($message, (string) $field) && isset($this->fieldMessages[$field][$rule]))) {
+            $message = $this->fieldMessages[$field][$rule];
         }
 
         return $message;
@@ -321,25 +310,27 @@ class Validate
                 if (is_array($values)) {
                     $valid = true;
                     foreach ($values as $value) {
-                        if (empty(trim($value)))
+                        if (in_array(trim((string) $value), ['', '0'], true)) {
                             $valid = false;
+                        }
                     }
                     return $valid;
                 }
-                return !empty(trim($values));
+                return !in_array(trim((string) $values), ['', '0'], true);
             }
-            return;
+            return null;
         }
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if (empty(trim($value)))
+                if (in_array(trim((string) $value), ['', '0'], true)) {
                     $valid = false;
+                }
             }
             return $valid;
         }
 
-        return !empty(trim($values));
+        return !in_array(trim((string) $values), ['', '0'], true);
     }
 
     protected function validate_max($field, $values, $satisfy)
@@ -347,12 +338,13 @@ class Validate
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if ((mb_strlen($value) <= $satisfy) !== true)
+                if (mb_strlen((string) $value) > $satisfy) {
                     $valid = false;
+                }
             }
             return $valid;
         }
-        return mb_strlen($values) <= $satisfy;
+        return mb_strlen((string) $values) <= $satisfy;
     }
 
     protected function validate_min($field, $values, $satisfy)
@@ -360,12 +352,13 @@ class Validate
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if ((mb_strlen($value) >= $satisfy) !== true)
+                if (mb_strlen((string) $value) < $satisfy) {
                     $valid = false;
+                }
             }
             return $valid;
         }
-        return mb_strlen($values) >= $satisfy;
+        return mb_strlen((string) $values) >= $satisfy;
     }
 
     protected function validate_email($field, $values, $satisfy)
@@ -373,8 +366,9 @@ class Validate
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if (!filter_var($values, FILTER_VALIDATE_EMAIL))
+                if (!filter_var($values, FILTER_VALIDATE_EMAIL)) {
                     $valid = false;
+                }
             }
             return $valid;
         }
@@ -386,12 +380,13 @@ class Validate
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if (!ctype_alnum($value))
+                if (!ctype_alnum((string) $value)) {
                     $valid = false;
+                }
             }
             return $valid;
         }
-        return ctype_alnum($values);
+        return ctype_alnum((string) $values);
     }
 
     protected function validate_string($field, $values, $satisfy)
@@ -399,8 +394,9 @@ class Validate
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if (!is_string($value))
+                if (!is_string($value)) {
                     $valid = false;
+                }
             }
             return $valid;
         }
@@ -412,8 +408,9 @@ class Validate
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if (!(int)$value)
+                if ((int)$value === 0) {
                     $valid = false;
+                }
             }
             return $valid;
         }
@@ -425,8 +422,9 @@ class Validate
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if ($value !== $this->items[$satisfy])
+                if ($value !== $this->items[$satisfy]) {
                     $valid = false;
+                }
             }
             return $valid;
         }
@@ -435,16 +433,17 @@ class Validate
 
     protected function validate_unique($field, $value, $satisfy)
     {
-        $satisfies = explode('(', $satisfy);
+        $satisfies = explode('(', (string) $satisfy);
         $satisfy = $satisfies[0];
         if (count($satisfies) > 1) {
             $field = str_replace(')', '', $satisfies[1]);
         }
         
-        if (is_array($value))
+        if (is_array($value)) {
             return !\DB::table($satisfy)->whereIn($field, $value)->first();
-        else
+        } else {
             return !\DB::table($satisfy)->where($field, $value)->first();
+        }
     }
 
     protected function validate_in($field, $values, $satisfy)
@@ -452,8 +451,9 @@ class Validate
         if (is_array($values)) {
             $valid = true;
             foreach ($values as $value) {
-                if (!in_array($value, $satisfy))
+                if (!in_array($value, $satisfy)) {
                     $valid = false;
+                }
             }
             return $valid;
         }
@@ -462,7 +462,7 @@ class Validate
 
     protected function validate_file($field, $value, $satisfy)
     {
-        return $this->request->hasFile($field) ? true : false;
+        return (bool) $this->request->hasFile($field);
     }
 
     protected function validate_confirmed($field, $value, $satisfy)

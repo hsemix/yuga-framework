@@ -1,18 +1,15 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Database\Query;
 
-class Raw
+class Raw implements \Stringable
 {
 
-    /**
-     * @var string
-     */
-    protected $value;
+    protected string $value;
 
-    /**
-     * @var array
-     */
-    protected $bindings;
+    protected array $bindings;
 
     /**
      * Raw constructor.
@@ -30,12 +27,9 @@ class Raw
         return $this->bindings;
     }
 
-    /**
-     * @return string
-     */
-    public function __toString()
+    public function __toString(): string
     {
-        return (string)$this->value;
+        return $this->value;
     }
 
     public function where()

@@ -6,23 +6,19 @@ use Yuga\Database\Console\Backup\Console;
 
 class SqliteDatabase implements DatabaseInterface
 {
-    protected $console;
-    protected $databaseFile;
     protected $config;
 
 
-    public function __construct(Console $console, $databaseFile)
+    public function __construct(protected \Yuga\Database\Console\Backup\Console $console, protected $databaseFile)
     {
-        $this->console = $console;
-        $this->databaseFile = $databaseFile;
         $this->config   = app()->config->load('config.Config');
     }
 
     public function dump($destinationFile)
     {
         $command = sprintf('cp %s %s',
-            escapeshellarg($this->databaseFile),
-            escapeshellarg($destinationFile)
+            escapeshellarg((string) $this->databaseFile),
+            escapeshellarg((string) $destinationFile)
         );
 
         return $this->console->run($command);
@@ -31,8 +27,8 @@ class SqliteDatabase implements DatabaseInterface
     public function restore($sourceFile)
     {
         $command = sprintf('cp -f %s %s',
-            escapeshellarg($sourceFile),
-            escapeshellarg($this->databaseFile)
+            escapeshellarg((string) $sourceFile),
+            escapeshellarg((string) $this->databaseFile)
         );
 
         return $this->console->run($command);
@@ -40,7 +36,7 @@ class SqliteDatabase implements DatabaseInterface
 
     public function getDatabase()
     {
-        $databaseFile = basename($this->databaseFile);
+        $databaseFile = basename((string) $this->databaseFile);
 
         return preg_replace('/\.sqlite$/s', '', $databaseFile);
     }

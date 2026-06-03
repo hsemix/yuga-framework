@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Query;
 
 use PDO;
@@ -7,14 +8,10 @@ use Yuga\Database\Connection\Connection;
 class QueryObject
 {
 
-    protected $sql;
-    protected $bindings = [];
-    protected $connection;
-    public function __construct($sql, array $bindings, Connection $connection = null)
+    protected string $sql;
+    public function __construct($sql, protected array $bindings, protected ?\Yuga\Database\Connection\Connection $connection = null)
     {
         $this->sql = (string)$sql;
-        $this->bindings = $bindings;
-        $this->connection = $connection;
     }
     public function getSql()
     {
@@ -37,21 +34,17 @@ class QueryObject
         $values = $params;
         // build a regular expression for each parameter
         foreach ($params as $key => $value) {
-            if (is_string($key)) {
-                $keys[] = '/:' . $key . '/';
-            } else {
-                $keys[] = '/[?]/';
-            }
+            $keys[] = is_string($key) ? '/:' . $key . '/' : '/[?]/';
             if (is_string($value)) {
                 $values[$key] = $this->connection->getPdoInstance()->quote($value);
             }
             if (is_array($value)) {
-                $values[$key] = join(',', $this->connection->getPdoInstance()->quote($value));
+                $values[$key] = implode(',', $this->connection->getPdoInstance()->quote($value));
             }
             if ($value === null) {
                 $values[$key] = 'NULL';
             }
         }
-        return preg_replace($keys, $values, $query, 1, $count);
+        return preg_replace($keys, $values, (string) $query, 1, $count);
     }
 }

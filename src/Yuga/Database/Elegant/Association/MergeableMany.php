@@ -8,12 +8,11 @@ use Yuga\Database\Elegant\Collection;
 
 class MergeableMany extends HasMany
 {
-    public $mergeType;
+    public $related;
     public $mergeClass;
 
-    public function __construct(Builder $query, Model $parent, $type, $id, $localKey)
+    public function __construct(Builder $query, Model $parent, public $mergeType, $id, $localKey)
     {
-        $this->mergeType = $type;       
         $this->query = $query;
         $this->mergeClass = class_base($parent->getMergeableClass());
         $this->foreignKey = $id;
@@ -22,15 +21,17 @@ class MergeableMany extends HasMany
         parent::__construct($query, $parent, $id, $localKey);
     }
 
+    #[\Override]
     public function addConditions()
     {     
-        $this->query->where($this->mergeType, strtolower($this->mergeClass))->where($this->foreignKey, '=', $this->getParentIdValue());
+        $this->query->where($this->mergeType, strtolower((string) $this->mergeClass))->where($this->foreignKey, '=', $this->getParentIdValue());
     }
 
+    #[\Override]
     public function save(Model $model)
     {
         $mergeClassBase = class_base($this->mergeClass);
-        $model->setAttribute($this->getPlainMergeableType(), strtolower($mergeClassBase));
+        $model->setAttribute($this->getPlainMergeableType(), strtolower((string) $mergeClassBase));
         $model->setAttribute($this->getPlainMergeId(), $this->parent->{$this->parent->getPrimaryKey()});
         
         return parent::save($model);
@@ -56,17 +57,17 @@ class MergeableMany extends HasMany
     protected function setForeignAttributesForCreate(Model $model)
     {
         $model->{$this->getPlainForeignKey()} = $this->getParentKey();
-        $model->{$this->last(explode('.', $this->mergeType))} = $this->mergeClass;
+        $model->{$this->last(explode('.', (string) $this->mergeType))} = $this->mergeClass;
     }
 
     public function getPlainMergeId()
     {
-        return $this->last(explode('.', $this->foreignKey));
+        return $this->last(explode('.', (string) $this->foreignKey));
     }
 
     public function getPlainMergeableType()
     {
-        return $this->last(explode('.', $this->mergeType));
+        return $this->last(explode('.', (string) $this->mergeType));
     }
 
     public function last(array $colllection)
@@ -74,6 +75,7 @@ class MergeableMany extends HasMany
         return end($colllection);
     }
     
+    #[\Override]
     public function saveMany($models)
     {
         foreach ($models as $model) {

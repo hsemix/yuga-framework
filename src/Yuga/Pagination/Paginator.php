@@ -27,16 +27,8 @@ class Paginator extends Collection
     protected $pageName = 'page';
     /**
      * The path variable used to store the page.
-     *
-     * @var string
      */
-    protected $path;
-    /**
-     * The per-page variable used to store the page.
-     *
-     * @var int
-     */
-    protected $perPage;
+    protected ?string $path = null;
     /**
     * The current-page variable used tn the page.
     *
@@ -57,15 +49,15 @@ class Paginator extends Collection
      * @param  int  $perPage
      * @param  int|null  $currentPage
      * @param  array  $options (path, query, fragment, pageName)
-     * @return void
      */
-    public function __construct($perPage, $currentPage = null, array $options = [])
+    public function __construct(/**
+     * The per-page variable used to store the page.
+     */
+    protected $perPage, $currentPage = null, array $options = [])
     {
         foreach ($options as $key => $value) {
             $this->{$key} = $value;
         }
-
-        $this->perPage = $perPage;
         $this->currentPage = $this->setCurrentPage($currentPage);
         $this->path = ($this->path !== '/' && !is_null($this->path)) ? rtrim($this->path, '/') : $this->path;
     }
@@ -155,6 +147,7 @@ class Paginator extends Collection
      * 
      * @return string
      */
+    #[\Override]
     public function links()
     {
         return $this->render();
@@ -167,7 +160,8 @@ class Paginator extends Collection
      * 
      * @return string
      */
-    public function pages(array $options = null)
+    #[\Override]
+    public function pages(?array $options = null)
     {
         return $this->links();
     }

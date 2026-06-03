@@ -46,6 +46,7 @@ class MakeModelCommand extends Command
      *
      * @return void
      */
+    #[\Override]
     protected function createDirectories()
     {
         if (!is_dir($directory = path('app/Models'))) {
@@ -60,6 +61,7 @@ class MakeModelCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [

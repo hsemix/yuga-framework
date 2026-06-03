@@ -23,17 +23,16 @@ use Yuga\Database\Query\Exceptions\DuplicateColumnException;
  */
 class DatabaseQueryException extends Exception
 {
-    protected $query;
+    protected ?\Yuga\Database\Query\QueryObject $query;
 
-    public function __construct($message = '', $code = 0, $previous = null, QueryObject $query = null)
+    public function __construct($message = '', $code = 0, $previous = null, ?QueryObject $query = null)
     {
-        $lastSql = $query ? PHP_EOL.PHP_EOL.'Last query: '. $query->getRawSql() : '';
+        $lastSql = $query instanceof \Yuga\Database\Query\QueryObject ? PHP_EOL.PHP_EOL.'Last query: '. $query->getRawSql() : '';
         parent::__construct($message.$lastSql, $code, $previous);
         $this->query = $query;
     }
 
     /**
-     * @param \Exception $e
      * @param string|null $adapterName
      * @param \Yuga\Database\Query\Exceptions\QueryBuilder\QueryObject|null $query
      * @return static|ColumnNotFoundException|ConnectionException|DuplicateColumnException|DuplicateEntryException|DuplicateKeyException|ForeignKeyException|NotNullException|TableNotFoundException
@@ -42,19 +41,18 @@ class DatabaseQueryException extends Exception
      * @see https://www.postgresql.org/docs/9.4/static/errcodes-appendix.html
      * @see https://sqlite.org/c3ref/c_abort.html
      */
-    public static function create(Exception $e, $adapterName = null, QueryObject $query = null)
+    public static function create(Exception $e, $adapterName = null, ?QueryObject $query = null)
     {
         
         if ($e instanceof PDOException) {
             /**
-             * @var string|null $errorSqlState
              * @var integer|null $errorCode
              * @var string|null $errorMsg
              */
-            list($errorIdentity, $errorCode, $errorMsg) = $e->errorInfo;
+            [$errorIdentity, $errorCode, $errorMsg] = $e->errorInfo;
 
-            $errorMsg = isset($errorMsg) ? $errorMsg : $e->getMessage();
-            $errorCode = (int)(isset($errorCode) ? $errorCode : $e->getCode());
+            $errorMsg ??= $e->getMessage();
+            $errorCode = (int)($errorCode ?? $e->getCode());
             
             switch ($adapterName) {
                 case Mysql::class:

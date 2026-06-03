@@ -10,14 +10,13 @@ trait CreateMigrations
 {
     /**
      * Make the scaffold for migrations
-     * 
-     * @param \Yuga\Database\Elegant\Model $model
+     *
      * @param mixed
      */
     protected function processMigrations(Model $model)
     {
         $name = \class_base($model);
-        $property = \strtolower($name);
+        $property = \strtolower((string) $name);
         $migration = new MakeMigrationCommand();
         $migration->processMigration(Inflect::pluralize($property), $model->scaffold);
     }

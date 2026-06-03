@@ -4,12 +4,8 @@ namespace Yuga\Cache;
 
 class MemcachedCache extends CacheAbstract
 {
-    private $adapter;
-
-    public function __construct(\Memcached $adapter, int $ttl = 300)
+    public function __construct(private readonly \Memcached $adapter)
     {
-        $this->adapter = $adapter;
-
         $this->ttl = 300;
 
         return $this;
@@ -57,6 +53,7 @@ class MemcachedCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function increment(string $key, int $amount = 1, ?int $ttl = null)
     {
         $this->adapter->increment($key, $amount);
@@ -64,6 +61,7 @@ class MemcachedCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function decrement(string $key, int $amount = 1, ?int $ttl = null)
     {
         $this->adapter->decrement($key, $amount);
@@ -71,6 +69,7 @@ class MemcachedCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function touch($key, ?int $ttl = null)
     {
         $ttl = $this->getTTL($ttl);

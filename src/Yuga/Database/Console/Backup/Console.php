@@ -15,7 +15,7 @@ class Console
 
         $process->setTimeout(999999999);
 
-        $process->run(function ($type, $buffer) {
+        $process->run(function ($type, $buffer): void {
             if (Process::ERR === $type) {
                 echo 'ERR > '.$buffer;
             } else {

@@ -10,15 +10,14 @@ trait CanCreate
 {
     /**
      * Make the scaffold for a create form
-     * 
-     * @param \Yuga\Database\Elegant\Model $model
+     *
      * @param mixed
      */
     protected function makeCreateForm(Model $model)
     {
         $name = \class_base($model);
         $inputs = "";
-        $property = \strtolower($name);
+        $property = \strtolower((string) $name);
         $isEditor = false;
         $editors = 0;
 

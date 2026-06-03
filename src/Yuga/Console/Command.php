@@ -51,7 +51,7 @@ abstract class Command extends ConsoleCommand
     /**
      * The consold command Help text
      */
-    protected $help;
+    protected $help = '';
 
     /**
      * The Path to be created
@@ -65,8 +65,6 @@ abstract class Command extends ConsoleCommand
 
     /**
      * Create a new console command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -94,21 +92,20 @@ abstract class Command extends ConsoleCommand
         // set them all on the base command instance. This specifies what can get
         // passed into these commands as "parameters" to control the execution.
         foreach ($this->getArguments() as $arguments) {
-            call_user_func_array([$this, 'addArgument'], $arguments);
+            call_user_func_array($this->addArgument(...), $arguments);
         }
 
         foreach ($this->getOptions() as $options) {
-            call_user_func_array([$this, 'addOption'], $options);
+            call_user_func_array($this->addOption(...), $options);
         }
     }
 
     /**
      * Run the console command.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return int
      */
+    #[\Override]
     public function run(InputInterface $input, OutputInterface $output)
     {
         $this->input = $input;
@@ -121,20 +118,21 @@ abstract class Command extends ConsoleCommand
     /**
      * Execute the console command.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return mixed
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        return $this->handle();
+        $result = $this->handle();
+        if (is_int($result)) {
+            return $result;
+        }
+        return self::SUCCESS;
     }
 
     /**
      * Call another console command.
      *
      * @param  string  $command
-     * @param  array   $arguments
      * @return int
      */
     public function call($command, array $arguments = [])
@@ -150,7 +148,6 @@ abstract class Command extends ConsoleCommand
      * Call another console command silently.
      *
      * @param  string  $command
-     * @param  array   $arguments
      * @return int
      */
     public function callSilent($command, array $arguments = [])
@@ -228,7 +225,6 @@ abstract class Command extends ConsoleCommand
      * Prompt the user for input with auto completion.
      *
      * @param  string  $question
-     * @param  array   $choices
      * @param  string  $default
      * @return string
      */
@@ -265,7 +261,6 @@ abstract class Command extends ConsoleCommand
      * Give the user a single choice from an array of answers.
      *
      * @param  string  $question
-     * @param  array   $choices
      * @param  string  $default
      * @param  mixed   $attempts
      * @param  bool    $multiple
@@ -285,8 +280,6 @@ abstract class Command extends ConsoleCommand
     /**
      * Format input to textual table
      *
-     * @param  array   $headers
-     * @param  array   $rows
      * @param  string  $style
      * @return void
      */
@@ -410,10 +403,8 @@ abstract class Command extends ConsoleCommand
      */
     protected function createDirectories()
     {
-        if ($this->path) {
-            if (!is_dir($directory = path($this->path))) {
-                mkdir($directory, 0755, true);
-            }
+        if ($this->path && !is_dir($directory = path($this->path))) {
+            mkdir($directory, 0755, true);
         }
     }
 

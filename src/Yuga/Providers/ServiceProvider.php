@@ -17,9 +17,8 @@ abstract class ServiceProvider implements IServiceProvider
 
     /**
      * Register a service provider to the container and resolve it or later
-     * 
-     * @param \Yuga\Interfaces\Application\Application $app
-     * 
+     *
+     *
      * @return \Yuga\Interfaces\Application\Application
      */
     public function register(Application $app)
@@ -39,7 +38,6 @@ abstract class ServiceProvider implements IServiceProvider
     /**
      * Register paths to be published by the publish command.
      *
-     * @param  array  $paths
      * @param  string  $group
      * @return void
      */
@@ -62,13 +60,11 @@ abstract class ServiceProvider implements IServiceProvider
     {
         if (is_null($group)) {
             $paths = [];
-
-            foreach (static::$publishes as $class => $publish) {
+            foreach (static::$publishes as $publish) {
                 $paths = array_merge($paths, $publish);
             }
-
             return array_unique($paths);
-        } else if (array_key_exists($group, static::$publishes)) {
+        } elseif (array_key_exists($group, static::$publishes)) {
             return static::$publishes[$group];
         }
 
@@ -90,7 +86,7 @@ abstract class ServiceProvider implements IServiceProvider
         // give us the Yuga console instance which we will give commands to.
         $events = $this->app['console.events'];
 
-        $events->attach('yuga.start', function($event, $yuga) use ($commands) {
+        $events->attach('yuga.start', function($event, $yuga) use ($commands): void {
             $yuga->resolveCommands($commands);
         });
     }

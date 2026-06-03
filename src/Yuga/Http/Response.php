@@ -6,12 +6,13 @@ use InvalidArgumentException;
 
 class Response
 {
-    protected $request;
+    /**
+     * @var \Yuga\Http\Redirect
+     */
     public $redirect;
 
-    public function __construct(Request $request, Redirect $redirect)
+    public function __construct(protected \Yuga\Http\Request $request, Redirect $redirect)
     {
-        $this->request = $request;
         $this->redirect = $redirect;
     }
 
@@ -128,7 +129,6 @@ class Response
 
     /**
      * Add multiple headers to response
-     * @param array $headers
      * @return static
      */
     public function headers(array $headers)

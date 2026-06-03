@@ -24,19 +24,15 @@ abstract class BaseView implements ArrayAccess
     protected $message;
     protected $data = [];
     protected $models = [];
-    protected $model = null;
-    protected $table = null;
+    protected $model;
+    protected $table;
     protected $modelFields = [];
     protected $ignoreFields = [];
     
     public function __construct()
     {
         $this->init();
-        if ($this->session->exists('errors')) {
-            $this->errors = $this->session->get('errors');
-        } else {
-            $this->errors = new Message;
-        }
+        $this->errors = $this->session->exists('errors') ? $this->session->get('errors') : new Message;
         $this->message = $this->errors;
     }
 
@@ -65,7 +61,7 @@ abstract class BaseView implements ArrayAccess
     #[\ReturnTypeWillChange]
     public function offsetGet($offset) 
     {
-        return isset($this->data[$offset]) ? $this->data[$offset] : null;
+        return $this->data[$offset] ?? null;
     }
 
     public function __set($name, $value) 
@@ -100,11 +96,9 @@ abstract class BaseView implements ArrayAccess
 
     /**
      * Append some text to the current Site Title
-     * 
+     *
      * @param \string $title
      * @param \string $separator
-     * 
-     * @return null
      */
     protected function appendSiteTitle($title, $separator = '-')
     {
@@ -115,11 +109,9 @@ abstract class BaseView implements ArrayAccess
 
     /**
      * Prepend some text to the current Site Title
-     * 
+     *
      * @param \string $title
      * @param \string $separator
-     * 
-     * @return null
      */
     protected function prependSiteTitle($title, $separator = ' - ')
     {
@@ -135,7 +127,7 @@ abstract class BaseView implements ArrayAccess
      */
     public function isPostBack()
     {
-        return (bool)(request()->getMethod() !== 'get');
+        return request()->getMethod() !== 'get';
     }
 
     public function validate($rules = [])
@@ -184,7 +176,7 @@ abstract class BaseView implements ArrayAccess
 
     protected function processCollectionModels(Collection $models)
     {
-        $key = Inflect::pluralize(strtolower(class_base($models[0])));
+        $key = Inflect::pluralize(strtolower((string) class_base($models[0])));
         $this->models[$key] = $models;
         return $this->models;
     }
@@ -194,9 +186,9 @@ abstract class BaseView implements ArrayAccess
         foreach ($models as $key => $model) {
             if (!is_string($key)) {
                 if ($model instanceof Collection) {
-                    $key = Inflect::pluralize(strtolower(class_base($model[0])));
+                    $key = Inflect::pluralize(strtolower((string) class_base($model[0])));
                 } elseif ($model instanceof Model) {
-                    $key = strtolower(class_base($model));
+                    $key = strtolower((string) class_base($model));
                 } else {
                     throw new Exception("Acceptable model types are instance of Yuga\Database\Elegant\Model and Yuga\Database\Elegant\Collection", 1);
                 }
@@ -207,7 +199,7 @@ abstract class BaseView implements ArrayAccess
     }
 
     protected function hasStringKeys(array $array) {
-        return count(array_filter(array_keys($array), 'is_string')) > 0;
+        return count(array_filter(array_keys($array), is_string(...))) > 0;
     }
 
     public function setTable($table = null)
@@ -252,7 +244,7 @@ abstract class BaseView implements ArrayAccess
                 return null;
             }
         }
-        return isset($this->models['model']) ? $this->models['model'] : $this->model;
+        return $this->models['model'] ?? $this->model;
     }
 
     public function save()

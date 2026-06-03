@@ -10,9 +10,8 @@ class ElegantServiceProvider extends ServiceProvider
 {
     /**
      * Start the Elegant ORM and Connections from here
-     * 
-     * @param Application $app
-     * 
+     *
+     *
      * @return void
      */
     public function load(Application $app)

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Views\Widgets\Html;
 
 use Yuga\Views\Widgets\Xml\XmlText;

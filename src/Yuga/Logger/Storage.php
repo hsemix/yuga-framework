@@ -13,12 +13,13 @@ class Storage implements LoggerInterface
     {
         $loggerFile = storage($file);
         
-        $message = $message . "\r\n";
+        $message .= "\r\n";
 
-        if ($append)
+        if ($append) {
             file_put_contents($loggerFile, $message, FILE_APPEND);
-        else 
+        } else {
             file_put_contents($loggerFile, $message);
+        }
     }
 
     /**
@@ -30,8 +31,9 @@ class Storage implements LoggerInterface
      */
     public static function log($message, ?string $fileName = null)
     {
-        if (!$fileName)
+        if (!$fileName) {
             $fileName = 'log-' . date('Y-m-d');
+        }
         $outf = fopen(storage() . "logs/{$fileName}.log", "a");
         fwrite($outf, date("c") . ": $message\n\n");
         fclose($outf);

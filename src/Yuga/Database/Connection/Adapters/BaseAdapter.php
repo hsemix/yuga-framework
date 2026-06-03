@@ -1,14 +1,15 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Database\Connection\Adapters;
 
 use Yuga\Container\Container;
 
 abstract class BaseAdapter
 {
-    protected $container;
-    public function __construct(Container $container) // has been modified to default to null, wasn't before
+    public function __construct(protected \Yuga\Container\Container $container)
     {
-        $this->container = $container;
     }
     public function connect($config)
     {

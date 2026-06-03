@@ -18,7 +18,6 @@ class HtmlSelect extends Html
 
     /**
      * Add option
-     * @param HtmlSelectOption $option
      * @return static
      */
     public function addOption(HtmlSelectOption $option)
@@ -48,6 +47,7 @@ class HtmlSelect extends Html
         return $this->addAttribute('multiple', null);
     }
 
+    #[\Override]
     public function render()
     {
         /* @var $options array */
@@ -56,7 +56,7 @@ class HtmlSelect extends Html
             $html = new Html('optgroup');
             $html->addAttribute('label', $name);
 
-            if ($this->groupsDisabled !== null && in_array(strtolower($name), $this->groupsDisabled) === true) {
+            if ($this->groupsDisabled !== null && in_array(strtolower((string) $name), $this->groupsDisabled)) {
                 $html->addAttribute('disabled', null);
             }
 

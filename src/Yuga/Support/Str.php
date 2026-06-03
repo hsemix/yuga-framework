@@ -30,8 +30,8 @@ class Str
 
     public static function substr($text, $maxLength, $end = '...', $encoding = 'UTF-8')
     {
-        if (strlen($text) > $maxLength) {
-            return mb_substr($text, 0, $maxLength, $encoding) . $end;
+        if (strlen((string) $text) > $maxLength) {
+            return mb_substr((string) $text, 0, $maxLength, $encoding) . $end;
         }
 
         return $text;
@@ -40,7 +40,7 @@ class Str
     /**
 	 * Returns a part of UTF-8 string.
 	 */
-	public static function substring(string $s, int $start, int $length = null)
+	public static function substring(string $s, int $start, ?int $length = null)
 	{
 		if (function_exists('mb_substr')) {
 			return mb_substr($s, $start, $length, 'UTF-8'); // MB is much faster
@@ -54,9 +54,9 @@ class Str
 
     public static function wordWrap($text, $limit)
     {
-        $words = explode(' ', $text);
+        $words = explode(' ', (string) $text);
 
-        return join(' ', array_splice($words, 0, $limit));
+        return implode(' ', array_splice($words, 0, $limit));
     }
 
     public static function base64Encode($obj)
@@ -66,7 +66,7 @@ class Str
 
     public static function base64Decode($str, $defaultValue = null)
     {
-        $req = base64_decode($str);
+        $req = base64_decode((string) $str);
         if ($req !== false) {
             $req = unserialize($req);
             if ($req !== false) {
@@ -79,18 +79,14 @@ class Str
 
     public static function deCamelize($word)
     {
-        return preg_replace_callback('/(^|[a-z])([A-Z])/', function ($matches) {
-                return strtolower(strlen($matches[1]) ? $matches[1] . '_' . $matches[2] : $matches[2]);
-            },
-            $word
+        return preg_replace_callback('/(^|[a-z])([A-Z])/', fn($matches) => strtolower(strlen($matches[1]) !== 0 ? $matches[1] . '_' . $matches[2] : $matches[2]),
+            (string) $word
         );
     }
 
     public static function camelize($word)
     {
-        $word = preg_replace_callback('/(^|_)([a-z])/', function ($matches) {
-            return strtoupper($matches[2]);
-        }, strtolower($word));
+        $word = preg_replace_callback('/(^|_)([a-z])/', fn($matches) => strtoupper($matches[2]), strtolower((string) $word));
         $word[0] = strtolower($word[0]);
 
         return $word;
@@ -108,7 +104,7 @@ class Str
 
     public static function length($value)
 	{
-		return function_exists('mb_strlen') ? mb_strlen($value, \App::getCharset()) : strlen(utf8_decode($value));
+		return function_exists('mb_strlen') ? mb_strlen((string) $value, \App::getCharset()) : strlen(mb_convert_encoding((string) $value, 'ISO-8859-1'));
     }
     
 
@@ -116,17 +112,17 @@ class Str
 	{
 
 		// Remove all characters that are not the separator, letters, numbers, or whitespace.
-		$key = preg_replace('![^'.preg_quote($separator).'\pL\pN\s]+!u', '', static::lower($key));
+		$key = preg_replace('![^'.preg_quote((string) $separator).'\pL\pN\s]+!u', '', (string) static::lower($key));
 
 		// Replace all separator characters and whitespace by a single separator
-		$key = preg_replace('!['.preg_quote($separator).'\s]+!u', $separator, $key);
+		$key = preg_replace('!['.preg_quote((string) $separator).'\s]+!u', (string) $separator, (string) $key);
 
-		return trim($key, $separator);
+		return trim((string) $key, $separator);
     }
     
     public static function title($value)
 	{
-		return ucwords(strtolower($value));
+		return ucwords(strtolower((string) $value));
     }
 
     public function capitalize($value)
@@ -136,18 +132,18 @@ class Str
     
     public static function lower($value)
 	{
-        return mb_strtolower($value, \App::getCharset());
+        return mb_strtolower((string) $value, \App::getCharset());
     }
     
     public static function upper($value)
 	{
-		return mb_strtoupper($value, \App::getCharset());
+		return mb_strtoupper((string) $value, \App::getCharset());
     }
 
     /**
 	 * Case-insensitive compares UTF-8 strings.
 	 */
-	public static function compare(string $left, string $right, int $len = null): bool
+	public static function compare(string $left, string $right, ?int $len = null): bool
 	{
 		if (class_exists('Normalizer', false)) {
 			$left = \Normalizer::normalize($left, \Normalizer::FORM_D); // form NFD is faster
@@ -213,13 +209,7 @@ class Str
      */
     public static function contains($haystack, $needles)
     {
-        foreach ((array) $needles as $needle) {
-            if ($needle !== '' && mb_strpos($haystack, $needle) !== false) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any((array) $needles, fn($needle) => $needle !== '' && mb_strpos($haystack, (string) $needle) !== false);
     }
 
     /**
@@ -231,13 +221,7 @@ class Str
      */
     public static function startsWith($haystack, $needles)
     {
-        foreach ((array) $needles as $needle) {
-            if ($needle !== '' && substr($haystack, 0, strlen($needle)) === (string) $needle) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any((array) $needles, fn($needle) => $needle !== '' && str_starts_with($haystack, (string) $needle));
     }
 
     /**
@@ -245,7 +229,7 @@ class Str
 	 */
 	public static function endsWith(string $haystack, string $needle): bool
 	{
-		return strlen($needle) === 0 || substr($haystack, -strlen($needle)) === $needle;
+		return $needle === '' || str_ends_with($haystack, $needle);
     }
     
     /**
@@ -283,10 +267,10 @@ class Str
 	 */
 	private static function pos(string $haystack, string $needle, int $nth = 1): ?int
 	{
-		if (!$nth) {
+		if ($nth === 0) {
 			return null;
 		} elseif ($nth > 0) {
-			if (strlen($needle) === 0) {
+			if ($needle === '') {
 				return 0;
 			}
 			$pos = 0;
@@ -295,7 +279,7 @@ class Str
 			}
 		} else {
 			$len = strlen($haystack);
-			if (strlen($needle) === 0) {
+			if ($needle === '') {
 				return $len;
 			}
 			$pos = $len - 1;
@@ -324,7 +308,7 @@ class Str
 	public static function truncate(string $s, int $maxLen, string $append = "\u{2026}"): string
 	{
 		if (self::length($s) > $maxLen) {
-			$maxLen = $maxLen - self::length($append);
+			$maxLen -= self::length($append);
 			if ($maxLen < 1) {
 				return $append;
 
@@ -391,7 +375,7 @@ class Str
 				'ALLSSSSTZZZallssstzzzRAAAALCCCEEEEIIDDNNOOOOxRUUUUYTsraaaalccceeeeiiddnnooooruuuuyt- <->|-.');
 			$s = preg_replace('#[^\x00-\x7F]++#', '', $s);
 		} else {
-			$s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
+			$s = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', (string) $s);
 		}
 		$s = str_replace(['`', "'", '"', '^', '~', '?'], '', $s);
 		return strtr($s, "\x01\x02\x03\x04\x05\x06", '`\'"^~?');
@@ -467,7 +451,7 @@ class Str
 		}
 		self::pcre('preg_match_all', [
 			$pattern, $subject, &$m,
-			($flags & PREG_PATTERN_ORDER) ? $flags : ($flags | PREG_SET_ORDER),
+			(($flags & PREG_PATTERN_ORDER) !== 0) ? $flags : ($flags | PREG_SET_ORDER),
 			$offset,
 		]);
 		return $m;

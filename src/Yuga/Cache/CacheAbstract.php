@@ -8,13 +8,7 @@ abstract class CacheAbstract implements CacheDriver
 
     public function hasMultiple(array $keys): bool
     {
-        foreach ($keys as $key) {
-            if (!$this->has($key)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($keys, fn($key) => $this->has($key));
     }
 
     public function getMultiple(array $keys, $default = null)
@@ -140,7 +134,7 @@ abstract class CacheAbstract implements CacheDriver
 
     protected function isExpired(?int $time): bool
     {
-        return $time === null or $time === '' or $time < 0 or ($time > 0 and $time <= time());
+        return $time === null || $time === 0 || $time < 0 || $time > 0 && $time <= time();
     }
 
     protected function getExpiresAt(?int $ttl = null)

@@ -2,78 +2,158 @@
 
 namespace Yuga\Cookie;
 
+use DateTimeInterface;
+use Psr\Http\Message\ResponseInterface;
+
 class Cookie
 {
-    /**
-     * Check if a cookie exists.
-     *
-     * @param string $name
-     * @return bool
-     */
-    public static function exists($name): bool
+    protected static array $queued = [];
+
+    public static function get(string $name, mixed $default = null): mixed
+    {
+        return $_COOKIE[$name] ?? $default;
+    }
+
+    public static function has(string $name): bool
     {
         return isset($_COOKIE[$name]);
     }
 
-    /**
-     * Get the value of a cookie.
-     *
-     * @param string $name
-     * @return string|null
-     */
-    public static function get($name): ?string
+    public static function exists(string $name): bool
     {
-        return $_COOKIE[$name] ?? null;
+        return self::has($name);
     }
 
-    /**
-     * Set a cookie with the given parameters.
-     *
-     * @param string $name
-     * @param string $value
-     * @param int|null $expiry
-     * @param string|null $domain
-     * @param bool $secure
-     * @param string $path
-     * @return bool
-     */
-    public static function put($name, $value, $expiry = null, $domain = null, $secure = false, $path = '/'): bool
-    {
-        return self::create($name, $value, $expiry, $domain, $secure, $path);
+    public static function put(
+        string $name,
+        string $value,
+        int|DateTimeInterface|null $expiry = null,
+        string $path = '/',
+        ?string $domain = null,
+        bool $secure = false,
+        bool $httpOnly = true,
+        string $sameSite = 'Lax'
+    ): void {
+        static::$queued[] = static::make(
+            $name,
+            $value,
+            $expiry,
+            $path,
+            $domain,
+            $secure,
+            $httpOnly,
+            $sameSite
+        );
     }
 
-    /**
-     * Create a cookie with the given parameters.
-     *
-     * @param string $name
-     * @param string $value
-     * @param int|null $expiry
-     * @param string|null $domain
-     * @param bool $secure
-     * @param string $path
-     * @return bool
-     */
-    public static function create($name, $value, $expiry = null, $domain = null, $secure = true, $path = '/'): bool
+    public static function forever(
+        string $name,
+        string $value,
+        string $path = '/',
+        ?string $domain = null,
+        bool $secure = false,
+        bool $httpOnly = true,
+        string $sameSite = 'Lax'
+    ): void {
+        static::put(
+            $name,
+            $value,
+            time() + 60 * 60 * 24 * 365 * 5,
+            $path,
+            $domain,
+            $secure,
+            $httpOnly,
+            $sameSite
+        );
+    }
+
+    public static function delete(
+        string $name,
+        string $path = '/',
+        ?string $domain = null
+    ): void {
+        static::put(
+            $name,
+            '',
+            time() - 3600,
+            $path,
+            $domain
+        );
+
+        unset($_COOKIE[$name]);
+    }
+
+    public static function queued(): array
     {
-        if (empty($name)) {
-            return false;
+        return static::$queued;
+    }
+
+    public static function flushQueued(): void
+    {
+        static::$queued = [];
+    }
+
+    public static function attachToResponse(ResponseInterface $response): ResponseInterface
+    {
+        foreach (static::$queued as $cookie) {
+            $response = $response->withAddedHeader('Set-Cookie', $cookie);
         }
 
-        $host = request()->getHost();
-        $domain = $domain ?? (count(explode('.', $host)) > 2 ? $host : $host);
-        $expiryTime = $expiry !== null ? time() + $expiry : time() + 60 * 60 * 24 * 6004;
+        static::flushQueued();
 
-        return setcookie($name, $value, $expiryTime, $path, $domain, $secure);
+        return $response;
     }
 
-    /**
-     * Delete a cookie.
-     *
-     * @param string $name
-     * @return bool
-     */
-    public static function delete($name): bool
+    protected static function make(
+        string $name,
+        string $value,
+        int|DateTimeInterface|null $expiry = null,
+        string $path = '/',
+        ?string $domain = null,
+        bool $secure = false,
+        bool $httpOnly = true,
+        string $sameSite = 'Lax'
+    ): string {
+        $expires = static::normalizeExpiry($expiry);
+
+        $cookie = rawurlencode($name) . '=' . rawurlencode($value);
+
+        if ($expires !== null) {
+            $cookie .= '; Expires=' . gmdate('D, d M Y H:i:s T', $expires);
+            $cookie .= '; Max-Age=' . max(0, $expires - time());
+        }
+
+        $cookie .= '; Path=' . $path;
+
+        if ($domain) {
+            $cookie .= '; Domain=' . $domain;
+        }
+
+        if ($secure) {
+            $cookie .= '; Secure';
+        }
+
+        if ($httpOnly) {
+            $cookie .= '; HttpOnly';
+        }
+
+        if ($sameSite !== '' && $sameSite !== '0') {
+            $cookie .= '; SameSite=' . ucfirst(strtolower($sameSite));
+        }
+
+        return $cookie;
+    }
+
+    protected static function normalizeExpiry(int|DateTimeInterface|null $expiry): ?int
     {
-        return self::put($name, '', -1);
+        if ($expiry instanceof DateTimeInterface) {
+            return $expiry->getTimestamp();
+        }
+
+        if ($expiry === null) {
+            return null;
+        }
+
+        return $expiry > time() ? $expiry : time() + $expiry;
     }
 }

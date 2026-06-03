@@ -35,6 +35,7 @@ class MakeMigrationDownCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [

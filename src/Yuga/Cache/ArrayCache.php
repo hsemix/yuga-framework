@@ -28,6 +28,7 @@ class ArrayCache extends CacheAbstract
         return true;
     }
 
+    #[\Override]
     public function hasMultiple(array $keys): bool
     {
         $has = true;

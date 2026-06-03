@@ -7,7 +7,7 @@ use JsonSerializable;
 use Yuga\Support\Inflect;
 use Yuga\Database\Query\Builder;
 
-class Row implements ArrayAccess, JsonSerializable
+class Row implements ArrayAccess, JsonSerializable, \Stringable
 {
     private $attributes = [];
 
@@ -113,7 +113,7 @@ class Row implements ArrayAccess, JsonSerializable
     #[\ReturnTypeWillChange]
     public function offsetGet($offset) 
     {
-        return isset($this->attributes[$offset]) ? $this->attributes[$offset] : null;
+        return $this->attributes[$offset] ?? null;
     }
 
     /**
@@ -130,12 +130,10 @@ class Row implements ArrayAccess, JsonSerializable
 
     /**
      * Change the model to a string
-     * 
+     *
      * @param null
-     * 
-     * @return void
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->toJson();
     }
@@ -151,19 +149,19 @@ class Row implements ArrayAccess, JsonSerializable
     public function jsonSerialize()
     {
         $attributes = (array) $this->attributes;
-        $attributes = array_map(function($attribute) {
+        return array_map(function($attribute) {
             if (!is_array($attribute)) {
                 if (!is_object($attribute)) {
                     $json_attribute = json_decode($attribute ?? '', true);
-                    if (json_last_error() == JSON_ERROR_NONE)
+                    if (json_last_error() === JSON_ERROR_NONE) {
                         return $json_attribute;
+                    }
                 } else {
                     return (array)$attribute;
                 }
             }
             return $attribute;
         }, $attributes);
-        return $attributes;
     }
 
     /**

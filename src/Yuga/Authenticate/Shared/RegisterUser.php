@@ -30,18 +30,12 @@ trait RegisterUser
      */
     public function getView()
     {
-        if ($this->getStyle() == 'mvc') {
-            $view = 'auth.register';
-        } else {
-            $view = new Register;
-        }
-        return $view;
+        return $this->getStyle() == 'mvc' ? 'auth.register' : new Register;
     }
 
     /**
      * Handle a registration request for the application.
      *
-     * @param  \Yuga\Http\Request  $request
      * @return \Yuga\Http\Response
      */
     public function register(Request $request, Session $auth)
@@ -55,7 +49,7 @@ trait RegisterUser
         if (class_exists(EmailConfirmation::class)) {
             $handleClass = EmailConfirmation::class;
         }
-        (new $eventClass($user = $this->create($request->all())))->attach(new $handleClass($user))->dispatch();
+        new $eventClass($user = $this->create($request->all()))->attach(new $handleClass($user))->dispatch();
 
         event('on:register', ['user' => $user]);
         $auth->login($user);
@@ -66,7 +60,6 @@ trait RegisterUser
     /**
      * The user has been registered.
      *
-     * @param  \Yuga\Http\Request  $request
      * @param  mixed  $user
      * @return mixed
      */

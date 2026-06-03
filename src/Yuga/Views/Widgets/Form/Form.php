@@ -79,7 +79,7 @@ class Form
      */
     public function bool($name, $value = true, $defaultValue = null, $saveValue = true)
     {
-        $element = new HtmlCheckbox($name, ($defaultValue === null) ? '1' : $defaultValue);
+        $element = new HtmlCheckbox($name, $defaultValue ?? '1');
         if ($saveValue !== false) {
             if ($defaultValue === null) {
                 $defaultValue = $value;
@@ -90,10 +90,8 @@ class Form
             if ($checked) {
                 $element->checked(true);
             }
-        } else {
-            if (Boolean::parse($value)) {
-                $element->checked(true);
-            }
+        } elseif (Boolean::parse($value)) {
+            $element->checked(true);
         }
 
         return $element;
@@ -136,12 +134,12 @@ class Form
             if ($data instanceof Collection) {
 
                 foreach ($data->getData() as $item) {
-                    $val = isset($item['value']) ? $item['value'] : $item['name'];
+                    $val = $item['value'] ?? $item['name'];
                     $selected = (input()->get($name) !== null && (string)input()->get($name) === (string)$val || input()->exists($name) === false && (string)$value === (string)$val || (isset($item['selected']) && $item['selected']) || $saveValue === false && (string)$value === (string)$val);
                     $element->addOption(new HtmlSelectOption($val, $item['name'], $selected));
                 }
 
-            } elseif (is_array($data) === true) {
+            } elseif (is_array($data)) {
 
                 foreach ($data as $val => $key) {
                     $selected = (input()->get($name) !== null && (string)input()->get($name) === (string)$val || input()->exists($name) === false && (string)$value === (string)$val || $saveValue === false && (string)$value === (string)$val);
@@ -195,7 +193,7 @@ class Form
      */
     public function button($text, $type = null, $name = null, $value = null)
     {
-        $el = (new Html('button'))->addInnerHtml($text);
+        $el = new Html('button')->addInnerHtml($text);
 
         if ($type !== null) {
             $el->addAttribute('type', $type);

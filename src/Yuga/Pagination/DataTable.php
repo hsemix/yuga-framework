@@ -13,6 +13,8 @@ use Yuga\Database\Elegant\Collection;
 
 class DataTable extends Paginator
 {
+    public $recordsFiltered;
+    public $recordsTotal;
     /**
      * The current path resolver callback.
      *
@@ -29,17 +31,8 @@ class DataTable extends Paginator
 
     /**
      * The path variable used to store the page.
-     *
-     * @var string
      */
-    protected $path;
-
-    /**
-     * The per-page variable used to store the page.
-     *
-     * @var int
-     */
-    protected $perPage;
+    protected string $path;
 
     /**
     * The current-page variable used tn the page.
@@ -59,7 +52,7 @@ class DataTable extends Paginator
 
     protected $columns = [];
 
-    protected $dom = null;
+    protected $dom;
     protected $buttons = [];
 
     /**
@@ -69,15 +62,15 @@ class DataTable extends Paginator
      * @param  int  $perPage
      * @param  int|null  $currentPage
      * @param  array  $options (path, query, fragment, pageName)
-     * @return void
      */
-    public function __construct($perPage = 10, $currentPage = null, array $options = [])
+    public function __construct(/**
+     * The per-page variable used to store the page.
+     */
+    protected $perPage = 10, $currentPage = null, array $options = [])
     {
         foreach ($options as $key => $value) {
             $this->{$key} = $value;
         }
-
-        $this->perPage = $perPage;
         $this->currentPage = $this->setCurrentPage($currentPage);
         $this->path = $this->path !== '/' ? rtrim($this->path, '/') : $this->path;
     }
@@ -89,6 +82,7 @@ class DataTable extends Paginator
      * @param  int  $default
      * @return int
      */
+    #[\Override]
     public static function resolveCurrentPage($pageName = 'draw', $default = 1)
     {
         $page = $default;
@@ -107,6 +101,7 @@ class DataTable extends Paginator
      * @param  string  $default
      * @return string
      */
+    #[\Override]
     public static function resolveCurrentPath($default = '/')
     {
         if (isset(static::$currentPathResolver)) {
@@ -122,6 +117,7 @@ class DataTable extends Paginator
      * @param  int  $currentPage
      * @return int
      */
+    #[\Override]
     protected function setCurrentPage($currentPage)
     {
         $currentPage = $currentPage ?: static::resolveCurrentPage();
@@ -135,6 +131,7 @@ class DataTable extends Paginator
      * @param  int  $page
      * @return bool
      */
+    #[\Override]
     protected function isValidPageNumber($page)
     {
         return $page >= 1 && filter_var($page, FILTER_VALIDATE_INT) !== false;
@@ -147,21 +144,25 @@ class DataTable extends Paginator
      * 
      * @return string
      */
+    #[\Override]
     public function getCurrentPath()
     {
         return $this->path;
     }
 
+    #[\Override]
     public function getRecordsFilteredCount()
     {
         return $this->recordsFiltered;
     }
 
+    #[\Override]
     public function getTotalRecordsCount()
     {
         return $this->recordsTotal;
     }
 
+    #[\Override]
     public function toArray()
     {
         return [
@@ -178,10 +179,9 @@ class DataTable extends Paginator
 
     public static function of(Collection $collection)
     {
-        $paginator = new self(10, 1, [
+        return new self(10, 1, [
             'tt' => '2',
         ]);
-        return $paginator;
     }
 
     public function addColumn(string $title, callable $callable)
@@ -195,29 +195,32 @@ class DataTable extends Paginator
         
         if ($this->isAssociative($columns)) {
             $this->columns = array_map(function($column) {
-                if (!is_array($column))
+                if (!is_array($column)) {
                     return ['data' => $column];
+                }
                 return $column;
             }, $columns);
         } else {
             $this->columns = $columns;
         }
 
-        if ((new Request)->isAjax())
+        if ((new Request)->isAjax()) {
             return $this->toJsonData();
+        }
         return $this;
     }
 
     protected function isAssociative(array $array)
     {
-        return count(array_filter(array_keys($array), 'is_string')) === 0;
+        return count(array_filter(array_keys($array), is_string(...))) === 0;
     }
 
     public function dom(string $type)
     {
         $this->dom = $type;
-        if ((new Request)->isAjax())
+        if ((new Request)->isAjax()) {
             return $this->toJsonData();
+        }
 
         return $this;
     }
@@ -226,8 +229,9 @@ class DataTable extends Paginator
     {
         $this->buttons = $buttons;
 
-        if ((new Request)->isAjax())
+        if ((new Request)->isAjax()) {
             return $this->toJsonData();
+        }
         return $this;
     }
 
@@ -243,8 +247,9 @@ class DataTable extends Paginator
         ];
 
         $js = 'var tables = $("#table_' . Str::deCamelize(class_base($this->first())) . '").DataTable(' . json_encode($settings) . ');';
-        if ($readyState)
+        if ($readyState) {
             $js = '$(function(){' . $js . '});';
+        }
         
         return '<script type="text/javascript">' . $js . '</script>';
     }
@@ -262,24 +267,27 @@ class DataTable extends Paginator
     {
         $table = new Html('table');
         $table->id('table_' . Str::deCamelize(class_base($this->first())));
-        if (isset($settings['class']))
+        if (isset($settings['class'])) {
             $table->addClass($settings['class']);
+        }
            
         $tableHead = new Html('thead');
         $tableFoot = new Html('tfoot');
         $tableBody = new Html('tbody');
 
         foreach ($this->columns as $column) {
-            $th = (new Html('th'))->addInnerHtml(ucwords(str_replace('_', ' ', isset($column['name']) ? $column['name'] : $column['data'])));
+            $th = new Html('th')->addInnerHtml(ucwords(str_replace('_', ' ', $column['name'] ?? $column['data'])));
             $tableHead->addInnerHtml($th);
-            if ($showFooter)
+            if ($showFooter) {
                 $tableFoot->addInnerHtml($th);
+            }
         }
 
         $table->addInnerHtml($tableHead);
         $table->addInnerHtml($tableBody);
-        if ($showFooter)
+        if ($showFooter) {
             $table->addInnerHtml($tableFoot);
+        }
 
         // $this->toJsonData();
         return $table;

@@ -10,7 +10,8 @@ use Yuga\Console\Command;
  */
 class MakePublishCommand extends SchedulerCommand
 {
-	/**
+	public $sourcePath;
+    /**
 	 * The Command's name
 	 *
 	 * @var string
@@ -25,18 +26,15 @@ class MakePublishCommand extends SchedulerCommand
 	protected $description = 'Publish the scheduler runner.';
 
 	/**
-	 * the Command's usage
-	 *
-	 * @var string
-	 */
-	// protected $usage = 'cronjob:publish';
-
-	/**
-	 * Enables task running
-	 *
-	 * @param array $params
-	 */
-	public function runner(array $params)
+     * the Command's usage
+     *
+     * @var string
+     */
+    // protected $usage = 'cronjob:publish';
+    /**
+     * Enables task running
+     */
+    public function runner(array $params)
 	{
 		$this->determineSourcePath();
 
@@ -65,7 +63,7 @@ class MakePublishCommand extends SchedulerCommand
     {
         $this->sourcePath = realpath(__DIR__ . '/../');
 
-        if( $this->sourcePath == '/' || empty( $this->sourcePath ) )
+        if( $this->sourcePath == '/' || in_array($this->sourcePath, ['', '0', false], true) )
         {
             CLI::error( 'Unable to determine the correct source directory. Bailing.' );
             exit();
@@ -75,9 +73,6 @@ class MakePublishCommand extends SchedulerCommand
     /**
      * Write a file, catching any exceptions and showing a
      * nicely formatted error.
-     *
-     * @param string $path
-     * @param string $content
      */
     protected function writeFile( string $path, string $content )
     {

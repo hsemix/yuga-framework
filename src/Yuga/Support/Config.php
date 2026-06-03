@@ -13,27 +13,30 @@ use IteratorAggregate;
 class Config implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
     protected $data;
-    protected $default = null;
+    protected $default;
     
     public function load($file, $key = null)
     {
         $file = str_replace(".", "/", $file);
         $file = require path($file.'.php');
 
-        if ($key)
+        if ($key) {
             $this->data[$key] = $file;
-        else
+        } else {
             $this->data = $file;
+        }
         
         return $this;
     }
 
     public function get($key, $default = null)
     {
-        if (empty($key)) return $this;
+        if (empty($key)) {
+            return $this;
+        }
 
         $this->default = $default;
-        $segments = explode('.', $key);
+        $segments = explode('.', (string) $key);
         $data = $this->data;
         foreach ($segments as $segment) {
             if (isset($data[$segment])) {
@@ -69,7 +72,7 @@ class Config implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
 
         $data = &$this->data;
         
-        foreach (explode('.', $key) as $segment) {
+        foreach (explode('.', (string) $key) as $segment) {
 
             if (!isset($data[$segment]) || !is_array($data[$segment])) {
                 $data[$segment] = [];
@@ -130,7 +133,7 @@ class Config implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
             return json_encode($this->get($key), $options);
         }
 
-        $options = $key === null ? 0 : $key;
+        $options = $key ?? 0;
 
         return json_encode($this->data, $options);
     }
@@ -139,7 +142,6 @@ class Config implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Check if a given key exists
      *
      * @param  int|string  $key
-     * @return bool
      */
     public function offsetExists($key): bool
     {
@@ -179,7 +181,6 @@ class Config implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Delete the given key
      *
      * @param  int|string  $key
-     * @return void
      */
     public function offsetUnset($key): void
     {
@@ -190,7 +191,6 @@ class Config implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      * Return the number of items in a given key
      *
      * @param  int|string|null  $key
-     * @return int
      */
     public function count($key = null): int
     {

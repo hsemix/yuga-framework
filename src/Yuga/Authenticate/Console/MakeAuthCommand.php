@@ -73,6 +73,7 @@ class MakeAuthCommand extends Command
      *
      * @return void
      */
+    #[\Override]
     protected function createDirectories()
     {
         if (!is_dir($directory = path('resources/views/layouts'))) {
@@ -96,10 +97,8 @@ class MakeAuthCommand extends Command
         } else {
             $this->createViewModels();
             foreach ($this->viewsMvvm as $key => $value) {
-                if (file_exists($view = path('resources/views/templates/' . $value)) && !$this->option('force')) {
-                    if (!$this->confirm("The [{$value}] view already exists. Do you want to replace it?")) {
-                        continue;
-                    }
+                if (file_exists($view = path('resources/views/templates/' . $value)) && !$this->option('force') && !$this->confirm("The [{$value}] view already exists. Do you want to replace it?")) {
+                    continue;
                 }
 
                 copy(
@@ -113,10 +112,8 @@ class MakeAuthCommand extends Command
     protected function viewsMvc()
     {
         foreach ($this->viewsMvc as $key => $value) {
-            if (file_exists($view = path('resources/views/' . $value)) && !$this->option('force')) {
-                if (!$this->confirm("The [{$value}] view already exists. Do you want to replace it?")) {
-                    continue;
-                }
+            if (file_exists($view = path('resources/views/' . $value)) && !$this->option('force') && !$this->confirm("The [{$value}] view already exists. Do you want to replace it?")) {
+                continue;
             }
 
             copy(
@@ -131,6 +128,7 @@ class MakeAuthCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [

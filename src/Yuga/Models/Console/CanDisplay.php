@@ -10,15 +10,14 @@ trait CanDisplay
 {
     /**
      * Make the scaffold for a Index page
-     * 
-     * @param \Yuga\Database\Elegant\Model $model
+     *
      * @param mixed
      */
     protected function makeIndexForm(Model $model)
     {
         $name = \class_base($model);
         $menu = "";
-        $property = \strtolower($name);
+        $property = \strtolower((string) $name);
         $table = "";
         foreach ($model->scaffold as $fieldName => $type) {
             $fieldType = Scaffold::getFormType($type);

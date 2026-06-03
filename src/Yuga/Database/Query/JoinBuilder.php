@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Database\Query;
 
 class JoinBuilder extends Builder
@@ -39,7 +42,7 @@ class JoinBuilder extends Builder
     {
         $column = $this->addTablePrefix($column);
         $value = $this->addTablePrefix($value);
-        $this->statements['criteria'][] = compact('column', 'operator', 'value', 'type');
+        $this->statements['criteria'][] = ['column' => $column, 'operator' => $operator, 'value' => $value, 'type' => $type];
 
         return $this;
     }

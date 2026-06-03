@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yuga\Route\Support;
 
 use Yuga\Http\Request;
@@ -10,7 +12,6 @@ interface IRoute
      * Method called to check if a domain matches
      *
      * @param string $route
-     * @param Request $request
      * @return bool
      */
     public function matchRoute($route, Request $request);
@@ -19,7 +20,6 @@ interface IRoute
      * Called when route is matched.
      * Returns class to be rendered.
      *
-     * @param Request $request
      * @throws \Pecee\SimpleRouter\Exceptions\NotFoundHttpException
      * @return void
      */
@@ -37,7 +37,6 @@ interface IRoute
     /**
      * Set allowed request methods
      *
-     * @param array $methods
      * @return static $this
      */
     public function setRequestMethods(array $methods);
@@ -64,7 +63,6 @@ interface IRoute
     /**
      * Set group
      *
-     * @param IGroupRoute $group
      * @return static $this
      */
     public function setGroup(IGroupRoute $group);
@@ -72,7 +70,6 @@ interface IRoute
     /**
      * Set parent route
      *
-     * @param IRoute $parent
      * @return static $this
      */
     public function setParent(IRoute $parent);
@@ -125,7 +122,6 @@ interface IRoute
     /**
      * Set parameter names.
      *
-     * @param array $options
      * @return static
      */
     public function setWhere(array $options);
@@ -140,7 +136,6 @@ interface IRoute
     /**
      * Get parameters
      *
-     * @param array $parameters
      * @return static $this
      */
     public function setParameters(array $parameters);
@@ -148,7 +143,6 @@ interface IRoute
     /**
      * Merge with information from another route.
      *
-     * @param array $settings
      * @param bool $merge
      * @return static $this
      */
@@ -179,7 +173,6 @@ interface IRoute
     /**
      * Set middlewares array
      *
-     * @param array $middlewares
      * @return $this
      */
     public function setMiddlewares(array $middlewares);

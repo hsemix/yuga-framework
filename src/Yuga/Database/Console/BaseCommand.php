@@ -10,18 +10,12 @@ use Yuga\Database\Console\Backup\DatabaseBuilder;
 
 class BaseCommand extends Command
 {
-    protected $databaseBuilder;
-
-    protected $console;
     protected $config;
 
 
-    public function __construct(DatabaseBuilder $databaseBuilder, Console $console)
+    public function __construct(protected \Yuga\Database\Console\Backup\DatabaseBuilder $databaseBuilder, protected \Yuga\Database\Console\Backup\Console $console)
     {
         parent::__construct();
-
-        $this->databaseBuilder = $databaseBuilder;
-        $this->console = $console;
         $this->config   = app()->config->load('config.Config');
     }
 
@@ -37,7 +31,7 @@ class BaseCommand extends Command
     {
         $path = $this->config->get('db.backup.path');
 
-        return rtrim($path, '\\/') . DIRECTORY_SEPARATOR;
+        return rtrim((string) $path, '\\/') . DIRECTORY_SEPARATOR;
     }
 
     public function enableCompression()
@@ -57,6 +51,6 @@ class BaseCommand extends Command
 
     public function isCompressed($fileName)
     {
-        return (pathinfo($fileName, PATHINFO_EXTENSION) === "gz");
+        return (pathinfo((string) $fileName, PATHINFO_EXTENSION) === "gz");
     }
 }

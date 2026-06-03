@@ -3,20 +3,16 @@ namespace Yuga\Views\Widgets\Menu;
 
 use Yuga\Views\Widgets\Html\Html;
 
-class Menu
+class Menu implements \Stringable
 {
     protected $items = [];
     protected $attributes = [];
     protected $content = [];
     protected $class;
     protected $parent;
-    protected $parentTag;
-    protected $childTag;
 
-    public function __construct($parentTag = 'ul', $childTag = 'li', $child = true)
+    public function __construct(protected $parentTag = 'ul', protected $childTag = 'li')
     {
-        $this->childTag = $childTag;
-        $this->parentTag = $parentTag;
     }
 
     public function getItems()
@@ -40,7 +36,7 @@ class Menu
      */
     public function getFirst()
     {
-        if (count($this->items)) {
+        if (count($this->items) > 0) {
             return $this->items[0];
         }
 
@@ -73,7 +69,6 @@ class Menu
 
     /**
      * Add form content
-     * @param \Yuga\Views\Widgets\Html\Html $element
      */
     public function addContent(Html $element)
     {
@@ -82,7 +77,6 @@ class Menu
 
     /**
      * Add form content
-     * @param \Yuga\Views\Widgets\Menu\Menu $element
      */
     public function addMenu(Menu $element)
     {
@@ -117,7 +111,6 @@ class Menu
     /**
      * Add new item
      *
-     * @param \Yuga\Views\Widgets\Menu\MenuItem $item
      * @return static
      */
     public function addMenuItem(MenuItem $item)
@@ -170,7 +163,6 @@ class Menu
     /**
      * Set parent menu-item
      *
-     * @param MenuItem $parent
      * @return static
      */
     public function setParent(MenuItem $parent)
@@ -202,14 +194,14 @@ class Menu
             }
 
             if ($strict === true) {
-                if (rtrim($item->getUrl(), '/') === rtrim($url, '/')) {
+                if (rtrim((string) $item->getUrl(), '/') === rtrim((string) $url, '/')) {
                     return $item;
                 }
             } else {
-                $itemUrl = rtrim($item->getUrl(), '/');
+                $itemUrl = rtrim((string) $item->getUrl(), '/');
                 $itemUrl = ($itemUrl === '') ? '/' : $itemUrl;
 
-                $url = rtrim($url, '/');
+                $url = rtrim((string) $url, '/');
                 $url = ($url === '') ? '/' : $url;
 
                 if (false !== stristr($itemUrl, $url)) {
@@ -239,13 +231,11 @@ class Menu
             if ($attributes !== null && isset($attributes[$name])) {
 
                 if ($strict === true) {
-                    if (in_array($value, $attributes[$name], true) === true) {
+                    if (in_array($value, $attributes[$name], true)) {
                         return $item;
                     }
-                } else {
-                    if (stripos($attributes[$name], $value) !== false) {
-                        return $item;
-                    }
+                } elseif (stripos($attributes[$name], (string) $value) !== false) {
+                    return $item;
                 }
 
             }
@@ -260,7 +250,7 @@ class Menu
             $output = ' ';
             /* Run through each attribute */
             foreach ($attributes as $name => $value) {
-                $output .= $name . '="' . join(' ', $value) . '"';
+                $output .= $name . '="' . implode(' ', $value) . '"';
             }
 
             return $output;
@@ -271,16 +261,15 @@ class Menu
 
     /**
      * Write html
-     * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         $o = '';
-        if (count($this->items)) {
+        if (count($this->items) > 0) {
 
             $o .= '<' . $this->parentTag . ($this->class ? ' class="' . $this->class . '"' : '');
 
-            if (count($this->attributes)) {
+            if (count($this->attributes) > 0) {
                 $o .= $this->formatAttributes($this->attributes);
             }
 
@@ -295,10 +284,11 @@ class Menu
                     $this->formatAttributes($menuItem->getLinkAttributes()) . '>' .
                     $menuItem->getLinkIcon();
 
-                    if(!$menuItem->getReturnHtml()) 
-                        $o .= htmlspecialchars($menuItem->getName());
-                    else
+                    if (!$menuItem->getReturnHtml()) {
+                        $o .= htmlspecialchars((string) $menuItem->getName());
+                    } else {
                         $o .= $menuItem->getName();
+                    }
                 $o .= '</a>';
 
                 $inner = $menuItem->getInnerContent();
@@ -320,9 +310,7 @@ class Menu
                 $o .= '</' . $this->childTag . '>';
             }
 
-            $o .= '</' . $this->parentTag . '>';
-
-            return $o;
+            return $o . ('</' . $this->parentTag . '>');
         }
 
         return '';

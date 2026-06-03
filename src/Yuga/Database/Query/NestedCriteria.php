@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Database\Query;
 
 class NestedCriteria extends Builder
@@ -10,10 +13,11 @@ class NestedCriteria extends Builder
      * @param string $joiner
      * @return static
      */
+    #[\Override]
     protected function whereHandler($column, $operator = null, $value = null, $type = 'AND')
     {
-        $key = $this->addTablePrefix($column);
-        $this->statements['criteria'][] = compact('column', 'operator', 'value', 'type');
+        $this->addTablePrefix($column);
+        $this->statements['criteria'][] = ['column' => $column, 'operator' => $operator, 'value' => $value, 'type' => $type];
 
         return $this;
     }

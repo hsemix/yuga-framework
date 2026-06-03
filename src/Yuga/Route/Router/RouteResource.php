@@ -27,12 +27,10 @@ class RouteResource extends LoadableRoute implements IControllerRoute
     ];
 
     protected $names = [];
-    protected $controller;
 
-    public function __construct($url, $controller)
+    public function __construct($url, protected $controller)
     {
         $this->setUrl($url);
-        $this->controller = $controller;
         $this->setName(trim(str_replace('/', '.', $url), '/'));
     }
 
@@ -42,6 +40,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
      * @param string $name
      * @return bool
      */
+    #[\Override]
     public function hasName($name)
     {
         if ($this->name === null) {
@@ -53,13 +52,14 @@ class RouteResource extends LoadableRoute implements IControllerRoute
         }
 
         /* Remove method/type */
-        if (strpos($name, '.') !== false) {
-            $name = (string)substr($name, 0, strrpos($name, '.'));
+        if (str_contains($name, '.')) {
+            $name = substr($name, 0, strrpos($name, '.'));
         }
 
         return (strtolower($this->name) === strtolower($name));
     }
 
+    #[\Override]
     public function findUrl($method = null, $parameters = null, $name = null)
     {
         $url = array_search($name, $this->names, false);
@@ -99,7 +99,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
             return false;
         }
 
-        $action = strtolower(trim($this->parameters['action']));
+        $action = strtolower(trim((string) $this->parameters['action']));
         $id = $this->parameters['id'];
 
         // Remove action parameter
@@ -113,7 +113,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
         }
 
         // Update
-        if ($id !== null && in_array($method, [static::REQUEST_TYPE_PATCH, static::REQUEST_TYPE_PUT], false) === true) {
+        if ($id !== null && in_array($method, [static::REQUEST_TYPE_PATCH, static::REQUEST_TYPE_PUT], false)) {
             return $this->call($this->methodNames['update']);
         }
 
@@ -160,6 +160,7 @@ class RouteResource extends LoadableRoute implements IControllerRoute
         return $this;
     }
 
+    #[\Override]
     public function setName($name)
     {
         $this->name = $name;
@@ -180,7 +181,6 @@ class RouteResource extends LoadableRoute implements IControllerRoute
     /**
      * Define custom method name for resource controller
      *
-     * @param array $names
      * @return static $this
      */
     public function setMethodNames(array $names)
@@ -203,10 +203,10 @@ class RouteResource extends LoadableRoute implements IControllerRoute
     /**
      * Merge with information from another route.
      *
-     * @param array $values
      * @param bool $merge
      * @return static
      */
+    #[\Override]
     public function setSettings(array $values, $merge = false)
     {
         if (isset($values['names'])) {

@@ -13,25 +13,25 @@ final class Callback
 {
 
 	/**
-	 * @param  string|object|callable  $callable  class, object, callable
-	 * @deprecated use Closure::fromCallable()
-	 */
-	public static function closure($callable, string $method = null): \Closure
+     * @param  string|object|callable  $callable  class, object, callable
+     */
+    #[\Deprecated(message: 'use Closure::fromCallable()')]
+    public static function closure($callable, ?string $method = null): \Closure
 	{
 		try {
 			return \Closure::fromCallable($method === null ? $callable : [$callable, $method]);
 		} catch (\TypeError $e) {
-			throw new \InvalidArgumentException($e->getMessage());
+			throw new \InvalidArgumentException($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 
 
 	/**
-	 * Invokes callback.
-	 * @return mixed
-	 * @deprecated
-	 */
-	public static function invoke($callable, ...$args)
+     * Invokes callback.
+     * @return mixed
+     */
+    #[\Deprecated]
+    public static function invoke($callable, ...$args)
 	{
 		trigger_error(__METHOD__ . '() is deprecated, use native invoking.', E_USER_DEPRECATED);
 		self::check($callable);
@@ -40,11 +40,11 @@ final class Callback
 
 
 	/**
-	 * Invokes callback with an array of parameters.
-	 * @return mixed
-	 * @deprecated
-	 */
-	public static function invokeArgs($callable, array $args = [])
+     * Invokes callback with an array of parameters.
+     * @return mixed
+     */
+    #[\Deprecated]
+    public static function invokeArgs($callable, array $args = [])
 	{
 		trigger_error(__METHOD__ . '() is deprecated, use native invoking.', E_USER_DEPRECATED);
 		self::check($callable);
@@ -140,7 +140,7 @@ final class Callback
 	public static function unwrap(\Closure $closure): callable
 	{
 		$r = new \ReflectionFunction($closure);
-		if (substr($r->getName(), -1) === '}') {
+		if (str_ends_with($r->getName(), '}')) {
 			return $closure;
 
 		} elseif ($obj = $r->getClosureThis()) {

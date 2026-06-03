@@ -28,7 +28,7 @@ class MakeMiddlewareCommand extends Command
         $this->createDirectories();
         $this->makeMiddleware(ucfirst(trim($this->argument('name'))), trim($this->option('alias')));
         $alias = trim($this->option('alias'));
-        if (!$alias) {
+        if ($alias === '' || $alias === '0') {
             $alias = strtolower(trim($this->argument('name')));
         }
         file_put_contents(
@@ -63,6 +63,7 @@ class MakeMiddlewareCommand extends Command
      *
      * @return void
      */
+    #[\Override]
     protected function createDirectories()
     {
         if (!is_dir($directory = path('app/Middleware'))) {
@@ -99,6 +100,7 @@ class MakeMiddlewareCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [
@@ -111,6 +113,7 @@ class MakeMiddlewareCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yuga\Cache\Console;
 
 use Yuga\Console\Command;
@@ -31,6 +33,7 @@ class ClearCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [

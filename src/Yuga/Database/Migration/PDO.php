@@ -29,10 +29,9 @@ class PDO
                 $config = \App::make('config')->load('config.Config');
                 $settings = $config->get('db.'.$config->get('db.defaultDriver'));
                 $connectionString = "sqlite:".$path.DIRECTORY_SEPARATOR.$settings['database'];
-            } else if ($driver == 'mysql') {
+            } elseif ($driver == 'mysql') {
                 $connectionString = env('DATABASE_DRIVER', 'mysql') . ':host=' . env('DATABASE_HOST') . ';dbname=' . env('DATABASE_NAME') . ';charset=' . env('DATABASE_CHARSET', 'utf8');
-                
-            } else if ($driver == 'pgsql') {
+            } elseif ($driver == 'pgsql') {
                 $connectionString = env('DATABASE_DRIVER', 'mysql') . ':host=' . env('DATABASE_HOST') . ';dbname=' . env('DATABASE_NAME');
             }
             self::$instance = new static($connectionString, env('DATABASE_USERNAME'), env('DATABASE_PASSWORD'));
@@ -60,11 +59,10 @@ class PDO
      * Executes query
      *
      * @param string $query
-     * @param array|null $parameters
      * @return \PDOStatement|null
      * @throws \PdoException
      */
-    public function query($query, array $parameters = null)
+    public function query($query, ?array $parameters = null)
     {
         $last_query = $query;
         try {
@@ -100,7 +98,7 @@ class PDO
         return null;
     }
 
-    public function all($query, array $parameters = null)
+    public function all($query, ?array $parameters = null)
     {
         $query = $this->query($query, $parameters);
         if ($query) {
@@ -117,7 +115,7 @@ class PDO
         return null;
     }
 
-    public function single($query, array $parameters = null)
+    public function single($query, ?array $parameters = null)
     {
         $result = $this->all($query . ' LIMIT 1', $parameters);
         if ($result !== null) {
@@ -127,12 +125,12 @@ class PDO
         return null;
     }
 
-    public function nonQuery($query, array $parameters = null)
+    public function nonQuery($query, ?array $parameters = null)
     {
         $this->query($query, $parameters);
     }
 
-    public function value($query, array $parameters = null)
+    public function value($query, ?array $parameters = null)
     {
         $query = $this->query($query, $parameters);
         if ($query) {
@@ -142,7 +140,7 @@ class PDO
         return null;
     }
 
-    public function insert($query, array $parameters = null)
+    public function insert($query, ?array $parameters = null)
     {
         $query = $this->query($query, $parameters);
         if ($query) {
@@ -163,9 +161,9 @@ class PDO
             $fp = file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
             $query = '';
             foreach ($fp as $line) {
-                if ($line != '' && strpos($line, '--') === false) {
+                if ($line !== '' && !str_contains($line, '--')) {
                     $query .= $line;
-                    if (substr($query, -1) == ';') {
+                    if (str_ends_with($query, ';')) {
                         $this->nonQuery($query);
                         $query = '';
                     }
@@ -175,7 +173,9 @@ class PDO
             $queries = explode(";", $file);
             foreach ($queries as $query){
                 $query = trim($query);
-                if(!$query) continue;
+                if ($query === '' || $query === '0') {
+                    continue;
+                }
                 $this->nonQuery($query);
             }
         }

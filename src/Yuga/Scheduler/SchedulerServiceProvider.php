@@ -15,9 +15,7 @@ class SchedulerServiceProvider extends ServiceProvider
     public function load(Application $app)
     {
         if ($app->runningInConsole()) {
-            $app->singleton('scheduler', function () use($app) {
-                return new Scheduler($app);
-            });
+            $app->singleton('scheduler', fn() => new Scheduler($app));
             $this->scheduler = $app->resolve('scheduler');
         }
     }

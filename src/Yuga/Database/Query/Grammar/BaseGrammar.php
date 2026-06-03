@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Database\Query\Grammar;
 
 use Yuga\Database\Query\Raw;
@@ -10,19 +11,17 @@ class BaseGrammar
 {
     const SANITIZER = '`';
     protected $container;
-    protected $connection;
-    public function __construct(Connection $connection = null)
+    public function __construct(protected ?\Yuga\Database\Connection\Connection $connection = null)
     {
-        $this->connection = $connection;
         $this->container = $this->connection->getContainer();
     }
 
     public function select($statements)
     {
-        if(!array_key_exists('selects', $statements)){
+        if (!array_key_exists('selects', $statements)) {
             $statements['selects'][] = '*';
         }
-         // From
+        // From
         $fromEnabled = false;
         $tables = '';
 
@@ -32,7 +31,7 @@ class BaseGrammar
             foreach ($statements['tables'] as $prefix => $table) {
 
                 if (is_numeric($prefix) === false) {
-                    $t =  $t = ($table instanceof Raw) ? $prefix : $this->wrapSanitizer($prefix) . ' AS ' . strtolower($table);
+                    $t =  $t = ($table instanceof Raw) ? $prefix : $this->wrapSanitizer($prefix) . ' AS ' . strtolower((string) $table);
                 } else {
                     $t = ($table instanceof Raw) ? $table : $this->wrapSanitizer($table);
                 }
@@ -40,14 +39,14 @@ class BaseGrammar
                 $tables[] = $t;
             }
 
-            $tables = join(',', $tables);
+            $tables = implode(',', $tables);
             $fromEnabled = true;
         }
         // Select
         $selects = $this->arrayStr($statements['selects'], ', ');
 
         // Wheres
-        list($whereCriteria, $whereBindings) = $this->buildCriteriaWithType($statements, 'wheres', 'WHERE');
+        [$whereCriteria, $whereBindings] = $this->buildCriteriaWithType($statements, 'wheres', 'WHERE');
         // Group bys
         $groupBys = '';
         if (isset($statements['groupBys']) && $groupBys = $this->arrayStr($statements['groupBys'], ', ')) {
@@ -60,8 +59,9 @@ class BaseGrammar
             foreach ($statements['orderBys'] as $orderBy) {
                 $orderBys .= $this->wrapSanitizer($orderBy['field']) . ' ' . $orderBy['type'] . ', ';
             }
+            $orderBys = trim($orderBys, ', ');
 
-            if ($orderBys = trim($orderBys, ', ')) {
+            if ($orderBys !== '' && $orderBys !== '0') {
                 $orderBys = 'ORDER BY ' . $orderBys;
             }
         }
@@ -71,7 +71,7 @@ class BaseGrammar
         $offset = isset($statements['offset']) ? 'OFFSET ' . $statements['offset'] : '';
 
         // Having
-        list($havingCriteria, $havingBindings) = $this->buildCriteriaWithType($statements, 'havings', 'HAVING');
+        [$havingCriteria, $havingBindings] = $this->buildCriteriaWithType($statements, 'havings', 'HAVING');
 
         // Joins
         $joinString = $this->buildJoin($statements);
@@ -97,17 +97,15 @@ class BaseGrammar
             $havingBindings
         );
 
-        return compact('sql', 'bindings');
+        return ['sql' => $sql, 'bindings' => $bindings];
     }
 
     /**
      * Array concatenating method, like implode.
      * But it does wrap sanitizer and trims last glue
      *
-     * @param array $pieces
      * @param       $glue
      * @param bool $wrapSanitizer
-     *
      * @return string
      */
     protected function arrayStr(array $pieces, $glue, $wrapSanitizer = true)
@@ -144,7 +142,7 @@ class BaseGrammar
             return $value;
         }
         // Separate our table and fields which are joined with a ".", like my_table.id
-        $valueArr = explode('.', $value, 2);
+        $valueArr = explode('.', (string) $value, 2);
 
         foreach ($valueArr as $key => $subValue) {
             // Don't wrap if we have *, which is not a usual field
@@ -171,7 +169,7 @@ class BaseGrammar
 
         if (isset($statements[$key])) {
             // Get the generic/adapter agnostic criteria string from parent
-            list($criteria, $bindings) = $this->buildCriteria($statements[$key], $bindValues);
+            [$criteria, $bindings] = $this->buildCriteria($statements[$key], $bindValues);
 
             if ($criteria) {
                 $criteria = $type . ' ' . $criteria;
@@ -218,10 +216,10 @@ class BaseGrammar
                 // Merge the bindings we get from nestedCriteria object
                 $bindings = array_merge($bindings, $queryObject->getBindings());
                 // Append the sql we get from the nestedCriteria object
-                $criteria .= strtoupper($statement['type']) . ' (' . $queryObject->getSql() . ') ';
+                $criteria .= strtoupper((string) $statement['type']) . ' (' . $queryObject->getSql() . ') ';
             } elseif (is_array($value)) {
                 // where_in or between like query
-                $criteria .= strtoupper($statement['type']) . ' ' . $key . ' ' . $statement['operator'];
+                $criteria .= strtoupper((string) $statement['type']) . ' ' . $key . ' ' . $statement['operator'];
 
                 if ($statement['operator'] === 'BETWEEN') {
                     $bindings = array_merge($bindings, $statement['value']);
@@ -236,36 +234,30 @@ class BaseGrammar
                     $valuePlaceholder = trim($valuePlaceholder, ', ');
                     $criteria .= ' (' . $valuePlaceholder . ') ';
                 }
-
             } elseif ($value instanceof Raw) {
                 $criteria .= "{$statement['type']} {$key} {$statement['operator']} $value ";
-            } else {
+            } elseif (!$bindValues) {
                 // Usual where like criteria
+                // Specially for joins
+                // We are not binding values, lets sanitize then
+                $value = $this->wrapSanitizer($value);
+                $criteria .= $statement['type'] . ' ' . $key . ' ' . $statement['operator'] . ' ' . $value . ' ';
+            } elseif ($statement['column'] instanceof Raw) {
 
-                if (!$bindValues) {
-                    // Specially for joins
-
-                    // We are not binding values, lets sanitize then
-                    $value = $this->wrapSanitizer($value);
-                    $criteria .= $statement['type'] . ' ' . $key . ' ' . $statement['operator'] . ' ' . $value . ' ';
-                } elseif ($statement['column'] instanceof Raw) {
-
-                    if ($statement['operator'] !== null) {
-                        $criteria .= "{$statement['type']} {$key} {$statement['operator']} ? ";
-                        $bindings = array_merge($bindings, $statement['column']->getBindings());
-                        $bindings[] = $value;
-                    } else {
-                        $criteria .= $statement['type'] . ' ' . $key . ' ';
-                        $bindings = array_merge($bindings, $statement['column']->getBindings());
-                    }
-
-                } else {
-                    // For wheres
-
-                    $valuePlaceholder = '?';
+                if ($statement['operator'] !== null) {
+                    $criteria .= "{$statement['type']} {$key} {$statement['operator']} ? ";
+                    $bindings = array_merge($bindings, $statement['column']->getBindings());
                     $bindings[] = $value;
-                    $criteria .= $statement['type'] . ' ' . $key . ' ' . $statement['operator'] . ' ' . $valuePlaceholder . ' ';
+                } else {
+                    $criteria .= $statement['type'] . ' ' . $key . ' ';
+                    $bindings = array_merge($bindings, $statement['column']->getBindings());
                 }
+            } else {
+                // For wheres
+
+                $valuePlaceholder = '?';
+                $bindings[] = $value;
+                $criteria .= $statement['type'] . ' ' . $key . ' ' . $statement['operator'] . ' ' . $valuePlaceholder . ' ';
             }
         }
 
@@ -292,7 +284,7 @@ class BaseGrammar
 
         foreach ($statements['joins'] as $joinArr) {
             if (is_array($joinArr['table'])) {
-                list($mainTable, $aliasTable) = $joinArr['table'];
+                [$mainTable, $aliasTable] = $joinArr['table'];
                 $table = $this->wrapSanitizer($mainTable) . ' AS ' . $this->wrapSanitizer($aliasTable);
             } else {
                 $table = $joinArr['table'] instanceof Raw ?
@@ -305,7 +297,7 @@ class BaseGrammar
 
             $sqlArr = [
                 $sql,
-                strtoupper($joinArr['joinType']),
+                strtoupper((string) $joinArr['joinType']),
                 'JOIN',
                 $table,
                 'ON',
@@ -321,7 +313,6 @@ class BaseGrammar
     /**
      * Join different part of queries with a space.
      *
-     * @param array $pieces
      *
      * @return string
      */
@@ -329,7 +320,7 @@ class BaseGrammar
     {
         $str = '';
         foreach ($pieces as $piece) {
-            $str = trim($str) . ' ' . trim($piece);
+            $str = trim($str) . ' ' . trim((string) $piece);
         }
 
         return trim($str);
@@ -347,19 +338,18 @@ class BaseGrammar
     {
         $sql = $bindings = [];
         if (!isset($statements['criteria'])) {
-            return compact('sql', 'bindings');
+            return ['sql' => $sql, 'bindings' => $bindings];
         }
 
-        list($sql, $bindings) = $this->buildCriteria($statements['criteria'], $bindValues);
+        [$sql, $bindings] = $this->buildCriteria($statements['criteria'], $bindValues);
 
-        return compact('sql', 'bindings');
+        return ['sql' => $sql, 'bindings' => $bindings];
     }
 
     /**
      * Build a generic insert/ignore/replace query
      *
      * @param array $statements
-     * @param array $data
      * @param string $type
      *
      * @return array
@@ -391,19 +381,18 @@ class BaseGrammar
             if (count($statements['onduplicate']) < 1) {
                 throw new Exception('No data given.', 4);
             }
-            list($updateStatement, $updateBindings) = $this->getUpdateStatement($statements['onduplicate']);
+            [$updateStatement, $updateBindings] = $this->getUpdateStatement($statements['onduplicate']);
             $sqlArray[] = 'ON DUPLICATE KEY UPDATE ' . $updateStatement;
             $bindings = array_merge($bindings, $updateBindings);
         }
         $sql = $this->concatenateQuery($sqlArray);
-        return compact('sql', 'bindings');
+        return ['sql' => $sql, 'bindings' => $bindings];
     }
 
     /**
      * Build Insert query
      *
      * @param       $statements
-     * @param array $data
      *
      * @return array
      * @throws Exception
@@ -417,7 +406,6 @@ class BaseGrammar
      * Build Insert Ignore query
      *
      * @param       $statements
-     * @param array $data
      *
      * @return array
      * @throws Exception
@@ -431,7 +419,6 @@ class BaseGrammar
      * Build Insert Ignore query
      *
      * @param       $statements
-     * @param array $data
      *
      * @return array
      * @throws Exception
@@ -468,7 +455,6 @@ class BaseGrammar
      * Build update query
      *
      * @param       $statements
-     * @param array $data
      *
      * @return array
      * @throws Exception
@@ -481,10 +467,10 @@ class BaseGrammar
         $table = end($statements['tables']);
 
         // Update statement
-        list($updateStatement, $bindings) = $this->getUpdateStatement($data);
+        [$updateStatement, $bindings] = $this->getUpdateStatement($data);
 
         // Wheres
-        list($whereCriteria, $whereBindings) = $this->buildCriteriaWithType($statements, 'wheres', 'WHERE');
+        [$whereCriteria, $whereBindings] = $this->buildCriteriaWithType($statements, 'wheres', 'WHERE');
 
         // Limit
         $limit = isset($statements['limit']) ? 'LIMIT ' . $statements['limit'] : '';
@@ -501,7 +487,7 @@ class BaseGrammar
 
         $bindings = array_merge($bindings, $whereBindings);
 
-        return compact('sql', 'bindings');
+        return ['sql' => $sql, 'bindings' => $bindings];
     }
 
     /**
@@ -517,12 +503,12 @@ class BaseGrammar
         $table = end($statements['tables']);
 
         // Wheres
-        list($whereCriteria, $whereBindings) = $this->buildCriteriaWithType($statements, 'wheres', 'WHERE');
+        [$whereCriteria, $whereBindings] = $this->buildCriteriaWithType($statements, 'wheres', 'WHERE');
 
         $sqlArray = ['DELETE FROM', $this->wrapSanitizer($table), $whereCriteria];
         $sql = $this->concatenateQuery($sqlArray);
         $bindings = $whereBindings;
 
-        return compact('sql', 'bindings');
+        return ['sql' => $sql, 'bindings' => $bindings];
     }
 }

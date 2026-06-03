@@ -41,22 +41,21 @@ class EventHandler
         // Find event with *
         if (isset($this->events[$table])) {
             foreach ($this->events[$table] as $name => $e) {
-                if (strpos($name, '*') !== false) {
-                    $name = substr($name, 0, strpos($name, '*'));
-                    if (stripos($event, $name) !== false) {
+                if (str_contains((string) $name, '*')) {
+                    $name = substr((string) $name, 0, strpos((string) $name, '*'));
+                    if (stripos((string) $event, $name) !== false) {
                         return $e;
                     }
                 }
             }
         }
 
-        return isset($this->events[$table][$event]) ? $this->events[$table][$event] : null;
+        return $this->events[$table][$event] ?? null;
     }
 
     /**
      * @param          $event
      * @param string $table
-     * @param \Closure $action
      *
      * @return void
      */
@@ -87,7 +86,7 @@ class EventHandler
     public function fireEvents($queryBuilder, $event)
     {
         $statements = $queryBuilder->getStatements();
-        $tables = isset($statements['tables']) ? $statements['tables'] : [];
+        $tables = $statements['tables'] ?? [];
 
         // Events added with :any will be fired in case of any table,
         // we are adding :any as a fake table at the beginning.

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Database\Migration;
 
 use Yuga\Database\Migration\Schema\Schema;

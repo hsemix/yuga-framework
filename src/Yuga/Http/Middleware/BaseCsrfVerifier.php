@@ -11,7 +11,7 @@ class BaseCsrfVerifier implements IMiddleware
     const HEADER_KEY = 'X-CSRF-TOKEN';
 
     protected $except;
-    protected $csrfToken;
+    protected \Yuga\CsrfToken $csrfToken;
     protected $token;
 
     public function __construct()
@@ -24,7 +24,6 @@ class BaseCsrfVerifier implements IMiddleware
 
     /**
      * Check if the url matches the urls in the except property
-     * @param Request $request
      * @return bool
      */
     protected function skip(Request $request)
@@ -38,7 +37,7 @@ class BaseCsrfVerifier implements IMiddleware
         for ($i = $max; $i >= 0; $i--) {
             $url = $this->except[$i];
 
-            $url = rtrim($url, '/');
+            $url = rtrim((string) $url, '/');
             if ($url[strlen($url) - 1] === '*') {
                 $url = rtrim($url, '*');
                 $skip = (stripos($request->getUri(), $url) === 0);
@@ -46,7 +45,7 @@ class BaseCsrfVerifier implements IMiddleware
                 $skip = ($url === rtrim($request->getUri(), '/'));
             }
 
-            if ($skip === true) {
+            if ($skip) {
                 return true;
             }
         }
@@ -57,7 +56,7 @@ class BaseCsrfVerifier implements IMiddleware
     public function run(Request $request, \Closure $next)
     {
 
-        if ($this->skip($request) === false && in_array($request->getMethod(), ['post', 'put', 'delete'], false) === true && env('CSRF_PROTECT', true) === true) {
+        if ($this->skip($request) === false && in_array($request->getMethod(), ['post', 'put', 'delete'], false) && env('CSRF_PROTECT', true) === true) {
 
             $token = $request->getInput()->get(static::POST_KEY, null, 'post');
 
@@ -73,13 +72,11 @@ class BaseCsrfVerifier implements IMiddleware
 
                 if (app()->getDebugEnabled() === true) {
                     throw new TokenMismatchException('Invalid csrf-token.');
+                } elseif ($request->isAjax()) {
+                    throw new TokenMismatchException('Your form has expired, please refresh the page and try again.');
                 } else {
-                    if ($request->isAjax()) {
-                        throw new TokenMismatchException('Your form has expired, please refresh the page and try again.');
-                    } else {
-                        $request->setRewriteCallback('Yuga\Controllers\PageController@formExpired');
-                        return $request;
-                    }
+                    $request->setRewriteCallback('Yuga\Controllers\PageController@formExpired');
+                    return $request;
                 }
                 
             }

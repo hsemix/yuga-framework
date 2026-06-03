@@ -12,21 +12,16 @@ class Curl
 {
 
     public AsyncSocket $socket;
-    public string $method;
-    public string $url;
     public string $host;
     public string $scheme;
     public int $port;
     public string $path;
     public string $query;
 
-    public function __construct(string $method, string $url)
+    public function __construct(public string $method, public string $url)
     {
-        $this->method = $method;
-        $this->url = $url;
-
         // Break the URL into components
-        $components = parse_url($url);
+        $components = parse_url($this->url);
         $port = $components['port'] ?? "80"; // Port is a string here
         $this->port = (int) $port; // Force it as an integer
 
@@ -37,10 +32,8 @@ class Curl
 
         // For now, force SSL on 443, but in reality we know
         // you can serve an SSL certificate from any port.
-        if ($this->scheme === "https"){
-            if ($this->port === 80) {
-                $this->port = 443;
-            }
+        if ($this->scheme === "https" && $this->port === 80){
+            $this->port = 443;
         }
 
         $this->socket = new AsyncSocket($this->host, $this->port);
@@ -55,7 +48,7 @@ class Curl
         // and receive data upon connection, ssl:// cannot be used
         // in the initial request. TCP must be used and then
         // crypto must be enabled below
-        return new \Fiber(function () {
+        return new \Fiber(function (): void {
             Async::await($this->socket->connect());
 
             if ($this->scheme === "https") {
@@ -73,7 +66,7 @@ class Curl
             if ($this->method === "get"){
                 $getBody = sprintf("GET %s\r\n", $this->path);
                 $getBody .= sprintf("Host: %s\r\n", $this->host);
-                $getBody .= sprintf("Accept: */*\r\n");
+                $getBody .= "Accept: */*\r\n";
                 $getBody .= "\r\n";
                 $beginTime = time();
 

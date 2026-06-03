@@ -65,6 +65,7 @@ class MakeViewModelCommand extends Command
      *
      * @return void
      */
+    #[\Override]
     protected function createDirectories()
     {
         if (!is_dir($directory = path('app/ViewModels'))) {
@@ -77,6 +78,7 @@ class MakeViewModelCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [

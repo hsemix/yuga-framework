@@ -70,6 +70,7 @@ class MakeRunCommand extends SchedulerCommand
         $this->line("\n");
 		$this->line('**** Completed ****');
         $this->line("\n");
+        return null;
 	}
 
 	/**
@@ -77,6 +78,7 @@ class MakeRunCommand extends SchedulerCommand
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [

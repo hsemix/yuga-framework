@@ -60,32 +60,27 @@ abstract class BaseConnector
 	}
 
 	/**
-	 * send message to queueing system.
-	 *
-	 * @param array  $data
-	 * @param string $queue
-	 */
-	abstract public function send($data, string $queue = '');
+     * send message to queueing system.
+     *
+     * @param array  $data
+     */
+    abstract public function send($data, string $queue = '');
 
 	/**
-	 * Fetch message from queueing system.
-	 * When there are no message, this method will return (won't wait).
-	 *
-	 * @param  callable $callback
-	 * @param  string   $queue
-	 * @return boolean  whether callback is done or not.
-	 */
-	abstract public function fetch(callable $callback, string $queue = '', $shouldStop = false) : bool;
+     * Fetch message from queueing system.
+     * When there are no message, this method will return (won't wait).
+     *
+     * @return boolean  whether callback is done or not.
+     */
+    abstract public function fetch(callable $callback, string $queue = '', $shouldStop = false) : bool;
 
 	/**
-	 * Receive message from queueing system.
-	 * When there are no message, this method will wait.
-	 *
-	 * @param  callable $callback
-	 * @param  string   $queue
-	 * @return boolean  whether callback is done or not.
-	 */
-	abstract public function receive(callable $callback, string $queue = '') : bool;
+     * Receive message from queueing system.
+     * When there are no message, this method will wait.
+     *
+     * @return boolean  whether callback is done or not.
+     */
+    abstract public function receive(callable $callback, string $queue = '') : bool;
 
 	abstract public function reset();
 
@@ -163,7 +158,7 @@ abstract class BaseConnector
 		if ($job instanceof CanFailInterface) {
 			$job->onFailure($queueJob, $exception->getMessage());
 		}
-		event('queue:failure', compact('job', 'queueJob', 'exception'));
+		event('queue:failure', ['job' => $job, 'queueJob' => $queueJob, 'exception' => $exception]);
 	}
 
 	/**
@@ -175,7 +170,7 @@ abstract class BaseConnector
 	protected function fireOnSuccess($data, $queueJob)
 	{
 		$job = unserialize($data['data']['job']);
-		event('queue:successful', compact('job', 'queueJob'));
+		event('queue:successful', ['job' => $job, 'queueJob' => $queueJob]);
 	}
 
 	/**
@@ -192,6 +187,7 @@ abstract class BaseConnector
             $payload = $this->createObjectPayload($job, $data);
         	return json_encode($payload);
 		}
+        return null;
     }
 
 	/**
@@ -199,17 +195,16 @@ abstract class BaseConnector
      *
      * @param  object  $job
      * @param  mixed   $data
-     * @return string
      */
     protected function createObjectPayload($job, $data = []): bool
     {
-        $jobName = get_class($job);
+        $jobName = $job::class;
 
         $job = serialize(clone $job);
 
         $this->send([
             'job'  => 'Yuga\Queue\CallQueuedHandler@call',
-            'data' => compact('jobName', 'job'),
+            'data' => ['jobName' => $jobName, 'job' => $job],
 		]);
 
 		return true;
@@ -257,8 +252,6 @@ abstract class BaseConnector
 
     /**
      * Sleep
-     *
-     * @return null
      */
     public function sleep()
     {

@@ -7,13 +7,10 @@ use Yuga\Database\Migration\Schema\Table as SqlTable;
 
 class Table extends SqlTable
 {
-    protected $name;
     protected $columns = [];
     
-    public function __construct($name = null, $getTableSchema = false)
+    public function __construct(protected $name = null, $getTableSchema = false)
     {
-        $this->name = $name;
-
         if ($getTableSchema) {
             $this->getTableColumns();
         }
@@ -78,11 +75,7 @@ class Table extends SqlTable
             if ($excludePrimary && $column->getIndex() === Column::INDEX_PRIMARY) {
                 continue;
             }
-            if ($lower) {
-                $names[] = strtolower($column->getName());
-            } else {
-                $names[] = $column->getName();
-            }
+            $names[] = $lower ? strtolower((string) $column->getName()) : $column->getName();
         }
 
         return $names;
@@ -92,7 +85,7 @@ class Table extends SqlTable
     {
         /* @var $column Column */
         foreach ($this->columns as $column) {
-            if (($strict === true && $column->getName() === $name) || ($strict === false && strtolower($column->getName()) === strtolower($name))) {
+            if (($strict === true && $column->getName() === $name) || ($strict === false && strtolower((string) $column->getName()) === strtolower((string) $name))) {
                 return $column;
             }
         }
@@ -138,8 +131,7 @@ class Table extends SqlTable
             foreach ($this->columns as $column) {
                 $query[] = $column->getQuery();
             }
-            $sql = sprintf('create table %s (%s);', $this->name, implode(', ', $query));
-            return $sql;
+            return sprintf('create table %s (%s);', $this->name, implode(', ', $query));
         }
 
         throw new \Exception('No Columns have been created yet');
@@ -214,6 +206,7 @@ class Table extends SqlTable
             }
             return false; 
         }
+        return null;
 
     }
 
@@ -235,12 +228,12 @@ class Table extends SqlTable
 
     public function dropColumn($column)
     {
-        $tableColumns = $this->getTableColumns();
+        $this->getTableColumns();
         $originalName = $this->getName();
         $tempName = 'temp_'.$originalName;
         $query = 'BEGIN TRANSACTION;';
 
-        $renameTable = $this->rename($tempName);
+        $this->rename($tempName);
 
         $newTable = new static($tempName, true);
         $createNewTable = $newTable->copyTo($originalName, [$column]);
@@ -290,10 +283,8 @@ class Table extends SqlTable
 
     public function renameColumn(string $fromName, string $toName)
     {
-        if ($this->exists()) {
-            if ($this->columnExists($fromName)) {
-                PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" RENAME COLUMN "%s" TO %s', $this->name, $fromName, $toName));
-            }
+        if ($this->exists() && $this->columnExists($fromName)) {
+            PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" RENAME COLUMN "%s" TO %s', $this->name, $fromName, $toName));
         }
     }
 }

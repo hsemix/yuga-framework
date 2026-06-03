@@ -34,8 +34,9 @@ class FileLocator
 
     public function getClassesOfNamespace($namespace)
     {
-        if(!isset($this->namespaceMap[$namespace]))
+        if (!isset($this->namespaceMap[$namespace])) {
             throw new InvalidArgumentException('The Namespace '.$namespace.' doesnot exist');
+        }
         
         return $this->namespaceMap[$namespace];
     }

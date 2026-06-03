@@ -4,11 +4,14 @@ namespace Yuga\Database\Migration\Schema;
 
 class Schema
 {
+    /**
+     * @var string
+     */
     public $sqlTable;
 
     public function __construct()
     {
-        $this->sqlTable = '\Yuga\Database\Migration\Schema\\'.ucfirst(env('DATABASE_DRIVER', 'mysql')).'\\Table';
+        $this->sqlTable = '\Yuga\Database\Migration\Schema\\'.ucfirst((string) env('DATABASE_DRIVER', 'mysql')).'\\Table';
     }
     public function create($name, $callback)
     {

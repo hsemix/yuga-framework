@@ -12,8 +12,6 @@ class ClosureJob implements ShouldQueueInterface
 
     /**
      * Create a new job instance.
-     *
-     * @return void
      */
     public function __construct(public $job, public $data = [])
     {

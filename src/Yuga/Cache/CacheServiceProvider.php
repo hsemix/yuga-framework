@@ -22,13 +22,9 @@ class CacheServiceProvider extends ServiceProvider
         });
 
         if ($app->runningInConsole()) {
-            $app->singleton('command.cache.clear', function ($app) {
-                return new Console\ClearCommand($app['cache'], $app['files']);
-            });
+            $app->singleton('command.cache.clear', fn($app) => new Console\ClearCommand($app['cache'], $app['files']));
 
-            $app->singleton('command.cache.forget', function ($app) {
-                return new Console\ForgetCommand($app['cache']);
-            });
+            $app->singleton('command.cache.forget', fn($app) => new Console\ForgetCommand($app['cache']));
 
             $this->commands(['command.cache.clear', 'command.cache.forget']);
         }

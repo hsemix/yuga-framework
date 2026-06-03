@@ -30,7 +30,7 @@ class MailableServiceProvider extends ServiceProvider
             $mailableClass = '\Yuga\Mailables\\'.$mailable.'\\'.$mailable;
         }
         
-        $connection = $app->singleton('mailable', $mailableClass);
+        $app->singleton('mailable', $mailableClass);
         $app->resolve('mailable', [
             $settings
         ]);
@@ -39,11 +39,9 @@ class MailableServiceProvider extends ServiceProvider
 
     /**
      * Set the mailer used and return a new singleton instance of that mailer
-     * 
-     * @param \Yuga\Interfaces\Application\Application $app
+     *
      * @param object $mailable
      * @param array $settings
-     * 
      * @return \Yuga\Mailables\Mailer $mailer
      */
     protected function mailer(Application $app, $mailable, $settings)

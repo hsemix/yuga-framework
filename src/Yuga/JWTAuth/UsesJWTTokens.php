@@ -29,9 +29,9 @@ trait UsesJWTTokens
     public function generateDefaults(array $payload = []): array
     {
         $issuedAt = new DateTime('now');
-        $expiryAt = (new DateTime('now'))->modify('+3 month');
+        $expiryAt = new DateTime('now')->modify('+3 month');
         $host = request()->getHost();
-        if (empty($payload)) {
+        if ($payload === []) {
             return [
                 'iat' => $issuedAt->getTimestamp(),
                 'iss' => $host,

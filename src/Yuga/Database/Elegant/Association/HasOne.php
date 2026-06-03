@@ -8,19 +8,13 @@ use Yuga\Database\Elegant\Builder;
 class HasOne extends Association
 {
     protected $child;
-    protected $query;
-    protected $parent;
-    protected $otherKey;
-    protected $foreignKey;
+    protected \Yuga\Database\Elegant\Builder $query;
     
-    public function __construct(Builder $query, Model $parent, $foreignKey, $otherKey)
+    public function __construct(Builder $query, protected \Yuga\Database\Elegant\Model $parent, protected $foreignKey, protected $otherKey)
     {
-        $this->otherKey = $otherKey;
         $this->child = $query->getModel();
-        $this->foreignKey = $foreignKey;
         $this->query = $query;
-        $this->parent = $parent;
-        parent::__construct($query, $parent);
+        parent::__construct($query, $this->parent);
     }
     
     public function addConditions()
@@ -42,7 +36,7 @@ class HasOne extends Association
 
     public function getPlainForeignKey()
     {
-        $foreign = explode(".", $this->foreignKey);
+        $foreign = explode(".", (string) $this->foreignKey);
         return end($foreign);
     }
     

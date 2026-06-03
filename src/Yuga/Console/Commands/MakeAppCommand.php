@@ -73,14 +73,14 @@ class MakeAppCommand extends Command
 
         $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Commands');
 
-        $namespace->addUse('Yuga\Console\Command');
-        $namespace->addUse('Yuga\Interfaces\Commands\CommandInterface');
-        $namespace->addUse('Symfony\Component\Console\Input\InputOption');
-        $namespace->addUse('Symfony\Component\Console\Input\InputArgument');
+        $namespace->addUse(\Yuga\Console\Command::class);
+        $namespace->addUse(\Yuga\Interfaces\Commands\CommandInterface::class);
+        $namespace->addUse(\Symfony\Component\Console\Input\InputOption::class);
+        $namespace->addUse(\Symfony\Component\Console\Input\InputArgument::class);
         
         $class = $namespace->addClass(trim($name));
-        $class->addImplement('Yuga\Interfaces\Commands\CommandInterface');
-        $class->setExtends('Yuga\Console\Command');
+        $class->addImplement(\Yuga\Interfaces\Commands\CommandInterface::class);
+        $class->setExtends(\Yuga\Console\Command::class);
         $classMethod = $class->addMethod('handle')->setBody('return $this->info("Successful");');
         $classMethod->addComment('@return mixed');
         $class->addProperty('name', str_replace('command', '', 'app:' . strtolower($name)))->setProtected()->addComment('@var string');
@@ -98,8 +98,9 @@ class MakeAppCommand extends Command
             $commands = require path('config/AppCommands.php');
         }
         $commandToMake = env('APP_NAMESPACE', 'App') . '\\Commands\\' . $commandName;
-        if (!in_array($commandToMake, $commands))
+        if (!in_array($commandToMake, $commands)) {
             $commands[] = $commandToMake;
+        }
 
         $generatedCommands = '[';
         foreach ($commands as $command) {
@@ -107,13 +108,11 @@ class MakeAppCommand extends Command
         }
         $generatedCommands .= "\n];";
 
-        $commandsFile = str_replace(
+        return str_replace(
             '{commands}',
             $generatedCommands,
             file_get_contents(__DIR__ . '/temps/commands.temp')
         );
-
-        return $commandsFile;
     }
 
     /**
@@ -121,6 +120,7 @@ class MakeAppCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [

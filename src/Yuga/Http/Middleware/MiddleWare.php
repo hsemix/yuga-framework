@@ -21,7 +21,7 @@ class MiddleWare
         
     ];
 
-    public function except(array|string $except = null)
+    public function except(array|string|null $except = null)
     {
         if (is_array($except)) {
             $this->except = $except;

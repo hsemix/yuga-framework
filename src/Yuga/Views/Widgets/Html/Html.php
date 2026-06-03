@@ -2,12 +2,11 @@
 
 namespace Yuga\Views\Widgets\Html;
 
-class Html
+class Html implements \Stringable
 {
     const CLOSE_TYPE_TAG = 'tag';
     const CLOSE_TYPE_NONE = 'none';
     const CLOSE_TYPE_SHORT = 'short';
-    protected $tag;
     protected $innerHtml = [];
     protected $closingType;
     protected $prepended = [];
@@ -19,9 +18,8 @@ class Html
     protected static $instance;
     
 
-    public function __construct($tag)
+    public function __construct(protected $tag)
     {
-        $this->tag = $tag;
         $this->closingType = static::CLOSE_TYPE_TAG;
 
         if (!static::$instance) {
@@ -42,7 +40,6 @@ class Html
     }
 
     /**
-     * @param array $html
      * @return static
      */
     public function setInnerHtml(array $html)
@@ -73,7 +70,7 @@ class Html
      */
     public function replaceAttribute($name, $value = '')
     {
-        $this->attributes[$name] = array($value);
+        $this->attributes[$name] = [$value];
 
         return $this;
     }
@@ -104,7 +101,6 @@ class Html
     }
 
     /**
-     * @param array $attributes
      * @return static $this
      */
     public function setAttributes(array $attributes)
@@ -117,7 +113,6 @@ class Html
     }
 
     /**
-     * @param array $attributes
      * @return static $this
      */
     public function addAttributes(array $attributes)
@@ -126,7 +121,6 @@ class Html
     }
 
     /**
-     * @param array $attributes
      * @return static $this
      */
     public function setParentAttributes(array $attributes)
@@ -136,7 +130,6 @@ class Html
     }
 
     /**
-     * @param array $attributes
      * @return static $this
      */
     public function addParentAttributes(array $attributes)
@@ -174,7 +167,7 @@ class Html
 
         foreach ($this->attributes as $key => $val) {
             $output .= ' ' . $key;
-            if ($val[0] !== null || strtolower($key) === 'value') {
+            if ($val[0] !== null || strtolower((string) $key) === 'value') {
                 $val = htmlentities(implode(' ', $val), ENT_QUOTES, app()->getCharset());
                 $output .= '="' . $val . '"';
             }
@@ -266,9 +259,9 @@ class Html
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        return $this->render();
+        return (string) $this->render();
     }
 
     public function getInnerHtml()
@@ -280,7 +273,7 @@ class Html
 
     public function getAttribute($name)
     {
-        return isset($this->attributes[$name]) ? $this->attributes[$name] : null;
+        return $this->attributes[$name] ?? null;
     }
 
     public function getClass()
@@ -337,13 +330,11 @@ class Html
         if ($attributes !== null && isset($attributes[$name])) {
 
             if ($strict === true) {
-                if (in_array($value, $attributes[$name], true) === true) {
+                if (in_array($value, $attributes[$name], true)) {
                     return $element;
                 }
-            } else {
-                if (in_array($value, array_values($attributes[$name])) !== false) {
-                    return $element;
-                }
+            } elseif (in_array($value, $attributes[$name])) {
+                return $element;
             }
 
         }
@@ -355,7 +346,6 @@ class Html
      * Set parent html
      *
      * @param Html|string|null $parent
-     * @param array $attributes
      * @return static
      */
     public function setParent($parent = null, array $attributes = [])
@@ -364,7 +354,7 @@ class Html
             if ($parent instanceof static) {
                 $this->parent = $parent->setAttributes($attributes);
             } else {
-                $this->parent = (new self($parent))->setAttributes($attributes);
+                $this->parent = new self($parent)->setAttributes($attributes);
             }
         }
         

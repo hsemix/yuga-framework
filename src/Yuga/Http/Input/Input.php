@@ -21,15 +21,8 @@ class Input
      */
     public $file = [];
 
-    /**
-     * @var Request
-     */
-    protected $request;
-
-    public function __construct(Request $request)
+    public function __construct(protected \Yuga\Http\Request $request)
     {
-        $this->request = $request;
-
         $this->parseInputs();
     }
 
@@ -45,7 +38,7 @@ class Input
         // $postVars = $_POST;
         $postVars = filter_var_array($_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
-        if (in_array($this->request->getMethod(), ['put', 'patch', 'delete'], false) === true) {
+        if (in_array($this->request->getMethod(), ['put', 'patch', 'delete'], false)) {
             parse_str(file_get_contents('php://input'), $postVars);
         }
 
@@ -63,7 +56,7 @@ class Input
     {
         $list = [];
 
-        foreach ((array)$_FILES as $key => $value) {
+        foreach ($_FILES as $key => $value) {
 
             // Handle array input
             if (is_array($value['name']) === false) {
@@ -89,7 +82,6 @@ class Input
 
     protected function rearrangeFiles(array $values, &$index, $original)
     {
-        $output = [];
         $getItem = function ($key, $property = 'name') use ($original, $index) {
 
             $path = $original[$property];
@@ -102,10 +94,7 @@ class Input
 
             return $path[$key];
         };
-
-        
-        $output = $this->generateFiles($values, $getItem);
-        return $output;
+        return $this->generateFiles($values, $getItem);
     }
 
     protected function generateFiles(array $values, \Closure $getItem)
@@ -186,7 +175,7 @@ class Input
         if ($string = file_get_contents("php://input")) {
             $input = array_merge($this->post, filter_var_array((array)json_decode($string, true), FILTER_SANITIZE_FULL_SPECIAL_CHARS));
         }
-        return isset($input[$index]) ? $input[$index] : $defaultValue;
+        return $input[$index] ?? $defaultValue;
     }
 
     /**
@@ -198,7 +187,7 @@ class Input
      */
     public function findFile($index, $defaultValue = null)
     {
-        return isset($this->file[$index]) ? $this->file[$index] : $defaultValue;
+        return $this->file[$index] ?? $defaultValue;
     }
 
     /**
@@ -210,7 +199,7 @@ class Input
      */
     public function findGet($index, $defaultValue = null)
     {
-        return isset($this->get[$index]) ? $this->get[$index] : $defaultValue;
+        return $this->get[$index] ?? $defaultValue;
     }
 
     /**
@@ -223,7 +212,7 @@ class Input
      */
     public function getObject($index, $defaultValue = null, $methods = null)
     {
-        if ($methods !== null && is_string($methods) === true) {
+        if ($methods !== null && is_string($methods)) {
             $methods = [$methods];
         }
 
@@ -241,7 +230,7 @@ class Input
             $element = $this->findFile($index);
         }
 
-        return ($element !== null) ? $element : $defaultValue;
+        return $element ?? $defaultValue;
     }
 
     /**
@@ -279,15 +268,15 @@ class Input
      * @param array|null $filter Only take items in filter
      * @return array
      */
-    public function all(array $filter = null)
+    public function all(?array $filter = null)
     {
         $output = $_POST;
 
-        if ($this->request->getMethod() === 'post' || $this->request->getMethod() === 'patch' || $this->request->getMethod() === 'put') {
+        if (in_array($this->request->getMethod(), ['post', 'patch', 'put'], true)) {
 
             $contents = file_get_contents('php://input');
 
-            if (strpos(trim($contents), '{') === 0) {
+            if (str_starts_with(trim($contents), '{')) {
                 $output = json_decode($contents, true);
                 if ($output === false) {
                     $output = [];
@@ -311,12 +300,8 @@ class Input
 	{
         $file = static::file("{$key}.tmp_name");
         if (is_array($file)) {
-            if ($file[0] === '')
-                return false;
-            return true;
+            return $file[0] !== '';
         }
-        if ($file === '' || $file === null)
-            return false;
-        return true;
+        return $file !== '' && $file !== null;
 	}
 }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * @author Mahad Tech Solutions
  */
@@ -8,12 +11,4 @@ use Yuga\Database\Elegant\Model;
 
 class ElegantModel extends Model
 {
-    /**
-     * @param \array $options
-     * @return null
-     */
-    public function __construct(array $options = [])
-    {
-        parent::__construct($options);
-    }    
 }

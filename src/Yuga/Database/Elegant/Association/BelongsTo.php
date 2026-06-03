@@ -9,15 +9,8 @@ use Yuga\Database\Elegant\Collection;
 class BelongsTo extends Association
 {
 
-    protected $child;
-    protected $otherKey;
-    protected $foreignKey;
-
-    public function __construct(Builder $query, Model $parent, $foreignKey, $otherKey, $child)
+    public function __construct(Builder $query, Model $parent, protected $foreignKey, protected $otherKey, protected $child)
     {
-        $this->otherKey = $otherKey;
-        $this->child = $child;
-        $this->foreignKey = $foreignKey;
         $this->parent = $parent;
         $this->query = $query;
         parent::__construct($query, $parent);

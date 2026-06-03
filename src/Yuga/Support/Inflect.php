@@ -104,22 +104,25 @@ class Inflect
     public static function pluralize($string) 
     {
         // save some time in the case that singular and plural are the same
-        if (in_array(strtolower($string), self::$uncountable))
+        if (in_array(strtolower((string) $string), self::$uncountable)) {
             return $string;
+        }
             
     
         // check for irregular singular forms
         foreach (self::$irregular as $pattern => $result) {
             $pattern = '/' . $pattern . '$/i';
             
-            if (preg_match($pattern, $string))
-                return preg_replace($pattern, $result, $string);
+            if (preg_match($pattern, (string) $string)) {
+                return preg_replace($pattern, (string) $result, (string) $string);
+            }
         }
         
         // check for matches using regular expressions
         foreach (self::$plural as $pattern => $result) {
-            if (preg_match( $pattern, $string))
-                return preg_replace($pattern, $result, $string);
+            if (preg_match( $pattern, (string) $string)) {
+                return preg_replace($pattern, (string) $result, (string) $string);
+            }
         }
         
         return $string;
@@ -128,23 +131,26 @@ class Inflect
     public static function singularize( $string )
     {
         // save some time in the case that singular and plural are the same
-        if ( in_array( strtolower( $string ), self::$uncountable ) )
+        if (in_array( strtolower( (string) $string ), self::$uncountable )) {
             return $string;
+        }
 
         // check for irregular plural forms
         foreach ( self::$irregular as $result => $pattern )
         {
             $pattern = '/' . $pattern . '$/i';
             
-            if ( preg_match( $pattern, $string ) )
-                return preg_replace( $pattern, $result, $string);
+            if (preg_match( $pattern, (string) $string )) {
+                return preg_replace( $pattern, (string) $result, (string) $string);
+            }
         }
         
         // check for matches using regular expressions
         foreach ( self::$singular as $pattern => $result )
         {
-            if ( preg_match( $pattern, $string ) )
-                return preg_replace( $pattern, $result, $string );
+            if (preg_match( $pattern, (string) $string )) {
+                return preg_replace( $pattern, (string) $result, (string) $string );
+            }
         }
         
         return $string;
@@ -152,10 +158,11 @@ class Inflect
       
     public static function pluralize_if($count, $string)
     {
-        if ($count == 1)
+        if ($count == 1) {
             return "1 $string";
-        else
+        } else {
             return $count . " " . self::pluralize($string);
+        }
     }
     
 	public static function toWords($number) 
@@ -165,7 +172,7 @@ class Inflect
 		$separator   = ', ';
 		$negative    = 'negative ';
 		$decimal     = ' point ';
-		$dictionary  = array(
+		$dictionary  = [
 			0                   => 'zero',
 			1                   => 'one',
 			2                   => 'two',
@@ -201,13 +208,13 @@ class Inflect
 			1000000000000       => 'trillion',
 			1000000000000000    => 'quadrillion',
 			1000000000000000000 => 'quintillion'
-		);
+		];
 	   
 		if (!is_numeric($number)) {
 			return false;
 		}
 	   
-		if (($number >= 0 && (int) $number < 0) || (int) $number < 0 - PHP_INT_MAX) {
+		if (($number >= 0 && (int) $number < 0) || (int) $number < -PHP_INT_MAX) {
 			// overflow
 			trigger_error(
 				'convert_number_to_words only accepts numbers between -' . PHP_INT_MAX . ' and ' . PHP_INT_MAX,
@@ -222,8 +229,8 @@ class Inflect
 	   
 		$string = $fraction = null;
 	   
-		if (strpos($number, '.') !== false) {
-			list($number, $fraction) = explode('.', $number);
+		if (str_contains($number, '.')) {
+			[$number, $fraction] = explode('.', $number);
 		}
 	   
 		switch (true) {
@@ -247,7 +254,7 @@ class Inflect
 				}
 				break;
 			default:
-				$baseUnit = pow(1000, floor(log($number, 1000)));
+				$baseUnit = 1000 ** floor(log($number, 1000));
 				$numBaseUnits = (int) ($number / $baseUnit);
 				$remainder = $number % $baseUnit;
 				$string = self::toWords($numBaseUnits) . ' ' . $dictionary[$baseUnit];
@@ -261,7 +268,7 @@ class Inflect
 		if (null !== $fraction && is_numeric($fraction)) {
 			$string .= $decimal;
 			$words = [];
-			foreach (str_split((string) $fraction) as $number) {
+			foreach (str_split($fraction) as $number) {
 				$words[] = $dictionary[$number];
 			}
 			$string .= implode(' ', $words);

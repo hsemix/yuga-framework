@@ -55,6 +55,7 @@ class MakeServiceProviderCommand extends Command
      *
      * @return void
      */
+    #[\Override]
     protected function createDirectories()
     {
         if (!is_dir($directory = path('app/Providers'))) {
@@ -67,6 +68,7 @@ class MakeServiceProviderCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [
@@ -86,8 +88,9 @@ class MakeServiceProviderCommand extends Command
 
         $providerToMake = env('APP_NAMESPACE', 'App') . '\\Providers\\' . $name;
 
-        if (!in_array($providerToMake, $providers))
+        if (!in_array($providerToMake, $providers)) {
             $providers[] = $providerToMake;
+        }
 
         $generatedProviders = '[';
         foreach ($providers as $provider) {

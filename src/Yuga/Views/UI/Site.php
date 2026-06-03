@@ -5,6 +5,14 @@ use Yuga\Views\Widgets\Html\Html;
 
 class Site
 {
+    /**
+     * @var never[]
+     */
+    public $cssFilesWrapped;
+    /**
+     * @var never[]
+     */
+    public $jsFilesWrapped;
     const SECTION_DEFAULT = 'default';
     protected $title;
     protected $js = [];
@@ -102,12 +110,12 @@ class Site
 
     public function getJs($section = self::SECTION_DEFAULT)
     {
-        return isset($this->js[$section]) ? $this->js[$section] : [];
+        return $this->js[$section] ?? [];
     }
 
     public function getCss($section = self::SECTION_DEFAULT)
     {
-        return isset($this->css[$section]) ? $this->css[$section] : [];
+        return $this->css[$section] ?? [];
     }
 
     public function getDocType()

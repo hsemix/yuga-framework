@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Route\Support;
 
 use Yuga\Http\Request;
@@ -18,8 +21,6 @@ interface ILoadableRoute extends IRoute
 
     /**
      * Loads and renders middlewares-classes
-     *
-     * @param Request $request
      */
     public function loadMiddleware(Request $request);
 

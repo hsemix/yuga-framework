@@ -17,12 +17,10 @@ use Yuga\Exceptions\SchedulerException;
 trait FrequenciesTrait
 {
 	/**
-	 * If listed, will restrict this to running
-	 * within only those environments.
-	 *
-	 * @var null
-	 */
-	protected $allowedEnvironments = null;
+     * If listed, will restrict this to running
+     * within only those environments.
+     */
+    protected $allowedEnvironments;
 
 	/**
 	 * The generated cron expression
@@ -42,35 +40,33 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Schedules the task through a raw crontab expression string.
-	 *
-	 * @param string $expression
-	 *
-	 * @return $this
-	 */
-	public function cron(string $expression)
+     * Schedules the task through a raw crontab expression string.
+     *
+     *
+     * @return $this
+     */
+    public function cron(string $expression)
 	{
 		if (!\Cron\CronExpression::isValidExpression($expression)) {
 			throw SchedulerException::forInvalidExpression();
 		}
 
-		$this->expression = (new \Cron\CronExpression($expression))->getExpression();
+		$this->expression = new \Cron\CronExpression($expression)->getExpression();
 
 		return $this;
 	}
 
 	/**
-	 * Runs daily at midnight, unless a time string is
-	 * passed in (like 4:08 pm)
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function daily(string $time = null)
+     * Runs daily at midnight, unless a time string is
+     * passed in (like 4:08 pm)
+     *
+     *
+     * @return $this
+     */
+    public function daily(?string $time = null)
 	{
 		$min = $hour = 0;
-		if (!empty($time)) {
+		if (!in_array($time, [null, '', '0'], true)) {
 			[$min, $hour] = $this->parseTime( $time );
 		}
 
@@ -89,11 +85,11 @@ trait FrequenciesTrait
 	 *
 	 * @return $this
 	 */
-	public function hourly(int $minute = null)
+	public function hourly(?int $minute = null)
 	{
 		$cron = new \Cron\CronExpression( $this->expression );
 
-		$minute = ( $minute ) ? $minute : '0';
+		$minute = $minute ?: '0';
 
 		$cron->setPart( 0, $minute );
 		$cron->setPart( 1, '*' );
@@ -105,17 +101,15 @@ trait FrequenciesTrait
 
 
 	/**
-	 * Runs at every hour or every x hours
-	 *
-	 * @param int  $hour
-	 * @param null $minute
-	 * @return self
-	 */
-	public function everyHour( int $hour = 1, $minute = null )
+     * Runs at every hour or every x hours
+     *
+     * @return self
+     */
+    public function everyHour( int $hour = 1, $minute = null )
 	{
 		$cron = new \Cron\CronExpression( $this->expression );
 
-		$minute = ( $minute ) ? $minute : '0';
+		$minute = $minute ?: '0';
 		$hour = ( $hour === 1 ) ? '*' : '*/' . $hour;
 
 		$cron->setPart( 0, $minute );
@@ -127,13 +121,11 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Runs in a specific range of hours
-	 *
-	 * @param int $fromHour
-	 * @param int $toHour
-	 * @return self
-	 */
-	public function betweenHours( int $fromHour, int $toHour )
+     * Runs in a specific range of hours
+     *
+     * @return self
+     */
+    public function betweenHours( int $fromHour, int $toHour )
 	{
 		$cron = new \Cron\CronExpression( $this->expression );
 		$cron->setPart( 1, $fromHour . "-" . $toHour );
@@ -144,12 +136,11 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Runs on a specific choosen hours
-	 *
-	 * @param array $hours
-	 * @return self
-	 */
-	public function hours( array $hours )
+     * Runs on a specific choosen hours
+     *
+     * @return self
+     */
+    public function hours( array $hours )
 	{
 		$cron = new \Cron\CronExpression( $this->expression );
 
@@ -213,13 +204,11 @@ trait FrequenciesTrait
 
 
 	/**
-	 * Runs in a specific range of minutes
-	 *
-	 * @param int $fromMinute
-	 * @param int $toMinute
-	 * @return self
-	 */
-	public function betweenMinutes( int $fromMinute, int $toMinute )
+     * Runs in a specific range of minutes
+     *
+     * @return self
+     */
+    public function betweenMinutes( int $fromMinute, int $toMinute )
 	{
 		$cron = new \Cron\CronExpression( $this->expression );
 
@@ -231,12 +220,11 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Runs on a specific choosen minutes
-	 *
-	 * @param array $minutes
-	 * @return self
-	 */
-	public function minutes( array $minutes )
+     * Runs on a specific choosen minutes
+     *
+     * @return self
+     */
+    public function minutes( array $minutes )
 	{
 		$cron = new \Cron\CronExpression( $this->expression );
 
@@ -270,101 +258,93 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Runs every Sunday at midnight, unless time passed in.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function sundays(string $time = null)
+     * Runs every Sunday at midnight, unless time passed in.
+     *
+     *
+     * @return $this
+     */
+    public function sundays(?string $time = null)
 	{
 		return $this->setDayOfWeek(0, $time);
 	}
 
 	/**
-	 * Runs every monday at midnight, unless time passed in.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function mondays(string $time = null)
+     * Runs every monday at midnight, unless time passed in.
+     *
+     *
+     * @return $this
+     */
+    public function mondays(?string $time = null)
 	{
 		return $this->setDayOfWeek(1, $time);
 	}
 
 	/**
-	 * Runs every Tuesday at midnight, unless time passed in.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function tuesdays(string $time = null)
+     * Runs every Tuesday at midnight, unless time passed in.
+     *
+     *
+     * @return $this
+     */
+    public function tuesdays(?string $time = null)
 	{
 		return $this->setDayOfWeek(2, $time);
 	}
 
 	/**
-	 * Runs every Wednesday at midnight, unless time passed in.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function wednesdays(string $time = null)
+     * Runs every Wednesday at midnight, unless time passed in.
+     *
+     *
+     * @return $this
+     */
+    public function wednesdays(?string $time = null)
 	{
 		return $this->setDayOfWeek(3, $time);
 	}
 
 	/**
-	 * Runs every Thursday at midnight, unless time passed in.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function thursdays(string $time = null)
+     * Runs every Thursday at midnight, unless time passed in.
+     *
+     *
+     * @return $this
+     */
+    public function thursdays(?string $time = null)
 	{
 		return $this->setDayOfWeek(4, $time);
 	}
 
 	/**
-	 * Runs every Friday at midnight, unless time passed in.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function fridays(string $time = null)
+     * Runs every Friday at midnight, unless time passed in.
+     *
+     *
+     * @return $this
+     */
+    public function fridays(?string $time = null)
 	{
 		return $this->setDayOfWeek(5, $time);
 	}
 
 	/**
-	 * Runs every Saturday at midnight, unless time passed in.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function saturdays(string $time = null)
+     * Runs every Saturday at midnight, unless time passed in.
+     *
+     *
+     * @return $this
+     */
+    public function saturdays(?string $time = null)
 	{
 		return $this->setDayOfWeek(6, $time);
 	}
 
 	/**
-	 * Should run the first day of every month.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function monthly(string $time = null)
+     * Should run the first day of every month.
+     *
+     *
+     * @return $this
+     */
+    public function monthly(?string $time = null)
 	{
 		$min = $hour = 0;
 
-		if( !empty( $time ) )
+		if( !in_array($time, [null, '', '0'], true) )
 		{
 			[ $min, $hour ] = $this->parseTime( $time );
 		}
@@ -400,12 +380,11 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Runs on specific months
-	 *
-	 * @param array $months
-	 * @return self
-	 */
-	public function months(array $months = [])
+     * Runs on specific months
+     *
+     * @return self
+     */
+    public function months(array $months = [])
 	{
 		$cron = new \Cron\CronExpression( $this->expression );
 
@@ -417,20 +396,19 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Should run the first day of each quarter,
-	 * i.e. Jan 1, Apr 1, July 1, Oct 1
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function quarterly(string $time = null)
+     * Should run the first day of each quarter,
+     * i.e. Jan 1, Apr 1, July 1, Oct 1
+     *
+     *
+     * @return $this
+     */
+    public function quarterly(?string $time = null)
 	{
 		$min = $hour = 0;
 
 		$cron = new \Cron\CronExpression( $this->expression );
 
-		if( !empty( $time ) )
+		if( !in_array($time, [null, '', '0'], true) )
 		{
 			[ $min, $hour ] = $this->parseTime( $time );
 		}
@@ -446,19 +424,18 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Should run the first day of the year.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function yearly(string $time = null)
+     * Should run the first day of the year.
+     *
+     *
+     * @return $this
+     */
+    public function yearly(?string $time = null)
 	{
 		$min = $hour = 0;
 
 		$cron = new \Cron\CronExpression( $this->expression );
 
-		if( !empty( $time ) )
+		if( !in_array($time, [null, '', '0'], true) )
 		{
 			[ $min, $hour ] = $this->parseTime( $time );
 		}
@@ -474,19 +451,18 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Should run M-F.
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function weekdays(string $time = null)
+     * Should run M-F.
+     *
+     *
+     * @return $this
+     */
+    public function weekdays(?string $time = null)
 	{
 		$min = $hour = 0;
 
 		$cron = new \Cron\CronExpression( $this->expression );
 
-		if( !empty( $time ) )
+		if( !in_array($time, [null, '', '0'], true) )
 		{
 			[ $min, $hour ] = $this->parseTime( $time );
 		}
@@ -501,19 +477,18 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Should run Saturday and Sunday
-	 *
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	public function weekends(string $time = null)
+     * Should run Saturday and Sunday
+     *
+     *
+     * @return $this
+     */
+    public function weekends(?string $time = null)
 	{
 		$min = $hour = 0;
 
 		$cron = new \Cron\CronExpression( $this->expression );
 
-		if( !empty( $time ) )
+		if( !in_array($time, [null, '', '0'], true) )
 		{
 			[ $min, $hour ] = $this->parseTime( $time );
 		}
@@ -529,20 +504,17 @@ trait FrequenciesTrait
 
 
 	/**
-	 * Internal function used by the everyMonday, etc functions.
-	 *
-	 * @param integer     $day
-	 * @param string|null $time
-	 *
-	 * @return $this
-	 */
-	protected function setDayOfWeek(int $day, string $time = null)
+     * Internal function used by the everyMonday, etc functions.
+     *
+     * @return $this
+     */
+    protected function setDayOfWeek(int $day, ?string $time = null)
 	{
 		$min = $hour = '*';
 
 		$cron = new \Cron\CronExpression( $this->expression );
 
-		if( !empty( $time ) )
+		if( !in_array($time, [null, '', '0'], true) )
 		{
 			[ $min, $hour ] = $this->parseTime( $time );
 		}
@@ -557,11 +529,9 @@ trait FrequenciesTrait
 	}
 
 	/**
-	 * Parses a time string (like 4:08 pm) into mins and hours
-	 *
-	 * @param string $time
-	 */
-	protected function parseTime(string $time)
+     * Parses a time string (like 4:08 pm) into mins and hours
+     */
+    protected function parseTime(string $time)
 	{
 		$time = strtotime($time);
 

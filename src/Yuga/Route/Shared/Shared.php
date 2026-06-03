@@ -14,7 +14,7 @@ trait Shared
     protected function isSingleton(Application $app, $class)
     {
         foreach(array_values($app->getSingletons()) as $instance){
-            if(get_class($instance) == $class){
+            if($instance::class == $class){
                 return $instance;
             }
         }
@@ -23,7 +23,6 @@ trait Shared
 
     protected function methodInjection($class, $method, $params, $request = null)
     {
-        $parameters = null;
         $app = Application::getInstance();
         $reflection = new ReflectionClass($class);
         if ($reflection->hasMethod($method)) {
@@ -35,11 +34,7 @@ trait Shared
                 
                 if (!is_null($name)) {
                     $dependency = $name;
-                    if($binding = $this->isSingleton($app, $dependency)) {
-                        $dependecies[] = $binding;
-                    } else {
-                        $dependecies[] = $app->resolve($dependency);
-                    }
+                    $dependecies[] = ($binding = $this->isSingleton($app, $dependency)) ? $binding : $app->resolve($dependency);
                 }
             } 
             foreach ($params as $paramVal) {

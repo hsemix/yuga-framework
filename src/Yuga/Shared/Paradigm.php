@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Shared;
 
 use App\ViewModels\Home;
@@ -27,13 +28,7 @@ trait Paradigm
      */
     public function getHome()
     {
-        if ($this->getStyle() == 'mvc') {
-            $home = 'home';
-        } else {
-            $home = new Home;
-        }
-
-        return $home;
+        return $this->getStyle() == 'mvc' ? 'home' : new Home;
     }
 
     /**
@@ -43,7 +38,7 @@ trait Paradigm
      * 
      * @return string|\Yuga\View\ViewModel
      */
-    public function getMailFile(array $params = null)
+    public function getMailFile(?array $params = null)
     {
         if ($this->getStyle() == 'mvc') {
             $forgotPassword = 'mailables.forgot-password';
