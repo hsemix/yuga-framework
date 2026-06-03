@@ -6,15 +6,13 @@ use Yuga\Interfaces\Http\Input\IInputItem;
 
 class InputItem implements IInputItem
 {
-    public $index;
+    /**
+     * @var string
+     */
     public $name;
-    public $value;
 
-    public function __construct($index, $value = null)
+    public function __construct(public $index, public $value = null)
     {
-        $this->index = $index;
-        $this->value = $value;
-
         // Make the name human friendly, by replace _ with space
         $this->name = ucfirst(str_replace('_', ' ', $this->index));
     }
@@ -74,7 +72,7 @@ class InputItem implements IInputItem
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return (string)$this->value;
     }

@@ -14,7 +14,7 @@ abstract class SchedulerCommand extends Command
     /**
      * Config File 
      */
-    protected $config = null;
+    protected $config;
 
     /**
      * Get Config File 
@@ -66,8 +66,7 @@ abstract class SchedulerCommand extends Command
 		$this->getConfig();
 		
 		if (file_exists( $this->config['FilePath'] . '/' . $this->config['FileName'])) {
-			$data = json_decode(file_get_contents( $this->config['FilePath'] . '/' . $this->config['FileName'] ) );
-            return $data;
+			return json_decode(file_get_contents( $this->config['FilePath'] . '/' . $this->config['FileName'] ) );
         }
 
         return false;	

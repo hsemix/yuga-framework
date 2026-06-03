@@ -10,14 +10,12 @@ trait CanShowDetails
 {
     /**
      * Make the scaffold for a details form
-     * 
-     * @param \Yuga\Database\Elegant\Model $model
      */
     protected function makeDetailsForm(Model $model)
     {
         $name = \class_base($model);
         $inputs = "";
-        $property = \strtolower($name);
+        $property = \strtolower((string) $name);
         foreach ($model->scaffold as $fieldName => $type) {
 
             $fieldType = Scaffold::getFormType($type);

@@ -20,12 +20,7 @@ trait SendPasswordResetEmails
      */
     public function getView()
     {
-        if ($this->getStyle() == 'mvc') {
-            $view = 'auth.passwords.email';
-        } else {
-            $view = new ForgotPassword;
-        }
-        return $view;
+        return $this->getStyle() == 'mvc' ? 'auth.passwords.email' : new ForgotPassword;
     }
 
     /**
@@ -40,10 +35,8 @@ trait SendPasswordResetEmails
 
     /**
      * Send settings on how the user can reset their password to their email-address
-     * 
-     * @param \Yuga\Http\Request $request
-     * @param Auth $auth
-     * 
+     *
+     *
      * @return mixed
      */
     public function sendEmail(Request $request, Auth $auth)
@@ -55,9 +48,8 @@ trait SendPasswordResetEmails
 
     /**
      * Redirect user to an appropriate page and give them a message
-     * 
-     * @param array $fields
-     * 
+     *
+     *
      * @return \Yuga\Http\Redirect
      */
     protected function redirectUser(array $fields)
@@ -69,7 +61,6 @@ trait SendPasswordResetEmails
     /**
      * The user has received a reset password email.
      *
-     * @param  \Yuga\Http\Request  $request
      * @param  mixed  $user
      * @return mixed
      */
@@ -80,10 +71,8 @@ trait SendPasswordResetEmails
 
     /**
      * Make sure the email supplied is a valid and saved email-address
-     * 
-     * @param \Yuga\Http\Request $request
-     * @param Auth $auth
-     * 
+     *
+     *
      * @return array $validation
      */
     protected function validateEmail(Request $request, Auth $auth)
@@ -107,7 +96,7 @@ trait SendPasswordResetEmails
     {
         return PasswordReset::create([
             'email' => $fields['email'],
-            'token' => (new Hash('sha256'))->unique()
+            'token' => new Hash('sha256')->unique()
         ]);
     }
 }

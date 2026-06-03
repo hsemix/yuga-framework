@@ -12,9 +12,9 @@ class Guid
         if (function_exists('com_create_guid')) {
             $guid = trim(com_create_guid(), '{}');
 
-            return (!$separator) ? str_replace('-', '', $guid) : $guid;
+            return ($separator) ? $guid : str_replace('-', '', $guid);
         }
-        $pattern = (!$separator) ? '%04X%04X%04X%04X%04X%04X%04X%04X' : '%04X%04X-%04X-%04X-%04X-%04X%04X%04X';
+        $pattern = ($separator) ? '%04X%04X-%04X-%04X-%04X-%04X%04X%04X' : '%04X%04X%04X%04X%04X%04X%04X%04X';
 
         return sprintf($pattern,
             mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535),
@@ -28,7 +28,7 @@ class Guid
             $method = app()->getEncryptionMethod();
         }
 
-        $key = substr(hash('sha256', $key, true), 0, 16);
+        $key = substr(hash('sha256', (string) $key, true), 0, 16);
         $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($method));
         $data = openssl_encrypt($data, $method, $key, 0, $iv);
 
@@ -41,18 +41,16 @@ class Guid
             $method = app()->getEncryptionMethod();
         }
 
-        $key = substr(hash('sha256', $key, true), 0, 16);
+        $key = substr(hash('sha256', (string) $key, true), 0, 16);
 
-        list($data, $iv) = explode('|', base64_decode($data));
+        [$data, $iv] = explode('|', base64_decode((string) $data));
 
         $binary = hex2bin($iv);
         if ($binary === false) {
             return false;
         }
 
-        $data = openssl_decrypt($data, $method, $key, 0, $binary);
-
-        return $data;
+        return openssl_decrypt($data, $method, $key, 0, $binary);
     }
 
     /**

@@ -23,7 +23,7 @@ class JobRunner
 	/**
 	 * @var string
 	 */
-	protected $testTime = null;
+	protected $testTime;
 
 	/**
      * Stores aliases of tasks to run
@@ -66,11 +66,11 @@ class JobRunner
 
 		foreach ($tasks as $task) {
 			// If specific tasks were chosen then skip executing remaining tasks
-            if (!empty($this->only) && !in_array($task->name, $this->only, true)) {
+            if ($this->only !== [] && !in_array($task->name, $this->only, true)) {
                 continue;
             }
 
-			if (!$task->shouldRun($this->testTime) && empty($this->only)) {
+			if (!$task->shouldRun($this->testTime) && $this->only === []) {
 				continue;
 			}
 
@@ -103,7 +103,7 @@ class JobRunner
 				$jobLog = new JobLog(['task' => $task, 'output' => $output, 'runStart' => $start, 'runEnd' => $end, 'error' => $error, 'testTime' => $this->testTime]);
 				
 				$this->performanceLogs[] = [
-					'name' => ( $task->name ) ? $task->name : null,
+					'name' => $task->name ?: null,
 					'type' => $task->getType(),
 					'action' => (\is_object($task->getAction())) ? \json_encode($task->getAction()) : $task->getAction(),
 					// 'environment' => \json_encode( $task->environments ),
@@ -123,7 +123,6 @@ class JobRunner
 	/**
      * Specify tasks to run
      *
-     * @param array $tasks
      *
      * @return TaskRunner
      */
@@ -135,15 +134,13 @@ class JobRunner
     }
 
 	/**
-	 * Sets a time that will be used.
-	 * Allows setting a specific time to test against.
-	 * Must be in a DateTime-compatible format.
-	 *
-	 * @param string $time
-	 *
-	 * @return $this
-	 */
-	public function withTestTime(String $time): JobRunner
+     * Sets a time that will be used.
+     * Allows setting a specific time to test against.
+     * Must be in a DateTime-compatible format.
+     *
+     *
+     */
+    public function withTestTime(String $time): JobRunner
 	{
 		$this->testTime = new \DateTime($time);
 
@@ -159,7 +156,7 @@ class JobRunner
 	{
 		$config = config('scheduler');
 
-		if (empty( $this->performanceLogs)) {
+		if ($this->performanceLogs === []) {
 			return;
 		}
 
@@ -171,10 +168,8 @@ class JobRunner
 		} else {
 
 			// Ensure we have someplace to store the log
-			if (file_exists($config['FilePath'] . '/' . $config['FileName'])) {
-				if (!is_dir($config['FilePath'])) { 
-					mkdir( $config['FilePath']); 
-				}
+			if (file_exists($config['FilePath'] . '/' . $config['FileName']) && !is_dir($config['FilePath'])) {
+				mkdir( $config['FilePath']);
 			}
 
 			$fileName = 'jobs_' . date('Y-m-d-H-i-s') . '.json';
@@ -192,11 +187,8 @@ class JobRunner
 
 	/**
      * Write a line to command line interface
-     *
-     * @param string      $text
-     * @param string|null $foreground
      */
-    protected function cliWrite( String $text, String $foreground = null )
+    protected function cliWrite( String $text, ?String $foreground = null )
     {
         // Skip writing to cli in tests
 

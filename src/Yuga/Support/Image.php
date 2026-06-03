@@ -84,7 +84,7 @@ use Yuga\Exceptions\UnknownImageFileException;
  * @property-read int $height
  * @property-read resource $imageResource
  */
-class Image
+class Image implements \Stringable
 {
 
 	/** {@link resize()} only shrinks images */
@@ -145,7 +145,7 @@ class Image
 	 * @throws UnknownImageFileException if file not found or file type is not known
 	 * @return static
 	 */
-	public static function fromFile(string $file, int &$detectedFormat = null)
+	public static function fromFile(string $file, ?int &$detectedFormat = null)
 	{
 		if (!extension_loaded('gd')) {
 			throw new LogicException('PHP extension GD is not loaded.');
@@ -166,7 +166,7 @@ class Image
 	 * @return static
 	 * @throws ImageException
 	 */
-	public static function fromString(string $s, int &$detectedFormat = null)
+	public static function fromString(string $s, ?int &$detectedFormat = null)
 	{
 		if (!extension_loaded('gd')) {
 			throw new LogicException('PHP extension GD is not loaded.');
@@ -186,7 +186,7 @@ class Image
 	 * Creates blank image.
 	 * @return static
 	 */
-	public static function fromBlank(int $width, int $height, array $color = null)
+	public static function fromBlank(int $width, int $height, ?array $color = null)
 	{
 		if (!extension_loaded('gd')) {
 			throw new LogicException('PHP extension GD is not loaded.');
@@ -255,7 +255,7 @@ class Image
 	 */
 	public function resize($width, $height, int $flags = self::FIT)
 	{
-		if ($flags & self::EXACT) {
+		if (($flags & self::EXACT) !== 0) {
 			return $this->resize($width, $height, self::FILL)->crop('50%', '50%', $width, $height);
 		}
 
@@ -284,32 +284,32 @@ class Image
 	 */
 	public static function calculateSize(int $srcWidth, int $srcHeight, $newWidth, $newHeight, int $flags = self::FIT): array
 	{
-		if (is_string($newWidth) && substr($newWidth, -1) === '%') {
+		if (is_string($newWidth) && str_ends_with($newWidth, '%')) {
 			$newWidth = (int) round($srcWidth / 100 * abs(substr($newWidth, 0, -1)));
 			$percents = true;
 		} else {
 			$newWidth = (int) abs($newWidth);
 		}
 
-		if (is_string($newHeight) && substr($newHeight, -1) === '%') {
+		if (is_string($newHeight) && str_ends_with($newHeight, '%')) {
 			$newHeight = (int) round($srcHeight / 100 * abs(substr($newHeight, 0, -1)));
 			$flags |= empty($percents) ? 0 : self::STRETCH;
 		} else {
 			$newHeight = (int) abs($newHeight);
 		}
 
-		if ($flags & self::STRETCH) { // non-proportional
-			if (empty($newWidth) || empty($newHeight)) {
+		if (($flags & self::STRETCH) !== 0) { // non-proportional
+			if ($newWidth === 0 || $newHeight === 0) {
 				throw new InvalidArgumentException('For stretching must be both width and height specified.');
 			}
 
-			if ($flags & self::SHRINK_ONLY) {
+			if (($flags & self::SHRINK_ONLY) !== 0) {
 				$newWidth = (int) round($srcWidth * min(1, $newWidth / $srcWidth));
 				$newHeight = (int) round($srcHeight * min(1, $newHeight / $srcHeight));
 			}
 
 		} else {  // proportional
-			if (empty($newWidth) && empty($newHeight)) {
+			if ($newWidth === 0 && $newHeight === 0) {
 				throw new InvalidArgumentException('At least width or height must be specified.');
 			}
 
@@ -322,11 +322,11 @@ class Image
 				$scale[] = $newHeight / $srcHeight;
 			}
 
-			if ($flags & self::FILL) {
+			if (($flags & self::FILL) !== 0) {
 				$scale = [max($scale)];
 			}
 
-			if ($flags & self::SHRINK_ONLY) {
+			if (($flags & self::SHRINK_ONLY) !== 0) {
 				$scale[] = 1;
 			}
 
@@ -363,16 +363,16 @@ class Image
 	 */
 	public static function calculateCutout(int $srcWidth, int $srcHeight, $left, $top, $newWidth, $newHeight): array
 	{
-		if (is_string($newWidth) && substr($newWidth, -1) === '%') {
+		if (is_string($newWidth) && str_ends_with($newWidth, '%')) {
 			$newWidth = (int) round($srcWidth / 100 * substr($newWidth, 0, -1));
 		}
-		if (is_string($newHeight) && substr($newHeight, -1) === '%') {
+		if (is_string($newHeight) && str_ends_with($newHeight, '%')) {
 			$newHeight = (int) round($srcHeight / 100 * substr($newHeight, 0, -1));
 		}
-		if (is_string($left) && substr($left, -1) === '%') {
+		if (is_string($left) && str_ends_with($left, '%')) {
 			$left = (int) round(($srcWidth - $newWidth) / 100 * substr($left, 0, -1));
 		}
-		if (is_string($top) && substr($top, -1) === '%') {
+		if (is_string($top) && str_ends_with($top, '%')) {
 			$top = (int) round(($srcHeight - $newHeight) / 100 * substr($top, 0, -1));
 		}
 		if ($left < 0) {
@@ -419,11 +419,11 @@ class Image
 		$width = $image->getWidth();
 		$height = $image->getHeight();
 
-		if (is_string($left) && substr($left, -1) === '%') {
+		if (is_string($left) && str_ends_with($left, '%')) {
 			$left = (int) round(($this->getWidth() - $width) / 100 * substr($left, 0, -1));
 		}
 
-		if (is_string($top) && substr($top, -1) === '%') {
+		if (is_string($top) && str_ends_with($top, '%')) {
 			$top = (int) round(($this->getHeight() - $height) / 100 * substr($top, 0, -1));
 		}
 
@@ -462,7 +462,7 @@ class Image
 	 * Saves image to the file. Quality is 0..100 for JPEG and WEBP, 0..9 for PNG.
 	 * @throws ImageException
 	 */
-	public function save(string $file, int $quality = null, int $type = null): void
+	public function save(string $file, ?int $quality = null, ?int $type = null): void
 	{
 		if ($type === null) {
 			$extensions = array_flip(self::FORMATS) + ['jpg' => self::JPEG];
@@ -479,9 +479,9 @@ class Image
 	/**
 	 * Outputs image to string. Quality is 0..100 for JPEG and WEBP, 0..9 for PNG.
 	 */
-	public function toString(int $type = self::JPEG, int $quality = null): string
+	public function toString(int $type = self::JPEG, ?int $quality = null): string
 	{
-		ob_start(function () {});
+		ob_start(function (): void {});
 		$this->output($type, $quality);
 		return ob_get_clean();
 	}
@@ -494,7 +494,7 @@ class Image
 		try {
 			return $this->toString();
 		} catch (\Throwable $e) {
-			if (func_num_args()) {
+			if (func_num_args() !== 0) {
 				throw $e;
 			}
 			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
@@ -505,7 +505,7 @@ class Image
 	 * Outputs image to browser. Quality is 0..100 for JPEG and WEBP, 0..9 for PNG.
 	 * @throws ImageException
 	 */
-	public function send(int $type = self::JPEG, int $quality = null): void
+	public function send(int $type = self::JPEG, ?int $quality = null): void
 	{
 		if (!isset(self::FORMATS[$type])) {
 			throw new InvalidArgumentException("Unsupported image type '$type'.");
@@ -518,7 +518,7 @@ class Image
 	 * Outputs image to browser or file.
 	 * @throws ImageException
 	 */
-	private function output(int $type, ?int $quality, string $file = null): void
+	private function output(int $type, ?int $quality = 0, ?string $file = null): void
 	{
 		switch ($type) {
 			case self::JPEG:
@@ -580,7 +580,7 @@ class Image
 
 	public function __clone()
 	{
-		ob_start(function () {});
+		ob_start(function (): void {});
 		imagegd2($this->image);
 		$this->setImageResource(imagecreatefromstring(ob_get_clean()));
 	}

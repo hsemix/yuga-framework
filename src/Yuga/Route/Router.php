@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Mahad Tech Solutions
  */
+
 namespace Yuga\Route;
 
 use Exception;
@@ -30,9 +32,9 @@ class Router
 {
     use Shared;
     /**
-    * The instance of this class
-    * @var static
-    */
+     * The instance of this class
+     * @var static
+     */
     protected static $instance;
 
     /**
@@ -95,6 +97,8 @@ class Router
         'params' => [],
     ];
 
+    protected bool $routesLoaded = false;
+
     public function __construct()
     {
         $this->reset();
@@ -110,14 +114,26 @@ class Router
         $this->processedRoutes = [];
         $this->exceptionHandlers = [];
         $defaultRoutes = env('ROUTE_DEFAULTS', json_encode(['controller' => 'Home', 'method' => 'index']));
-        $defaultRoutes = is_array($defaultRoutes) ? $defaultRoutes : json_decode($defaultRoutes, true);
+        $defaultRoutes = is_array($defaultRoutes) ? $defaultRoutes : json_decode((string) $defaultRoutes, true);
         $this->defaultRouteCollection['controller'] = $defaultRoutes['controller'];
         $this->defaultRouteCollection['method'] = $defaultRoutes['method'];
     }
 
+    public function prepareForRequest(Request $request): self
+    {
+        $this->request = $request;
+        $this->processingRoute = false;
+        $this->routeStack = [];
+
+        if (method_exists($this->request, 'clearLoadedRoute')) {
+            $this->request->clearLoadedRoute();
+        }
+
+        return $this;
+    }
+
     /**
      * Add route
-     * @param IRoute $route
      * @return IRoute
      */
     public function addRoute(IRoute $route)
@@ -139,19 +155,16 @@ class Router
     /**
      * Process added routes.
      *
-     * @param array $routes
-     * @param IGroupRoute|null $group
-     * @param IRoute|null $parent
      * @throws NotFoundHttpException
      */
-    protected function processRoutes(array $routes, IGroupRoute $group = null, IRoute $parent = null)
+    protected function processRoutes(array $routes, ?IGroupRoute $group = null, ?IRoute $parent = null)
     {
         // Loop through each route-request
         $max = count($routes) - 1;
 
         $exceptionHandlers = [];
 
-        $url = ($this->request->getRewriteUrl() !== null) ? $this->request->getRewriteUrl() : $this->request->getUri();
+        $url = $this->request->getRewriteUrl() ?? $this->request->getUri();
         /* @var $route IRoute */
         for ($i = $max; $i >= 0; $i--) {
 
@@ -166,31 +179,27 @@ class Router
                 $route->renderRoute($this->request);
                 $this->processingRoute = false;
 
-                if ($route->matchRoute($url, $this->request) === true) {
+                /* Add exception handlers */
+                if ($route->matchRoute($url, $this->request) === true && count($route->getExceptionHandlers()) > 0) {
 
-                    /* Add exception handlers */
-                    if (count($route->getExceptionHandlers()) > 0) {
-                        /** @noinspection AdditionOperationOnArraysInspection */
-                        $exceptionHandlers += $route->getExceptionHandlers();
-                    }
-
+                    /** @noinspection AdditionOperationOnArraysInspection */
+                    $exceptionHandlers += $route->getExceptionHandlers();
                 }
             }
 
-            if ($group !== null) {
+            if ($group instanceof \Yuga\Route\Support\IGroupRoute) {
 
                 /* Add the parent group */
                 $route->setGroup($group);
             }
 
-            if ($parent !== null) {
+            if ($parent instanceof \Yuga\Route\Support\IRoute) {
 
                 /* Add the parent route */
                 $route->setParent($parent);
 
                 /* Add/merge parent settings with child */
                 $route->setSettings($parent->toArray(), true);
-
             }
 
             if ($route instanceof ILoadableRoute) {
@@ -220,6 +229,9 @@ class Router
      */
     public function loadRoutes()
     {
+        if (count($this->processedRoutes) > 0) {
+            return;
+        }
         /* Initialize boot-managers */
         if (count($this->bootManagers) > 0) {
 
@@ -236,6 +248,88 @@ class Router
         $this->processRoutes($this->routes);
     }
 
+    public function ensureRoutesLoaded(): void
+    {
+        if ($this->routesLoaded === true || count($this->processedRoutes) > 0) {
+            return;
+        }
+
+        if ($this->routesAreCached()) {
+            $this->loadCachedRoutes();
+            $this->routesLoaded = true;
+            return;
+        }
+
+        $this->loadRoutes();
+
+        $this->routesLoaded = true;
+
+        if (config('routing.cache', false) && !$this->routesAreCached()) {
+            $this->cacheRoutes();
+        }
+    }
+
+    public function routesAreCached(): bool
+    {
+        $path = config('routing.cache_path');
+
+        return is_file($path);
+    }
+
+    public function loadCachedRoutes(): bool
+    {
+        $path = config('routing.cache_path');
+
+        if (!is_file($path)) {
+            return false;
+        }
+
+        $data = require $path;
+
+        $this->routes = $data['routes'] ?? [];
+        $this->processedRoutes = $data['processedRoutes'] ?? [];
+
+        return true;
+    }
+
+    public function cacheRoutes(): void
+    {
+        foreach ($this->processedRoutes as $route) {
+            if ($route->hasClosureCallback()) {
+                return;
+            }
+        }
+
+        $path = config('routing.cache_path');
+
+        echo '<pre>Caching routes to: ' . $path . '</pre>';
+
+        $dir = dirname($path);
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        $data = [
+            'routes' => $this->routes,
+            'processedRoutes' => $this->processedRoutes,
+        ];
+
+        file_put_contents(
+            $path,
+            '<?php return ' . var_export($data, true) . ';'
+        );
+    }
+
+    public function clearRouteCache(): void
+    {
+        $path = config('routing.cache_path');
+
+        if (is_file($path)) {
+            unlink($path);
+        }
+    }
+
     public function routeRequest($rewrite = false)
     {
         $routeNotAllowed = false;
@@ -243,18 +337,17 @@ class Router
         try {
 
             if ($rewrite === false) {
-                $this->loadRoutes();
+                // $this->loadRoutes();
+                $this->ensureRoutesLoaded();
 
                 if ($this->csrfVerifier !== null) {
 
                     /* Verify csrf token for request */
-                    $this->csrfVerifier->run($this->request, function($request){
-                        return $request;
-                    });
+                    $this->csrfVerifier->run($this->request, fn($request) => $request);
                 }
             }
 
-            $url = ($this->request->getRewriteUrl() !== null) ? $this->request->getRewriteUrl() : $this->request->getUri();
+            $url = $this->request->getRewriteUrl() ?? $this->request->getUri();
 
             $max = count($this->processedRoutes) - 1;
 
@@ -287,34 +380,33 @@ class Router
                     $rewriteUrl = $this->request->getRewriteUrl();
 
                     if ($rewriteUrl !== null && $rewriteUrl !== $url) {
-                        unset($this->processedRoutes[$i]);
-                        $this->processedRoutes = array_values($this->processedRoutes);
-                        $this->routeRequest(true);
+                        // unset($this->processedRoutes[$i]);
+                        // $this->processedRoutes = array_values($this->processedRoutes);
+                        // $this->routeRequest(true);
 
-                        return;
+                        // return;
+
+                        return $this->routeRequest(true);
                     }
 
                     /* Render route */
                     $routeNotAllowed = false;
                     $this->request->setLoadedRoute($route);
-                    $route->renderRoute($this->request);
-
-                    break;
+                    return $route->renderRoute($this->request);
                 }
             }
-
         } catch (Exception $e) {
             $this->handleException($e);
         }
 
-        if ($routeNotAllowed === true) {
+        if ($routeNotAllowed) {
             $this->handleException(new HttpException('Route or method not allowed', 403));
         }
 
         if ($this->request->getLoadedRoute() === null) {
 
             $rewriteUrl = $this->request->getRewriteUrl();
-            
+
             $uri = $this->request->getUri();
             if ($rewriteUrl !== null) {
                 $message = sprintf('Route not found: "%s" (rewrite from: "%s")', $rewriteUrl, $uri);
@@ -323,7 +415,7 @@ class Router
             }
 
             if (env('MATCH_ROUTES_TO_CONTROLLERS', false) || env('IMPLICIT_ROUTING', false)) {
-                $this->matchRoutesToControllers($this->request);
+                return $this->matchRoutesToControllers($this->request);
             } else {
                 $this->handleException(new NotFoundHttpException($message, 404));
             }
@@ -332,9 +424,9 @@ class Router
 
     protected function matchRoutesToControllers(Request $request)
     {
-        $url = explode('/', filter_var(trim((strpos($request->getHost(), ':') !== false) ? $request->getUri(true) : $request->getUri(), '/'), FILTER_SANITIZE_URL));
+        $url = explode('/', filter_var(trim((str_contains($request->getHost(), ':')) ? $request->getUri(true) : $request->getUri(), '/'), FILTER_SANITIZE_URL));
         if ($url[0] != '' && $url[0] != '/') {
-            $this->defaultRouteCollection['controller'] = ucfirst(Str::camelize(str_replace('-', '_', $url[0])));
+            $this->defaultRouteCollection['controller'] = ucfirst((string) Str::camelize(str_replace('-', '_', $url[0])));
             unset($url[0]);
         }
 
@@ -343,18 +435,18 @@ class Router
             unset($url[1]);
         }
 
-        $this->defaultRouteCollection['params'] = $url ? array_values($url) : [];
-        $controller = '\\'.env('APP_NAMESPACE', 'App') . '\\Controllers\\' . str_ireplace('controller', '', explode("?", $this->defaultRouteCollection['controller'])[0]) . 'Controller';
+        $this->defaultRouteCollection['params'] = $url !== [] ? array_values($url) : [];
+        $controller = '\\' . env('APP_NAMESPACE', 'App') . '\\Controllers\\' . str_ireplace('controller', '', explode("?", (string) $this->defaultRouteCollection['controller'])[0]) . 'Controller';
 
-        $method = explode('?', $this->defaultRouteCollection['method'])[0];
+        $method = explode('?', (string) $this->defaultRouteCollection['method'])[0];
         $params = $this->defaultRouteCollection['params'];
         if (class_exists($controller)) {
             $controller = Application::getInstance()->resolve($controller);
 
             if (method_exists($controller, $method)) {
                 $result = call_user_func_array([$controller, $method], $this->methodInjection($controller, $method, $params));
-                if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
-                    echo $result;
+                if ($result instanceof ViewModel || is_string($result) || $result instanceof View) {
+                    return $result;
                 } elseif ($result instanceof Redirect) {
                     if ($result->getPath() !== null) {
                         $result->header('Location: ' . $result->getPath());
@@ -363,7 +455,7 @@ class Router
                         throw new NotFoundHttpException("You have not provided a Redirect URL");
                     }
                 }
-                return;
+                return null;
             } else {
                 $message = sprintf('Method: "%s" not found', $method);
                 $this->handleException(new NotFoundHttpMethodException($message, 404));
@@ -372,11 +464,12 @@ class Router
             $message = sprintf('Controller: "%s" not found', $controller);
             $this->handleException(new NotFoundHttpControllerException($message, 404));
         }
+        return null;
     }
 
-    protected function handleException(Exception $e)
+    protected function handleException(\Throwable $e)
     {
-        $url = ($this->request->getRewriteUrl() !== null) ? $this->request->getRewriteUrl() : $this->request->getUri();
+        $url = $this->request->getRewriteUrl() ?? $this->request->getUri();
 
         $max = count($this->exceptionHandlers);
 
@@ -425,9 +518,7 @@ class Router
         if (count($getParams) > 0) {
 
             if ($includeEmpty === false) {
-                $getParams = array_filter($getParams, function ($item) {
-                    return (trim($item) !== '');
-                });
+                $getParams = array_filter($getParams, fn($item) => trim((string) $item) !== '');
             }
 
             return '?' . http_build_query($getParams);
@@ -462,24 +553,24 @@ class Router
             }
 
             /* Using @ is most definitely a controller@method or alias@method */
-            if (is_string($name) === true && strpos($name, '@') !== false) {
-                list($controller, $method) = array_map('strtolower', explode('@', $name));
+            if (is_string($name) && str_contains($name, '@')) {
+                [$controller, $method] = array_map(strtolower(...), explode('@', $name));
 
-                if ($controller === strtolower($route->getClass()) && $method === strtolower($route->getMethod())) {
+                if ($controller === strtolower((string) $route->getClass()) && $method === strtolower((string) $route->getMethod())) {
                     return $route;
                 }
             }
 
             /* Check if callback matches (if it's not a function) */
-            if (is_string($name) === true && is_string($route->getCallback()) && strpos($name, '@') !== false && strpos($route->getCallback(), '@') !== false && is_callable($route->getCallback()) === false) {
+            if (is_string($name) && is_string($route->getCallback()) && str_contains($name, '@') && str_contains($route->getCallback(), '@') && is_callable($route->getCallback()) === false) {
 
                 /* Check if the entire callback is matching */
-                if (strpos($route->getCallback(), $name) === 0 || strtolower($route->getCallback()) === strtolower($name)) {
+                if (str_starts_with($route->getCallback(), $name) || strtolower($route->getCallback()) === strtolower($name)) {
                     return $route;
                 }
 
                 /* Check if the class part of the callback matches (class@method) */
-                if (strtolower($name) === strtolower($route->getClass())) {
+                if (strtolower($name) === strtolower((string) $route->getClass())) {
                     return $route;
                 }
             }
@@ -513,11 +604,7 @@ class Router
         }
 
         /* Only merge $_GET when all parameters are null */
-        if ($name === null && $parameters === null && $getParams === null) {
-            $getParams = $_GET;
-        } else {
-            $getParams = (array)$getParams;
-        }
+        $getParams = $name === null && $parameters === null && $getParams === null ? $_GET : (array)$getParams;
 
         /* Return current route if no options has been specified */
         if ($name === null && $parameters === null) {
@@ -541,8 +628,8 @@ class Router
         }
 
         /* Using @ is most definitely a controller@method or alias@method */
-        if (is_string($name) === true && strpos($name, '@') !== false) {
-            list($controller, $method) = explode('@', $name);
+        if (is_string($name) && str_contains($name, '@')) {
+            [$controller, $method] = explode('@', $name);
 
             /* Loop through all the routes to see if we can find a match */
 
@@ -562,12 +649,11 @@ class Router
                 if ($route instanceof IControllerRoute && strtolower($route->getController()) === strtolower($controller)) {
                     return $route->findUrl($method, $parameters, $name) . $this->arrayToParams($getParams);
                 }
-
             }
         }
 
         /* No result so we assume that someone is using a hardcoded url and join everything together. */
-        $url = trim(join('/', array_merge((array)$name, (array)$parameters)), '/');
+        $url = trim(implode('/', array_merge((array)$name, (array)$parameters)), '/');
 
         return (($url === '') ? '/' : '/' . $url . '/') . $this->arrayToParams($getParams);
     }
@@ -583,16 +669,14 @@ class Router
 
     /**
      * Set bootmanagers
-     * @param array $bootManagers
      */
     public function setBootManagers(array $bootManagers)
     {
         $this->bootManagers = $bootManagers;
     }
-    
+
     /**
      * Add bootmanager
-     * @param IRouterBootManager $bootManager
      */
     public function addBootManager(IRouterBootManager $bootManager)
     {
@@ -610,7 +694,6 @@ class Router
     /**
      * Set routes
      *
-     * @param array $routes
      * @return static $this
      */
     public function setRoutes(array $routes)
@@ -642,7 +725,6 @@ class Router
     /**
      * Set csrf verifier class
      *
-     * @param BaseCsrfVerifier $csrfVerifier
      * @return static
      */
     public function setCsrfVerifier(BaseCsrfVerifier $csrfVerifier)
@@ -651,5 +733,4 @@ class Router
 
         return $this;
     }
-
 }

@@ -6,7 +6,9 @@ use Yuga\Interfaces\Http\Input\IInputItem;
 
 class InputFile implements IInputItem
 {
-    public $index;
+    /**
+     * @var string
+     */
     public $name;
     public $filename;
     public $size;
@@ -14,10 +16,8 @@ class InputFile implements IInputItem
     public $error;
     public $tmpName;
 
-    public function __construct($index)
+    public function __construct(public $index)
     {
-        $this->index = $index;
-
         // Make the name human friendly, by replace _ with space
         $this->name = ucfirst(str_replace('_', ' ', $this->index));
     }
@@ -25,7 +25,6 @@ class InputFile implements IInputItem
     /**
      * Create from array
      *
-     * @param array $values
      * @throws \InvalidArgumentException
      * @return static
      */
@@ -45,7 +44,7 @@ class InputFile implements IInputItem
             'error'    => null,
         ], $values);
 
-        return (new static($values['index']))
+        return new static($values['index'])
             ->setSize($values['size'])
             ->setError($values['error'])
             ->setType($values['type'])
@@ -258,7 +257,7 @@ class InputFile implements IInputItem
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getTmpName();
     }

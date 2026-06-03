@@ -8,6 +8,8 @@ use Symfony\Component\Console\Input\InputArgument;
 
 class MakeDatabaseBackupCommand extends BaseCommand
 {
+    public $filePath;
+    public $fileName;
     protected $name = 'db:backup';
     
     /**
@@ -90,6 +92,7 @@ class MakeDatabaseBackupCommand extends BaseCommand
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [
@@ -97,6 +100,7 @@ class MakeDatabaseBackupCommand extends BaseCommand
         ];
     }
 
+    #[\Override]
     protected function getOptions()
     {
         return [

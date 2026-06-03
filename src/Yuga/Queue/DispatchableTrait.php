@@ -17,7 +17,7 @@ trait DispatchableTrait
         $args = func_get_args();
 
         // return new PendingDispatch(new static(...$args));
-        return (new static(...$args))->queueOrNot();
+        return new static(...$args)->queueOrNot();
     }
 
     protected function queueOrNot()

@@ -77,18 +77,16 @@ class HaxCompiler extends View
         event('on:hax-instance', ['compiler' => $this]);
     }
 
-    public function display($temp, array $data = null)
+    public function display($temp, array $data = [])
     {
         $temp = str_replace('.', '/', $temp);
         
         if (file_exists($this->getTemplateDirectory().$temp.$this->hax)) {
-           return (string)$this->renderHaxTemplate($temp, $data);
+            return (string)$this->renderHaxTemplate($temp, $data);
+        } elseif ($data !== []) {
+            return $this->renderView($temp, $data);
         } else {
-            if ($data) {
-                return (string)$this->renderView($temp, $data);
-            } else {
-                return(string)$this->renderView($temp);
-            }
+            return$this->renderView($temp);
         }
     }
 
@@ -99,7 +97,7 @@ class HaxCompiler extends View
         }
     }
 
-    public function renderHaxTemplate($templateName, array $data = null) 
+    public function renderHaxTemplate($templateName, array $data = []) 
     {
         $tempContents = $this->getTemplateDirectory() . $templateName.$this->hax;
         $compiled = $this->compiled($templateName).'.php';
@@ -107,10 +105,8 @@ class HaxCompiler extends View
             $this->createStorageDirectories();
             file_put_contents($compiled, $this->compile($tempContents));
         }
-        if ($data) {
-            foreach ($data as $index => $value) {
-                $this->vars[$index] = $value;
-            }
+        foreach ($data as $index => $value) {
+            $this->vars[$index] = $value;
         }
         extract($this->vars, EXTR_SKIP);
         include $compiled;
@@ -124,7 +120,7 @@ class HaxCompiler extends View
     protected function compileFile($string, $path)
     {
         foreach ($this->compilers as $compiler) {
-			$method = "compile" . ucfirst($compiler);
+			$method = "compile" . ucfirst((string) $compiler);
 
 			$string = call_user_func([$this, $method], $string);
             
@@ -135,15 +131,12 @@ class HaxCompiler extends View
 
     protected function expired($path, $file)
     {
-        if (filemtime($path) < filemtime($file)) {
-            return true;
-        }
-        return false;
+        return filemtime($path) < filemtime($file);
     }
 
     protected function compiled($path = null)
     {
-        return path('storage') . '/hax/' . md5($path);
+        return path('storage') . '/hax/' . md5((string) $path);
     }
 
     /**
@@ -183,7 +176,7 @@ class HaxCompiler extends View
      */
     protected function compileEchos($value)
     {
-        $difference = strlen($this->contentTags[0]) - strlen($this->escapedTags[0]);
+        $difference = strlen((string) $this->contentTags[0]) - strlen((string) $this->escapedTags[0]);
 
         if ($difference > 0) {
             return $this->compileEscapedEchos($this->compileRegularEchos($value));
@@ -201,7 +194,7 @@ class HaxCompiler extends View
     protected function compileStatements($value)
     {
         $callback = function($match) {
-            if (method_exists($this, $method = 'compile' .ucfirst($match[1]))) {
+            if (method_exists($this, $method = 'compile' .ucfirst((string) $match[1]))) {
                 $match[0] = call_user_func([$this, $method], Arr::get($match, 3));
             }
 
@@ -410,7 +403,7 @@ class HaxCompiler extends View
      */
     protected function compilePhp($expression)
     {
-        return !empty($expression) ? "<?php {$expression}; ?>" : '<?php ';
+        return empty($expression) ? '<?php ' : "<?php {$expression}; ?>";
     }
 
     /**
@@ -470,7 +463,7 @@ class HaxCompiler extends View
         $callback = function($matches) {
             $whitespace = empty($matches[3]) ? '' : $matches[3] .$matches[3];
 
-            return $matches[1] ? substr($matches[0], 1) : '<?php echo ' .$this->compileEchoDefaults($matches[2]) .'; ?>' .$whitespace;
+            return $matches[1] ? substr((string) $matches[0], 1) : '<?php echo ' .$this->compileEchoDefaults($matches[2]) .'; ?>' .$whitespace;
         };
 
         return preg_replace_callback($pattern, $callback, $value);
@@ -515,48 +508,47 @@ class HaxCompiler extends View
     protected function compileYield($value)
 	{
 		$pattern = $this->matches('yield');
-		return preg_replace($pattern, '$1<?php $this->emptySection $2; ?>', $value);
+		return preg_replace($pattern, '$1<?php $this->emptySection $2; ?>', (string) $value);
     }
 
     protected function compileSection($value)
 	{
 		$pattern = $this->matches('section');
 
-		return preg_replace($pattern, '$1<?php $this->section $2; ?>', $value);
+		return preg_replace($pattern, '$1<?php $this->section $2; ?>', (string) $value);
     }
     
     protected function compileEndSection($value)
 	{
 		$pattern = '/(\s*)@(endsection)(\s*)/';
 
-		return preg_replace($pattern, '$1<?php $this->endSection() ?>', $value);
+		return preg_replace($pattern, '$1<?php $this->endSection() ?>', (string) $value);
     }
 
     protected function compileExtends($value)
 	{
         $pattern = $this->matches('extends');
         
-        return preg_replace($pattern, '$1<?php $this->extend $2; ?>', $value);
+        return preg_replace($pattern, '$1<?php $this->extend $2; ?>', (string) $value);
     }
 
     protected function compileInclude($value)
     {
         $pattern = $this->matches('include');
         
-        return preg_replace($pattern, '$1<?php $this->display $2; ?>', $value);
+        return preg_replace($pattern, '$1<?php $this->display $2; ?>', (string) $value);
     }
 
     protected function compileParent($value)
     {
         $pattern = '/(\s*)@(parent)(\s*)/';
         
-        return preg_replace($pattern, '$1<?php $this->parentSection() ?>', $value);
+        return preg_replace($pattern, '$1<?php $this->parentSection() ?>', (string) $value);
     }
 
     /**
      * Register a custom Template compiler.
      *
-     * @param  \Closure  $compiler
      * @return void
      */
     public function extension(Closure $compiler)
@@ -573,7 +565,7 @@ class HaxCompiler extends View
      */
     public function replaceWith($pattern, $with, $value)
     {
-        return preg_replace($pattern, '$1' . $with, $value);
+        return preg_replace($pattern, '$1' . $with, (string) $value);
     }
 
     public function patternMatches($pattern)

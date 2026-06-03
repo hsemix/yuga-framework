@@ -15,7 +15,6 @@ class RouteGroup extends Route implements IGroupRoute
     /**
      * Method called to check if a domain matches
      *
-     * @param Request $request
      * @return bool
      */
     public function matchDomain(Request $request)
@@ -43,16 +42,19 @@ class RouteGroup extends Route implements IGroupRoute
      * Method called to check if route matches
      *
      * @param string $url
-     * @param Request $request
      * @return bool
      */
     public function matchRoute($url, Request $request)
     {
+        // if ($url === null) {
+        //     return false;
+        // }
+
         if ($this->getGroup() !== null && $this->getGroup()->matchRoute($url, $request) === false) {
             return false;
         }
         /* Skip if prefix doesn't match */
-        if ($this->prefix !== null && stripos($url, $this->prefix) === false) {
+        if ($this->prefix !== null && stripos($url, (string) $this->prefix) === false) {
             return false;
         }
 
@@ -75,7 +77,6 @@ class RouteGroup extends Route implements IGroupRoute
     /**
      * Set exception-handlers for group
      *
-     * @param array $handlers
      * @return static $this
      */
     public function setExceptionHandlers(array $handlers)
@@ -108,7 +109,6 @@ class RouteGroup extends Route implements IGroupRoute
     /**
      * Set allowed domains for group.
      *
-     * @param array $domains
      * @return $this
      */
     public function setDomains(array $domains)
@@ -142,10 +142,10 @@ class RouteGroup extends Route implements IGroupRoute
     /**
      * Merge with information from another route.
      *
-     * @param array $values
      * @param bool $merge
      * @return static
      */
+    #[\Override]
     public function setSettings(array $values, $merge = false)
     {
 
@@ -162,11 +162,7 @@ class RouteGroup extends Route implements IGroupRoute
         }
 
         if (isset($values['as'])) {
-            if ($this->name !== null && $merge !== false) {
-                $this->name = $values['as'] . '.' . $this->name;
-            } else {
-                $this->name = $values['as'];
-            }
+            $this->name = $this->name !== null && $merge !== false ? $values['as'] . '.' . $this->name : $values['as'];
         }
 
         parent::setSettings($values, $merge);
@@ -179,6 +175,7 @@ class RouteGroup extends Route implements IGroupRoute
      *
      * @return array
      */
+    #[\Override]
     public function toArray()
     {
         $values = [];

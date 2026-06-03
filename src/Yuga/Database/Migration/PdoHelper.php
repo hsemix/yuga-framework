@@ -47,16 +47,14 @@ class PdoHelper
         foreach ($array as $arr) {
             if ($isFields) {
                 $statement[] = sprintf('`%s`', $arr);
+            } elseif ($arr === null) {
+                $statement[] = 'NULL';
             } else {
-                if ($arr === null) {
-                    $statement[] = 'NULL';
-                } else {
-                    $statement[] = Pdo::getInstance()->getConnection()->quote($arr);
-                }
+                $statement[] = Pdo::getInstance()->getConnection()->quote($arr);
             }
         }
 
-        return join(',', $statement);
+        return implode(',', $statement);
     }
 
     public static function escape($value)

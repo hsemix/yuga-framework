@@ -32,7 +32,7 @@ class Token
      *
      * Will default to PHP time() value if null.
      */
-    public static $timestamp = null;
+    public static $timestamp;
     protected static $supportedAlgorithms = [
         'ES256' => ['openssl', 'SHA256'],
         'HS256' => ['hash_hmac', 'SHA256'],
@@ -57,7 +57,7 @@ class Token
         [$function, $algorithm] = static::$supportedAlgorithms[$algorithmInput];
         switch ($function) {
             case 'hash_hmac':
-                return \hash_hmac($algorithm, $data, $secret, true);
+                return \hash_hmac((string) $algorithm, (string) $data, (string) $secret, true);
             case 'openssl':
                 $signature = '';
                 $success = \openssl_sign($data, $signature, $secret, $algorithm);
@@ -81,7 +81,7 @@ class Token
     private static function signatureToDER($sig)
     {
         // Separate the signature into r-value and s-value
-        list($r, $s) = \str_split($sig, (int) (\strlen($sig) / 2));
+        [$r, $s] = \str_split($sig, (int) (\strlen($sig) / 2));
 
         // Trim leading zeros
         $r = \ltrim($r, "\x00");
@@ -136,14 +136,14 @@ class Token
     private static function signatureFromDER($der, $keySize)
     {
         // OpenSSL returns the ECDSA signatures as a binary ASN.1 DER SEQUENCE
-        list($offset, $_) = self::readDER($der);
-        list($offset, $r) = self::readDER($der, $offset);
-        list($offset, $s) = self::readDER($der, $offset);
+        [$offset, $_] = self::readDER($der);
+        [$offset, $r] = self::readDER($der, $offset);
+        [$offset, $s] = self::readDER($der, $offset);
 
         // Convert r-value and s-value from signed two's compliment to unsigned
         // big-endian integers
-        $r = \ltrim($r, "\x00");
-        $s = \ltrim($s, "\x00");
+        $r = \ltrim((string) $r, "\x00");
+        $s = \ltrim((string) $s, "\x00");
 
         // Pad out r and s so that they are $keySize bits long
         $r = \str_pad($r, $keySize / 8, "\x00", STR_PAD_LEFT);
@@ -169,7 +169,7 @@ class Token
 
         // Length
         $len = \ord($der[$pos++]);
-        if ($len & 0x80) {
+        if (($len & 0x80) !== 0) {
             $n = $len & 0x1f;
             $len = 0;
             while ($n-- && $pos < $size) {
@@ -178,18 +178,18 @@ class Token
         }
 
         // Value
-        if ($type == self::ASN1_BIT_STRING) {
+        if ($type === self::ASN1_BIT_STRING) {
             $pos++; // Skip the first contents octet (padding indicator)
             $data = \substr($der, $pos, $len - 1);
             $pos += $len - 1;
-        } elseif (!$constructed) {
+        } elseif ($constructed === 0) {
             $data = \substr($der, $pos, $len);
             $pos += $len;
         } else {
             $data = null;
         }
 
-        return array($pos, $data);
+        return [$pos, $data];
     }
 
 
@@ -240,7 +240,7 @@ class Token
      */
     public static function decode($jwt, $key = null, array $allowed_algs = [])
     {
-        $timestamp = \is_null(static::$timestamp) ? \time() : static::$timestamp;
+        $timestamp = static::$timestamp ?? \time();
 
         if ($key == null) {
             $key = 'Yuga Framework ' . Application::VERSION . ' ' . config('app.name', 'Yuga Framework');
@@ -250,10 +250,10 @@ class Token
             throw new InvalidArgumentException('Key may not be empty');
         }
         $tks = \explode('.', $jwt);
-        if (\count($tks) != 3) {
+        if (\count($tks) !== 3) {
             throw new UnexpectedValueException('Wrong number of segments');
         }
-        list($headb64, $bodyb64, $cryptob64) = $tks;
+        [$headb64, $bodyb64, $cryptob64] = $tks;
         if (null === ($header = static::jsonDecode(static::urlsafeBase64Decode($headb64)))) {
             throw new UnexpectedValueException('Invalid header encoding');
         }
@@ -270,7 +270,7 @@ class Token
             throw new UnexpectedValueException('Algorithm not supported');
         }
         
-        if (empty($allowed_algs)) {
+        if ($allowed_algs === []) {
             $allowed_algs = array_keys(self::$supportedAlgorithms);
         }
 
@@ -294,7 +294,7 @@ class Token
         }
 
         // Check the signature
-        if (!static::verify("$headb64.$bodyb64", $sig, $key, $header->alg)) {
+        if (!self::verify("$headb64.$bodyb64", $sig, $key, $header->alg)) {
             throw new SignatureInvalidException('Signature verification failed');
         }
 
@@ -357,17 +357,17 @@ class Token
                 );
             case 'hash_hmac':
             default:
-                $hash = \hash_hmac($algorithm, $msg, $key, true);
+                $hash = \hash_hmac((string) $algorithm, $msg, $key, true);
                 if (\function_exists('hash_equals')) {
                     return \hash_equals($signature, $hash);
                 }
-                $len = \min(static::safeStrlen($signature), static::safeStrlen($hash));
+                $len = \min(self::safeStrlen($signature), self::safeStrlen($hash));
 
                 $status = 0;
                 for ($i = 0; $i < $len; $i++) {
                     $status |= (\ord($signature[$i]) ^ \ord($hash[$i]));
                 }
-                $status |= (static::safeStrlen($signature) ^ static::safeStrlen($hash));
+                $status |= (self::safeStrlen($signature) ^ self::safeStrlen($hash));
 
                 return ($status === 0);
         }
@@ -383,7 +383,7 @@ class Token
     {
         $string = str_replace(['-','_'], ['+','/'], $data);
         $mod4 = strlen($string) % 4;
-        if ($mod4) {
+        if ($mod4 !== 0) {
             $string .= substr('====', $mod4);
         }            
         return base64_decode($string);
@@ -392,8 +392,8 @@ class Token
     protected static function jsonEncode(array $data)
     {
         $json = \json_encode($data);
-        if ($errno = \json_last_error()) {
-            static::handleJsonError($errno);
+        if (($errno = \json_last_error()) !== 0) {
+            self::handleJsonError($errno);
         } elseif ($json === 'null' && $data !== null) {
             throw new DomainException('Null result with non-null data');
         }
@@ -404,10 +404,8 @@ class Token
      * Helper method to create a JSON error.
      *
      * @param int $errno An error number from json_last_error()
-     *
-     * @return void
      */
-    private static function handleJsonError($errno)
+    private static function handleJsonError($errno): never
     {
         $messages = [
             JSON_ERROR_DEPTH => 'Maximum stack depth exceeded',
@@ -417,9 +415,7 @@ class Token
             JSON_ERROR_UTF8 => 'Malformed UTF-8 characters' //PHP >= 5.3.3
         ];
         throw new DomainException(
-            isset($messages[$errno])
-            ? $messages[$errno]
-            : 'Unknown JSON error: ' . $errno
+            $messages[$errno] ?? 'Unknown JSON error: ' . $errno
         );
     }
 
@@ -439,19 +435,19 @@ class Token
              * to specify that large ints (like Steam Transaction IDs) should be treated as
              * strings, rather than the PHP default behaviour of converting them to floats.
              */
-            $obj = \json_decode($data, false, 512, JSON_BIGINT_AS_STRING);
+            $obj = \json_decode((string) $data, false, 512, JSON_BIGINT_AS_STRING);
         } else {
             /** Not all servers will support that, however, so for older versions we must
              * manually detect large ints in the JSON string and quote them (thus converting
              *them to strings) before decoding, hence the preg_replace() call.
              */
             $max_int_length = \strlen((string) PHP_INT_MAX) - 1;
-            $json_without_bigints = \preg_replace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', $data);
-            $obj = \json_decode($json_without_bigints);
+            $json_without_bigints = \preg_replace('/:\s*(-?\d{' . $max_int_length . ',})/', ': "$1"', (string) $data);
+            $obj = \json_decode((string) $json_without_bigints);
         }
 
-        if ($errno = \json_last_error()) {
-            static::handleJsonError($errno);
+        if (($errno = \json_last_error()) !== 0) {
+            self::handleJsonError($errno);
         } elseif ($obj === null && $data !== 'null') {
             throw new DomainException('Null result with non-null data');
         }

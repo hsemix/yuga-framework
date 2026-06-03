@@ -2,35 +2,41 @@
 
 namespace Yuga\Application;
 
-use Yuga\Debug;
-use Yuga\Boolean;
-use Tracy\Debugger;
-use Yuga\Route\Route;
-use Yuga\Support\Str;
-use Yuga\Http\Request;
-use Yuga\Support\Config;
-use Yuga\Container\Container;
-use Yuga\Views\UI\Site as UI;
 use App\Middleware\WebMiddleware;
-use Yuga\Logger\LogServiceProvider;
-use Yuga\Route\RouteServiceProvider;
-use Yuga\Events\EventServiceProvider;
-use Yuga\Providers\YugaServiceProvider;
-use Yuga\Session\SessionServiceProvider;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Tracy\Debugger;
+use Yuga\Boolean;
+use Yuga\Container\Container;
 use Yuga\Database\ElegantServiceProvider;
-use Yuga\Providers\Composer\PackageManager;
-use Yuga\Interfaces\Providers\IServiceProvider;
-use Yuga\Route\Exceptions\NotFoundHttpExceptionHandler;
+use Yuga\Debug;
+use Yuga\Events\EventServiceProvider;
+use Yuga\Http\Psr7\YugaRequestFactory;
+use Yuga\Http\Psr7\YugaResponseFactory;
+use Yuga\Http\Request;
 use Yuga\Interfaces\Application\Application as IApplication;
+use Yuga\Interfaces\Providers\IServiceProvider;
+use Yuga\Logger\LogServiceProvider;
+use Yuga\Providers\Composer\PackageManager;
+use Yuga\Providers\YugaServiceProvider;
+use Yuga\Route\Exceptions\NotFoundHttpExceptionHandler;
+use Yuga\Route\Route;
+use Yuga\Route\RouteServiceProvider;
+use Yuga\Runtime\Kernel;
+use Yuga\Session\SessionServiceProvider;
+use Yuga\Support\Config;
+use Yuga\Support\Str;
+use Yuga\Views\UI\Site as UI;
 
-class Application extends Container implements IApplication
+class Application extends Container implements IApplication, Kernel
 {
-    const VERSION = '4.5.4';
+    const VERSION = '5.0.0';
     const CHARSET_UTF8 = 'UTF-8';
 
      /**
      * Start the mvvm application by defaut
      * <code>$this->getSite()</code> from a ViewModel returns $this->site
+     * @var \Yuga\Views\UI\Site
      */
     public $site;
     /**
@@ -40,14 +46,6 @@ class Application extends Container implements IApplication
      * @var \Yuga\Support\Config
      */
     public $config;
-
-    /**
-     * The base file path of the application so we can install the framework 
-     * in a different directory and access it entiry
-     *
-     * @var string
-     */
-    protected $basePath;
 
     /**
      * The application instance is to be stored in this variable
@@ -111,10 +109,17 @@ class Application extends Container implements IApplication
      */
     protected $absoluteCachePathPrefixes = ['/', '\\'];
     
-    public function __construct($root = null)
+    /**
+     * @param string $root
+     */
+    public function __construct(
+    /**
+     * The base file path of the application so we can install the framework
+     * in a different directory and access it entiry
+     */
+    protected $basePath = null)
     {
         $this->site = new UI;
-        $this->basePath = $root;
         $this->charset = static::CHARSET_UTF8;
     }
 
@@ -270,22 +275,18 @@ class Application extends Container implements IApplication
             }
         }
         
-        if (env('ROUTER_BOOTED', false)) {
-            if (env('ENABLE_MVP_ROUTES', false)) {
-                
-                Route::group(['middleware' => 'web', 'namespace' => 'App\Controllers', 'exceptionHandler' => NotFoundHttpExceptionHandler::class], function () {
-                    $routePrefix = '/' . trim(env('PREFIX_MVP_ROUTE', '/'), '/') . '/';
-                    $routePrefix = ($routePrefix == '//') ? '/' : $routePrefix;
-                    $controller = env('MVP_CONTROLLER', 'Controller');
-                    if (env('MATCH_ROUTES_TO_CONTROLLERS', false)) {
-                        trigger_error("MVP ROUTING and IMPLICIT ROUTING can not co-exist", E_USER_WARNING);
-                    }
+        if (env('ROUTER_BOOTED', false) && env('ENABLE_MVP_ROUTES', false)) {
+            Route::group(['middleware' => 'web', 'namespace' => 'App\Controllers', 'exceptionHandler' => NotFoundHttpExceptionHandler::class], function (): void {
+                $routePrefix = '/' . trim((string) env('PREFIX_MVP_ROUTE', '/'), '/') . '/';
+                $routePrefix = ($routePrefix === '//') ? '/' : $routePrefix;
+                $controller = env('MVP_CONTROLLER', 'Controller');
+                if (env('MATCH_ROUTES_TO_CONTROLLERS', false)) {
+                    trigger_error("MVP ROUTING and IMPLICIT ROUTING can not co-exist", E_USER_WARNING);
+                }
 
-                    Route::csrfVerifier(new WebMiddleware);
-                    Route::all($routePrefix . '{slug?}', $controller . '@show')->where(['slug' => '(.*)']);
-                });
-                
-            }
+                Route::csrfVerifier(new WebMiddleware);
+                Route::all($routePrefix . '{slug?}', $controller . '@show')->where(['slug' => '(.*)']);
+            });
         }
     }
 
@@ -311,15 +312,13 @@ class Application extends Container implements IApplication
         $this->singleton('app', $this);
         $this->singleton(Container::class, $this);
         $this->bind('base_path', $this->basePath);
-        $this->bind('Yuga\Interfaces\Application\Application', self::class);
+        $this->bind(\Yuga\Interfaces\Application\Application::class, self::class);
         $this->bind('vendor_path', $this->vendorDir);
-        $this->singleton(PackageManager::class, function () {
-            return new PackageManager(
-                $this->basePath, 
-                env('COMPOSER_VENDOR_DIR', $this->vendorDir),
-                path('config'.DIRECTORY_SEPARATOR.'ServiceProviders.php')
-            );
-        });
+        $this->singleton(PackageManager::class, fn() => new PackageManager(
+            $this->basePath, 
+            env('COMPOSER_VENDOR_DIR', $this->vendorDir),
+            path('config'.DIRECTORY_SEPARATOR.'ServiceProviders.php')
+        ));
     }
 
     /**
@@ -424,7 +423,6 @@ class Application extends Container implements IApplication
     /**
      * Refresh the bound request instance in the container.
      *
-     * @param  \Yuga\Http\Request  $request
      * @return void
      */
     protected function refreshRequest(Request $request)
@@ -445,8 +443,6 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * @param \Yuga\Interfaces\Providers\IServiceProvider $provider
-     * 
      * @return \Yuga\Application\Application $this
      */
     public function registerProvider(IServiceProvider $provider)
@@ -457,9 +453,10 @@ class Application extends Container implements IApplication
                 $this->bootProvider($provider);
                 $this->prodviderScheduler($provider);
             }
-            $this->loadedProviders[] = get_class($provider);
+            $this->loadedProviders[] = $provider::class;
             return $this;
-        }        
+        }
+        return null;        
     }
 
     public function getProviders()
@@ -468,8 +465,6 @@ class Application extends Container implements IApplication
     }
 
     /**
-     * @param \Yuga\Interfaces\Providers\IServiceProvider $provider
-     * 
      * @return mixed
      */
     protected function bootProvider(IServiceProvider $provider)
@@ -481,23 +476,20 @@ class Application extends Container implements IApplication
 
     protected function prodviderScheduler(IServiceProvider $provider)
     {
-        if ($this->make('scheduler')) {
-            if (method_exists($provider, 'scheduler')) {
-                return call_user_func([$provider, 'scheduler'], $this->make('scheduler'));
-            }
+        if ($this->make('scheduler') && method_exists($provider, 'scheduler')) {
+            return call_user_func([$provider, 'scheduler'], $this->make('scheduler'));
         }
     }
 
     /**
      * Determine whether a service provider has been loaded or not
-     * 
-     * @param IServiceProvider $provider
-     * 
+     *
+     *
      * @return bool
      */
     protected function providerLoaded(IServiceProvider $provider)
     {
-        return array_key_exists(get_class($provider), $this->loadedProviders);
+        return array_key_exists($provider::class, $this->loadedProviders);
     }
 
     /**
@@ -577,7 +569,7 @@ class Application extends Container implements IApplication
      */
     public function setLocale($locale)
     {
-        $this->locale = strtolower($locale);
+        $this->locale = strtolower((string) $locale);
         setlocale(LC_ALL, $locale);
         return $this;
     }
@@ -610,8 +602,109 @@ class Application extends Container implements IApplication
     /**
      * Shutdown the application
      */
-    public function terminate()
+    // public function terminate()
+    // {
+    //     exit(0);
+    // }
+
+
+
+    public function bootstrap()
     {
-        exit(0);
+        if ($this->booted) {
+            return $this;
+        }
+
+        $this->run();
+
+        $router = \Yuga\Route\Route::router();
+
+        if (method_exists($router, 'ensureRoutesLoaded')) {
+            $router->ensureRoutesLoaded();
+        }
+
+        $this->booted = true;
+
+        return $this;
+    }
+
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        $this->bootstrap();
+
+        $yugaRequest = YugaRequestFactory::fromPsr7($request);
+
+        $router = \Yuga\Route\Route::router();
+
+        // if (method_exists($router, 'setRequest')) {
+        //     $router->setRequest($yugaRequest);
+        // }
+
+        if (method_exists($router, 'prepareForRequest')) {
+            $router->prepareForRequest($yugaRequest);
+        }
+
+        ob_start(); 
+
+        try {
+            $result = $router->routeRequest();
+
+            $buffer = ob_get_clean();
+
+            // return YugaResponseFactory::fromMixed($result ?? $buffer);
+
+            $response = YugaResponseFactory::fromMixed($result ?? $buffer);
+
+            if (class_exists(\Yuga\Cookie\Cookie::class)) {
+                $response = \Yuga\Cookie\Cookie::attachToResponse($response);
+            }
+
+            return $response;
+
+        } catch (\Throwable $e) {
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+
+            // throw $e;
+            return $this->renderThrowable($e);
+        }
+    }
+
+    protected function renderThrowable(\Throwable $e): \Psr\Http\Message\ResponseInterface
+    {
+        // if ($this->debuggerStarted == true && class_exists(\Tracy\Debugger::class)) {
+            ob_start();
+
+            Debugger::getBlueScreen()->render($e);
+
+            return new \Nyholm\Psr7\Response(
+                500,
+                ['Content-Type' => 'text/html; charset=UTF-8'],
+                ob_get_clean()
+            );
+        // }
+
+        // throw $e;
+    }
+
+    public function terminateRequest(ServerRequestInterface $request, ResponseInterface $response): void
+    {
+        if (method_exists($this, 'flushScopedInstances')) {
+            $this->flushScopedInstances();
+        }
+
+        gc_collect_cycles();
+    }
+    
+    /**
+     * Shutdown the application
+     */
+    public function terminate(?ServerRequestInterface $request = null, ?ResponseInterface $response = null): void
+    {
+        if ($request && $response) {
+            $this->terminateRequest($request, $response);
+            return;
+        }
     }
 }

@@ -10,8 +10,6 @@ use Yuga\Route\Exceptions\NotFoundHttpException;
 class NotFoundHttpExceptionHandler extends RouteExceptionHandler
 {
     /**
-     * @param Request $request
-     * @param \Exception $error
      * @throws \Exception
      */
     public function handleError(Request $request, Exception $error)

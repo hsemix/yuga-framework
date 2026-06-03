@@ -4,12 +4,8 @@ namespace Yuga\Cache;
 
 class RedisCache extends CacheAbstract
 {
-    private $adapter;
-
-    public function __construct(\Redis $adapter, int $ttl = 300)
+    public function __construct(private readonly \Redis $adapter)
     {
-        $this->adapter = $adapter;
-
         $this->ttl = 300;
 
         return $this;
@@ -64,6 +60,7 @@ class RedisCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function increment(string $key, int $amount = 1, ?int $ttl = null)
     {
         $this->adapter->incrBy($key, $amount);
@@ -73,6 +70,7 @@ class RedisCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function decrement(string $key, int $amount = 1, ?int $ttl = null)
     {
         $this->adapter->decrBy($key, $amount);
@@ -82,6 +80,7 @@ class RedisCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function incrementFloat(string $key, float $amount = 1.0, ?int $ttl = null)
     {
         $this->adapter->incrByFloat($key, $amount);
@@ -91,6 +90,7 @@ class RedisCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function decrementFloat(string $key, float $amount = 1.0, ?int $ttl = null)
     {
         $this->adapter->incrByFloat($key, -$amount);
@@ -100,6 +100,7 @@ class RedisCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function touch(string $key, ?int $ttl = null)
     {
         if ($ttl = $this->getTTL($ttl)) {

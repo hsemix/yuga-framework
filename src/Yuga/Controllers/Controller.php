@@ -48,12 +48,9 @@ class Controller
     protected function validateFilesMoreRules(array $rules = [])
     {
         foreach ($rules as $field => $rules) {
-            if ($rules === 'file') {
-                
-                if (!$this->request->hasFile($field)) {
-                    $this->session->put('file-message', "The field {$field} requires an uploadable file");
-                    $this->session->put('yuga-file-field', $field);
-                }
+            if ($rules === 'file' && !$this->request->hasFile($field)) {
+                $this->session->put('file-message', "The field {$field} requires an uploadable file");
+                $this->session->put('yuga-file-field', $field);
             }
         }
     }
@@ -62,10 +59,8 @@ class Controller
     {
         $message = new Message();
         foreach ($rules as $field => $rules) {
-            if ($rules === 'file') {
-                if (!$this->request->hasFile($field)) {
-                    $message->addMessage("The field {$field} requires an uploadable file", $field);
-                }
+            if ($rules === 'file' && !$this->request->hasFile($field)) {
+                $message->addMessage("The field {$field} requires an uploadable file", $field);
             }
         }
         if ($message->hasMessages()) {

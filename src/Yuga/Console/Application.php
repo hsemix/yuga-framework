@@ -2,39 +2,27 @@
 
 namespace Yuga\Console;
 
-use Closure;
-use Exception;
-use Throwable;
 use Yuga\Container\Container;
 use Yuga\Interfaces\Events\Dispatcher;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Yuga\Application\Application as YugaApplication;
 use Symfony\Component\Console\Application as Console;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 class Application extends Console
 {
-    /**
-     * The Event Dispatcher.
-     *
-     * @var \Yuga\Interfaces\Events\Dispatcher
-     */
-    protected $events;
     protected static $app;
-    protected $yuga;
 
-    public function __construct(Container $yuga, Dispatcher $events, $name, $version)
+    public function __construct(protected \Yuga\Container\Container $yuga, /**
+     * The Event Dispatcher.
+     */
+    protected \Yuga\Interfaces\Events\Dispatcher $events, $name, $version)
     {
-        $this->yuga = $yuga;
         parent::__construct($name, $version);
-        $this->events = $events;
         if (!static::$app) {
             static::$app = $this;
         }
@@ -74,7 +62,6 @@ class Application extends Console
     /**
      * Add the command to the parent instance.
      *
-     * @param  \Symfony\Component\Console\Command\Command  $command
      * @return \Symfony\Component\Console\Command\Command
      */
     protected function addToParent(SymfonyCommand $command)
@@ -85,9 +72,9 @@ class Application extends Console
     /**
      * Add a command to the console.
      *
-     * @param  \Symfony\Component\Console\Command\Command  $command
      * @return \Symfony\Component\Console\Command\Command
      */
+    #[\Override]
     public function add(SymfonyCommand $command)
     {
         if ($command instanceof Command) {
@@ -123,33 +110,30 @@ class Application extends Console
         }
     }
 
-    public function run(InputInterface $input = null, OutputInterface $output = null)
+    #[\Override]
+    public function run(?InputInterface $input = null, ?OutputInterface $output = null)
     {
-        $commandName = $this->getCommandName(
+        $this->getCommandName(
             $input = $input ?: new ArgvInput
         );
-
-        $exitCode = parent::run($input, $output);
-        
-        return $exitCode;
+        return parent::run($input, $output);
     }
 
     /**
      * Run an Yuga console command by name.
      *
      * @param  string  $command
-     * @param  array   $parameters
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    public function call($command, array $parameters = [], OutputInterface $output = null)
+    public function call($command, array $parameters = [], ?OutputInterface $output = null)
     {
         $parameters['command'] = $command;
 
         // Unless an output interface implementation was specifically passed to us we
         // will use the "NullOutput" implementation by default to keep any writing
         // suppressed so it doesn't leak out to the browser or any other source.
-        $output = $output ?? new NullOutput;
+        $output ??= new NullOutput;
 
         $input = new ArrayInput($parameters);
 

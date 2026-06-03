@@ -7,7 +7,6 @@ use Yuga\Database\Migration\PdoHelper;
 
 class Column
 {
-    protected $table;
     protected $name;
     protected $renameTo;
     protected $type;
@@ -96,16 +95,13 @@ class Column
         self::TYPE_POLYGON,
     ];
 
-    protected $relation;
-    protected $change;
+    protected $relation = [];
+    protected $change = false;
 
     // Default values
 
-    public function __construct($table)
+    public function __construct(protected $table)
     {
-        $this->relation = [];
-        $this->table = $table;
-        $this->change = false;
     }
 
     public function primary()
@@ -264,7 +260,7 @@ class Column
 
         $query = sprintf('%s %s%s %s', $this->getName(), $this->getType(), $length, $this->getAttributes());
 
-        $query .= (!$this->getNullable()) ? 'not null' : 'null';
+        $query .= ($this->getNullable()) ? 'null' : 'not null';
 
         if ($this->getIndex()) {
             $query .= sprintf(' %s', $this->getIndex(), $this->getName());
@@ -280,11 +276,6 @@ class Column
 
         if ($this->getIncrement()) {
             $query .= ' autoincrement';
-        }
-
-        if ($includeRelations) {
-
-            
         }
 
         return $query;

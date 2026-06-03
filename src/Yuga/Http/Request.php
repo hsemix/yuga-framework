@@ -17,7 +17,7 @@ class Request
     protected $host;
     protected $uri;
     protected $method;
-    protected $input;
+    protected \Yuga\Http\Input\Input $input;
     protected $app;
     /**
      * @var ILoadableRoute|null
@@ -43,7 +43,8 @@ class Request
         $this->host = $this->getHeader('http-host');
         $this->uri = $this->getHeader('request-uri');
         $this->input = new Input($this);
-        $this->method = strtolower($this->input->get('_method', $this->getHeader('request-method'), 'post'));
+        $method = $this->input->get('_method', $this->getHeader('request-method'), 'post') ?? 'get';
+        $this->method = strtolower($method);
         // $this->app = Application::getInstance();
         $this->data = $this->except(['_token']);
 
@@ -61,7 +62,7 @@ class Request
             $key = $keys[$i];
             $value = $_SERVER[$key];
 
-            $this->headers[strtolower($key)] = $value;
+            $this->headers[strtolower((string) $key)] = $value;
             $this->headers[strtolower(str_replace('_', '-', $key))] = $value;
         }
 
@@ -90,19 +91,21 @@ class Request
         if ($trim) {
             return $this->uri;
         }
-        return '/' . ltrim(str_replace($this->processHost(), '', $this->uri), '/');
+
+        return '/' . ltrim(str_replace($this->processHost() ?? '', '', $this->uri ?? ''), '/');
     }
 
 
     public function processHost()
     {
+        // return $this->host;
         $scriptName = $this->getHeader('php-self');
 
         if (env('PAGE_CONTROLLER', 'index.php') == 'index.php') {
             $scriptName = str_replace('/index.php', '', $this->getHeader('php-self'));
         }
         
-        $segs = explode('/', trim($scriptName, '/'));
+        $segs = explode('/', trim((string) $scriptName, '/'));
         $segs = array_reverse($segs);
         $index = 0;
         $last = count($segs);
@@ -112,12 +115,17 @@ class Request
             $seg = $segs[$index];
             $baseUrl = '/' . $seg . rtrim($baseUrl, '/') ;
             ++$index;
-        } while ($last > $index && (false !== $pos = strpos($scriptName, $baseUrl)) && 0 != $pos);
+        } while ($last > $index && (false !== $pos = strpos((string) $scriptName, $baseUrl)) && 0 !== $pos);
 
         return $baseUrl . '/';
     }
 
-    public function formatUrl($url)
+    public function clearLoadedRoute(): void
+    {
+        $this->loadedRoute = null;
+    }
+
+    public function formatUrl($url): never
     {
         echo $this->uri;
         die();
@@ -177,15 +185,7 @@ class Request
      */
     public function getIp()
     {
-        if ($this->getHeader('http-cf-connecting-ip') !== null) {
-            return $this->getHeader('http-cf-connecting-ip');
-        }
-
-        if ($this->getHeader('http-x-forwarded-for') !== null) {
-            return $this->getHeader('http-x-forwarded-for');
-        }
-
-        return $this->getHeader('remote-addr');
+        return ($this->getHeader('http-cf-connecting-ip') ?? $this->getHeader('http-x-forwarded-for')) ?? $this->getHeader('remote-addr');
     }
 
     /**
@@ -249,10 +249,8 @@ class Request
 
     public function getBearerToken()
     {
-        if ($authorize = $this->getHeader('http-authorization')) {
-            if (preg_match('/Bearer\s(\S+)/', $authorize, $matches)) {
-                return $matches[1];
-            }
+        if (($authorize = $this->getHeader('http-authorization')) && preg_match('/Bearer\s(\S+)/', $authorize, $matches)) {
+            return $matches[1];
         }
 
         throw new Exception('Access Token Not Found', 401);
@@ -290,7 +288,7 @@ class Request
      */
     public function getAcceptFormats()
     {
-        return explode(',', $this->getHeader('http-accept'));
+        return explode(',', (string) $this->getHeader('http-accept'));
     }
 
     /**
@@ -320,7 +318,6 @@ class Request
     /**
      * Set rewrite route
      *
-     * @param ILoadableRoute $route
      * @return static
      */
     public function setRewriteRoute(ILoadableRoute $route)
@@ -404,7 +401,6 @@ class Request
     /**
      * Set loaded route
      *
-     * @param ILoadableRoute $route
      * @return static
      */
     public function setLoadedRoute(ILoadableRoute $route)
@@ -426,7 +422,7 @@ class Request
 
     public function __get($name)
     {
-        return isset($this->data[$name]) ? $this->data[$name] : null;
+        return $this->data[$name] ?? null;
     }
 
     public function exists($index = null)
@@ -437,10 +433,11 @@ class Request
     public function files($key = null, $default = null)
     {
         $files = $this->getInput()->findFile($key, $default);
-		if (is_array($files)) 
-			return $this->getInput()->findFile($key, $default);
-		else if(!$this->getInput()->findFile($key, $default)->hasError())
-			return $this->getInput()->findFile($key, $default);
+		if (is_array($files)) {
+            return $this->getInput()->findFile($key, $default);
+        } elseif (!$this->getInput()->findFile($key, $default)->hasError()) {
+            return $this->getInput()->findFile($key, $default);
+        }
         return false;
     }
 
@@ -448,7 +445,7 @@ class Request
     {
         return $this->getInput()->hasFile($key);
     }
-    public function all(array $filter = null)
+    public function all(?array $filter = null)
     {
         return $this->getInput()->all($filter);
     }
@@ -457,8 +454,9 @@ class Request
     {
         $only = [];
         foreach ($this->all() as $field => $value) {
-            if (in_array($field, $onlyFields))
+            if (in_array($field, $onlyFields)) {
                 $only[$field] = $value;
+            }
         }
        return $only;
     }
@@ -467,18 +465,16 @@ class Request
     {
         $only = [];
         foreach ($this->all() as $field => $value) {
-            if (!in_array($field, $exceptFields))
+            if (!in_array($field, $exceptFields)) {
                 $only[$field] = $value;
+            }
         }
        return $only;
     }
     
     public function isAjax()
     {
-        if (($this->getHeader('http-x-requested-with') !== null && strtolower($this->getHeader('http-x-requested-with')) === 'xmlhttprequest') || ($this->getHeader('http-user-agent') !== null && preg_match('/^(curl|wget)/i', $this->getHeader('http-user-agent')))) {
-            return true;
-        }
-        return false;
+        return ($this->getHeader('http-x-requested-with') !== null && strtolower($this->getHeader('http-x-requested-with')) === 'xmlhttprequest') || ($this->getHeader('http-user-agent') !== null && preg_match('/^(curl|wget)/i', $this->getHeader('http-user-agent')));
     }
 
     public function addOld()
@@ -490,7 +486,7 @@ class Request
     {
         $data = app()->make('session')->get('old-data');
         if ($key && !is_null($data)) {
-            return isset($data[$key]) ? $data[$key]: null;
+            return $data[$key] ?? null;
         }
         return $data;
     }
@@ -508,8 +504,9 @@ class Request
     public function validate($rules = [], $clearOldData = true)
     {
         $fields = $this->all();
-        if (isset($fields['_token']))
+        if (isset($fields['_token'])) {
             unset($fields['_token']);
+        }
         
         $validation = app()->get('validate')->check($this->all(), $rules);
         if ($validation->failed()) {

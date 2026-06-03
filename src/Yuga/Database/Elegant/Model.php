@@ -26,7 +26,7 @@ use Yuga\Database\Elegant\Association\MergeableMany;
 use Yuga\Database\Elegant\Exceptions\ModelException;
 use Yuga\Interfaces\Database\Elegant\Association\Association as Relation;
 
-abstract class Model implements ArrayAccess, JsonSerializable
+abstract class Model implements ArrayAccess, JsonSerializable, \Stringable
 {
     protected $cast = [];
     protected $queryable;
@@ -57,10 +57,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
     
     /**
      * Make a new Model instance
-     * 
+     *
      * @param array|[] $options
-     * 
-     * @return void
      */
     public function __construct(array $options = [])
     {
@@ -99,9 +97,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Set the model Event Dispatcher
-     * 
-     * @param Event $event
-     * 
+     *
+     *
      * @return void
      */
     public function setEventDispatcher(Event $event)
@@ -111,9 +108,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Set a connection on which you want to query this model
-     * 
-     * @param Connection $connection
-     * 
+     *
+     *
      * @return void
      */
     public static function setConnection(Connection $connection)
@@ -149,11 +145,10 @@ abstract class Model implements ArrayAccess, JsonSerializable
     /**
      * Begin querying the model on a given connection.
      *
-     * @param  Connection  $connection
-     * 
+     *
      * @return \Yuga\Database\Elegant\Builder
      */
-    public static function on(Connection $connection = null)
+    public static function on(?Connection $connection = null)
     {
         $instance = new static;
 
@@ -164,9 +159,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Fill a model with attributes
-     * 
-     * @param array $attributes
-     * 
+     *
+     *
      * @return static
      */
     public function fillModelWith(array $attributes)
@@ -177,25 +171,21 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Fill a model with a single array of attributes
-     * 
-     * @param array $attributes
-     * 
+     *
+     *
      * @return static
      */
     protected function fillModelWithSingle(array $attributes)
     {
         foreach ($attributes as $key => $value) {
-            if (!empty($this->fillable)){
+            if (!empty($this->fillable)) {
                 if (in_array($key, $this->fillable)) {
                     $this->setAttribute($key, $value);
                 }
+            } elseif (static::$massAssign) {
+                $this->setAttribute($key, $value);
             } else {
-                if (static::$massAssign) {
-                    $this->setAttribute($key, $value);
-                } else {
-                    throw new Exception('Need to have fillables for mass assignment or set protected static $massAssign to true in your model (' . static::class . ')');
-                }
-                
+                throw new Exception('Need to have fillables for mass assignment or set protected static $massAssign to true in your model (' . static::class . ')');
             } 
         }
         return $this;
@@ -289,10 +279,12 @@ abstract class Model implements ArrayAccess, JsonSerializable
         if (preg_match('/^findBy(.+)$/', $method, $matches)) {
 			return $this->where(Str::deCamelize($matches[1]), $parameters[0]);
         }
-        if (method_exists($this, $span = 'span' . ucfirst($method)))
+        if (method_exists($this, $span = 'span' . ucfirst($method))) {
             return $query->callSpan($span, $parameters);
-        if (method_exists($query, $method))
+        }
+        if (method_exists($query, $method)) {
             return call_user_func_array([$query, $method], $parameters);
+        }
         return null;
     }
 
@@ -311,11 +303,13 @@ abstract class Model implements ArrayAccess, JsonSerializable
 		if (preg_match('/^findBy(.+)$/', $method, $matches)) {
 			return $instance->where(strtolower($matches[1]), $parameters[0]);
         }
-        if (method_exists($instance, $span = 'span' . ucfirst($method)))
+        if (method_exists($instance, $span = 'span' . ucfirst($method))) {
             return $query->callSpan($span, $parameters);
+        }
 
-        if (method_exists($query, $method))
+        if (method_exists($query, $method)) {
             return call_user_func_array([$instance, $method], $parameters);
+        }
         return null;
     }
     
@@ -385,7 +379,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     #[\ReturnTypeWillChange]
     public function offsetGet($offset) 
     {
-        return isset($this->attributes[$offset]) ? $this->attributes[$offset] : null;
+        return $this->attributes[$offset] ?? null;
     }
 
     /**
@@ -402,12 +396,10 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Change the model to a string
-     * 
+     *
      * @param null
-     * 
-     * @return void
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->toJson();
     }
@@ -442,8 +434,9 @@ abstract class Model implements ArrayAccess, JsonSerializable
                 if (!is_object($attribute)) {
                     if (!empty($attribute)) {
                         $json_attribute = json_decode($attribute, true);
-                        if (json_last_error() == JSON_ERROR_NONE)
+                        if (json_last_error() === JSON_ERROR_NONE) {
                             return $json_attribute;
+                        }
                     }
                     return $attribute;
                 } else {
@@ -577,10 +570,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
      */
     public function getPrimaryKey()
     {
-        if (isset(static::$primaryKey)) {
-            return static::$primaryKey;
-        }
-        return self::$primaryKey;
+        return static::$primaryKey ?? self::$primaryKey;
     }
 
     /**
@@ -639,7 +629,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
      * 
      * @return Builder
      */
-    protected function newElegantMainQueryBuilder(Model $model = null)
+    protected function newElegantMainQueryBuilder(?Model $model = null)
     {
         return $this->queryable?:new Builder($this->getConnection(), $model);
     }
@@ -673,11 +663,10 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Get paginator for paginating results of this model
-     * 
+     *
      * @param int $perPage
      * @param int $page
-     * @param array $options
-     * 
+     *
      * @return \Yuga\Pagination\Paginator
      */
     public function getPaginator($perPage, $page, array $options)
@@ -687,8 +676,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Set a model pagination for later
-     * 
-     * @param Pagination $pagination
+     *
      * @return Model
      */
     public function setPagination(Pagination $pagination)
@@ -699,10 +687,9 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Make models from plain arrays got from database tables
-     * 
+     *
      * @param array $items
-     * @param array|null $bootable
-     * 
+     *
      * @return Collection
      */
     public function makeModels($items, ?array $bootable = null)
@@ -711,8 +698,9 @@ abstract class Model implements ArrayAccess, JsonSerializable
         $instance = new static;
         
         $items = array_map(function ($item) use ($instance, $bootable, $items) {
-            if ($item instanceof Row)
+            if ($item instanceof Row) {
                 $item = (object)$item->toArray();
+            }
             return $instance->newFromQuery($item, $bootable, $items);
         }, $items);
         return $instance->newCollection($items);
@@ -740,13 +728,12 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Create a new Elegant model from query
-     * 
+     *
      * @param array|[] $attributes
-     * @param array|null $bootable
-     * 
+     *
      * @return Model $model
      */
-    public function newFromQuery($attributes = [], array $bootable = null, array $items = [])
+    public function newFromQuery($attributes = [], ?array $bootable = null, array $items = [])
     {
         $model = $this->newInstance([], true);
         $model->setRawAttributes((array) $attributes, true);
@@ -755,10 +742,11 @@ abstract class Model implements ArrayAccess, JsonSerializable
             $this->bootable = $bootable;
             foreach ($bootable as $start => $class) {
                 // $model->$start = $class;
-                if ($start != 'pagination' && $start != 'paginator')
+                if ($start != 'pagination' && $start != 'paginator') {
                     $this->invokeBootable($start, $model, $items);
-                else 
+                } else {
                     $model->$start = $class;
+                }
             }
         }
 
@@ -776,7 +764,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
                 if ($type == 'array') {
                     $attributeData = $this->castToArray($attributeData);
-                } else if ($type == 'json' || $type == 'json-array') {
+                } elseif ($type == 'json' || $type == 'json-array') {
                     $attributeData = $this->castToJson($attributeData);
                 } else {
                     settype($attributeData, $type);
@@ -790,18 +778,13 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     protected function isJson(?string $string = null)
     {
-        json_decode($string ?? null);
+        json_decode((string) ($string ?? null));
 		return json_last_error() === JSON_ERROR_NONE;
     }
 
     protected function castToArray(string $string)
     {
-        if ($this->isJson($string))
-            $string = json_decode($string, true);
-        else
-            $string = (array)$string;
-        
-        return $string;
+        return $this->isJson($string) ? json_decode($string, true) : (array)$string;
     }
 
     protected function castToJson($array)
@@ -811,32 +794,29 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Invoke funtions or return strings or arrays that functions return
-     * 
+     *
      * @param string $name
      * @param Model $model
-     * @param array $items
-     * 
+     *
      * @return void
      */
     protected function invokeBootable($name, $model, array $items)
     {
         $with = $this->bootable[$name];
 
-        if (is_numeric($name) === true) {
+        if (is_numeric($name)) {
             $name = $with;
         }
 
         if ($with instanceof Closure) {
-            $result = $this->processBootableClosure($with, $model, $name, $items);
+            $result = $this->processBootableClosure($with, $model, $name);
         } else {
             $result = $this->processBootableMethod($with, $model, $name, $items);
         }
 
-        if (is_array($result)) {
-            if (array_key_exists('field', $result) && array_key_exists('results', $result)) {
-                $name = $result['field'];
-                $result = $result['results'];
-            }
+        if (is_array($result) && (array_key_exists('field', $result) && array_key_exists('results', $result))) {
+            $name = $result['field'];
+            $result = $result['results'];
         }
     
         if ($result instanceof Collection) {
@@ -902,7 +882,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
         if (is_null($result)) {
             $result = $model->$name;
-        } else if (is_object($result)) {
+        } elseif (is_object($result)) {
             $result = $result->get();
         }
 
@@ -926,23 +906,20 @@ abstract class Model implements ArrayAccess, JsonSerializable
             $result = $model->$method();
             if ($result instanceof Relation) {
                 unset($names[0]);
-                $result = $result->with(implode('.', $names));//->get();
-
+                $result = $result->with(implode('.', $names));
+                //->get();
                 if ($result instanceof HasOne || $result instanceof BelongsTo) {
                     $result = $result->first();
                 } else {
                     $result = $result->get();
                 }
-
-            } else {
-                if (in_array($method, $this->virtualRelations)) {
-                    if ($result instanceof Model) {
-                        unset($names[0]);
-                        $result = $result->with(implode('.', $names))->get();
-                    } else if ($result instanceof Collection) {
-                        unset($names[0]);
-                        $result = isset($result[0]) ? $result[0]->with(implode('.', $names))->get() : $result;
-                    }
+            } elseif (in_array($method, $this->virtualRelations)) {
+                if ($result instanceof Model) {
+                    unset($names[0]);
+                    $result = $result->with(implode('.', $names))->get();
+                } elseif ($result instanceof Collection) {
+                    unset($names[0]);
+                    $result = isset($result[0]) ? $result[0]->with(implode('.', $names))->get() : $result;
                 }
             }
             $result =  ['field' => $method, 'results' => $result];
@@ -969,9 +946,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Set the query to be used by this model
-     * 
-     * @param Builder $query
-     * 
+     *
+     *
      * @return void
      */
     public function setQuery(Builder $query)
@@ -981,10 +957,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Set Raw attributes of the model
-     * 
-     * @param array $attributes
+     *
      * @param boolean $sync
-     * 
      * @return static
      */
     public function setRawAttributes(array $attributes, $sync = false)
@@ -997,35 +971,28 @@ abstract class Model implements ArrayAccess, JsonSerializable
     }
 
     /**
-	 * decides whether to update or create an object
-     * 
-     * @param array $options 
-     * 
+     * decides whether to update or create an object
+     *
+     *
      * @return Model $saved
-	 */
+     */
     public function save(array $options = [])
     {
         $query = $this->newElegantQuery();
         if ($this->dispatchModelEvent('saving', [$query]) === false) {
             return false;
         }
-        if ($this->exists) {
-            $saved = $this->performUpdate($query, $options);
-        } else {
-            $saved = $this->performInsert($query, $options);
-        }
+        $saved = $this->exists ? $this->performUpdate($query, $options) : $this->performInsert($query, $options);
         $this->dispatchModelEvent('saved', [$query]);
         return $saved;
     }
 
     /**
-	 * create and save an object
-	 * 
-     * @param Builder $query
+     * create and save an object
+     *
      * @param array|[] $options
-     * 
      * @return static
-	 */
+     */
     protected function performInsert(Builder $query, array $options = [])
     {    
         if ($this->dispatchModelEvent('creating', [$query]) === false) {
@@ -1038,9 +1005,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
         $attributes = $this->attributes;
         if (count($options) !== 0) {
             /* Only save valid columns */
-            $options = array_filter($options, function ($key) {
-                return (!in_array($key, $this->attributes, true) === true);
-            }, ARRAY_FILTER_USE_KEY);
+            $options = array_filter($options, fn($key) => !in_array($key, $this->attributes, true), ARRAY_FILTER_USE_KEY);
 
             $attributes = array_merge($attributes, $options);
         }
@@ -1099,9 +1064,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     {
         if (count($options) !== 0) {
             /* Only save valid columns */
-            $options = array_filter($options, function ($key) {
-                return (!in_array($key, $this->attributes, true) === true);
-            }, ARRAY_FILTER_USE_KEY);
+            $options = array_filter($options, fn($key) => !in_array($key, $this->attributes, true), ARRAY_FILTER_USE_KEY);
 
             $this->attributes = array_merge($this->attributes, $options);
         }
@@ -1111,10 +1074,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Update a record in the database table corresponding to this model
-     * 
-     * @param Builder $query
+     *
      * @param array|[] $options
-     * 
      * @return boolean
      */
     protected function performUpdate(Builder $query, array $options = [])
@@ -1124,7 +1085,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
         }
         
         if(!$this->getDirty()) {
-            return;
+            return null;
         }
         if ($this->dispatchModelEvent('updating', [$query, $this]) === false) {
             return false;
@@ -1141,9 +1102,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Set primary keys of the updated model to the current query
-     * 
-     * @param Builder $query
-     * 
+     *
+     *
      * @return Builder $query
      */
     protected function setKeysForSaveQuery(Builder $query)
@@ -1278,14 +1238,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
         if (! is_array($attributes)) {
             $attributes = func_get_args();
         }
-
-        foreach ($attributes as $attribute) {
-            if (array_key_exists($attribute, $dirty)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($attributes, fn($attribute) => array_key_exists($attribute, $dirty));
     }
 
     /**
@@ -1368,16 +1321,13 @@ abstract class Model implements ArrayAccess, JsonSerializable
     
     /**
      * Make a Model instance from a plain array
-     * 
-     * @param array $options
-     * 
+     *
+     *
      * @return Model
      */
     public function make(array $options)
     {
-        $object = new static($options);
-        
-		return $object;
+        return new static($options);
     }
 
     /**
@@ -1394,10 +1344,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
     /**
      * Customize the clone behaviour of the model
-     * 
+     *
      * @param null
-     * 
-     * @return void
      */
     public function __clone()
     {
@@ -1442,7 +1390,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
         if (count($classes) > 1) {
             $namespaces = $this->getFinder()->getClassesOfNamespace($this->buildNamespace());
             foreach ($namespaces as $namespace) {
-                if (strstr($namespace,  $related)) {
+                if (strstr((string) $namespace,  $related)) {
                     $related = $this->getFromDeclaredNamespaces($namespace, $related);
                 } else {
                     $related = $this->buildRelatedNamespace($related);
@@ -1462,7 +1410,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     protected function buildRelatedNamespace($related)
     {
         $relatedNamespaces = explode("\\", $related);
-        if (count($relatedNamespaces) == 1) {
+        if (count($relatedNamespaces) === 1) {
             $related = $this->buildNamespace().'\\'.$related;
         }
         return $related;
@@ -1506,9 +1454,9 @@ abstract class Model implements ArrayAccess, JsonSerializable
      */
     public function joinTables($class) 
     {
-        $base = strtolower(class_base($this));
+        $base = strtolower((string) class_base($this));
 
-        $class = strtolower(class_base($class));
+        $class = strtolower((string) class_base($class));
 
         $models = [$class, $base];
         sort($models);
@@ -1526,8 +1474,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
      */
     public function hasMany($class, $foreignKey = null, $otherKey = null)
     {
-		$foreignKey = $foreignKey?$foreignKey:$this->getForeignKey();
-		$otherKey = $otherKey?$otherKey:$this->getPrimaryKey();
+		$foreignKey = $foreignKey ?: $this->getForeignKey();
+		$otherKey = $otherKey ?: $this->getPrimaryKey();
         $class = $this->returnAppropriateNamespace($class);
         
         
@@ -1548,7 +1496,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
     public function belongsTo($class, $foreignKey = null, $otherKey = null, $relation = null)
     {
         if (is_null($relation)) {
-            list($current, $caller) = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            [$current, $caller] = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
 
             $relation = $caller['function'];
         }
@@ -1560,7 +1508,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
         $class = new $class;
 
         $query = $class->newElegantQuery();
-        $otherKey = $otherKey?$otherKey:$class->getPrimaryKey();
+        $otherKey = $otherKey ?: $class->getPrimaryKey();
 
         return new BelongsTo($query, $this, $foreignKey, $otherKey, $class);
     }
@@ -1576,8 +1524,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
      */
     public function hasOne($class, $foreignKey = null, $otherKey = null)
     {
-		$foreignKey = $foreignKey?$foreignKey:$this->getForeignKey();
-		$otherKey = $otherKey?$otherKey:$this->getPrimaryKey();
+		$foreignKey = $foreignKey ?: $this->getForeignKey();
+		$otherKey = $otherKey ?: $this->getPrimaryKey();
 		$class = $this->returnAppropriateNamespace($class);
 		$instance = new $class;
 		return new HasOne($instance->newElegantQuery(), $this, $instance->getTable().'.'.$foreignKey, $otherKey);
@@ -1602,7 +1550,7 @@ abstract class Model implements ArrayAccess, JsonSerializable
         $class = $this->returnAppropriateNamespace($class);
         $instance = new $class;
 
-        $second_table_primary_key = ($second_table_primary_key)?$second_table_primary_key : $instance->getForeignKey();
+        $second_table_primary_key = $second_table_primary_key ?: $instance->getForeignKey();
 		
         if (is_null($table_name)) {
             $table_name = $this->joinTables($class);
@@ -1630,10 +1578,10 @@ abstract class Model implements ArrayAccess, JsonSerializable
 
 		$instance = new $class;
 
-        list($mergeable_type, $mergeable_id) = $this->getMergeStrings($mergeable_name, $mergeable_type, $mergeable_id);
+        [$mergeable_type, $mergeable_id] = $this->getMergeStrings($mergeable_name, $mergeable_type, $mergeable_id);
 		$table = $instance->getTable();
 
-        $primaryKey = $primaryKey?$primaryKey:$this->getPrimaryKey();
+        $primaryKey = $primaryKey ?: $this->getPrimaryKey();
 
         return new MergeableMany($instance->newElegantQuery(), $this, $table.'.'.$mergeable_type, $table.'.'.$mergeable_id, $primaryKey);
 		
@@ -1690,8 +1638,8 @@ abstract class Model implements ArrayAccess, JsonSerializable
             $mergeable_name = $string_for_merging;
         }
 
-		list($mergeable_type, $mergeable_id) = $this->getMergeStrings($mergeable_name, $mergeable_type, $mergeable_id);
-		$class = ucfirst($this->{$mergeable_type});
+		[$mergeable_type, $mergeable_id] = $this->getMergeStrings($mergeable_name, $mergeable_type, $mergeable_id);
+		$class = ucfirst((string) $this->{$mergeable_type});
 		$class = $this->returnAppropriateNamespace($class);
 		$instance = new $class;	
 
@@ -1856,7 +1804,6 @@ abstract class Model implements ArrayAccess, JsonSerializable
     {
         $this->setEventDispatcher(new Event);
         $this->events();
-        $eventMethod = $event;
 
         if (!isset(static::$dispatcher)) {
             return true;

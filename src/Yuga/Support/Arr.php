@@ -109,8 +109,7 @@ class Arr
 
     public static function first(array $array, $callback = null)
     {
-        $result = array_filter($array, $callback);
-        return $result;
+        return array_filter($array, $callback);
     }
 
     /**
@@ -123,9 +122,13 @@ class Arr
      */
     public static function get($array, $key, $default = null)
     {
-        if (is_null($key)) return $array;
+        if (is_null($key)) {
+            return $array;
+        }
 
-        if (isset($array[$key])) return $array[$key];
+        if (isset($array[$key])) {
+            return $array[$key];
+        }
 
         foreach (explode('.', $key) as $segment) {
             if (! is_array($array) || ! array_key_exists($segment, $array)) {
@@ -168,7 +171,7 @@ class Arr
 
         foreach ((array) $keys as $key)
         {
-            $parts = explode('.', $key);
+            $parts = explode('.', (string) $key);
 
             while (count($parts) > 1)
             {

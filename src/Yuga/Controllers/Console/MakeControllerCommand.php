@@ -46,6 +46,7 @@ class MakeControllerCommand extends Command
      *
      * @return void
      */
+    #[\Override]
     protected function createDirectories()
     {
         if (!is_dir($directory = path('app/Controllers'))) {
@@ -58,6 +59,7 @@ class MakeControllerCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [

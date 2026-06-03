@@ -6,21 +6,9 @@ class FileCache extends CacheAbstract
 {
     protected const EXTENSION = '.cache.txt';
 
-    protected $path;
-
-    protected $gcProbability;
-
-    protected $gcDivisor;
-
-    public function __construct(string $path, int $ttl = 300, int $gcProbability = 1, int $gcDivisor = 100)
+    public function __construct(protected string $path, int $ttl = 300, protected int $gcProbability = 1, protected int $gcDivisor = 100)
     {
-        $this->path = $path;
-
         $this->ttl = $this->validateTTL($ttl);
-
-        $this->gcProbability = $gcProbability;
-
-        $this->gcDivisor = $gcDivisor;
 
         $this->checkGarbageCollection();
 
@@ -38,6 +26,7 @@ class FileCache extends CacheAbstract
         return true;
     }
 
+    #[\Override]
     public function hasMultiple(array $keys): bool
     {
         $has = true;
@@ -55,7 +44,7 @@ class FileCache extends CacheAbstract
     {
         $file = $this->getFile($key);
 
-        if (file_exists($file) and !is_readable($file)) {
+        if (file_exists($file) && !is_readable($file)) {
             throw new CacheException('Cache item `' . $key . '` is not readable.');
         }
 
@@ -148,7 +137,7 @@ class FileCache extends CacheAbstract
         if (is_readable($file)) {
             $ttl = trim(fgets(fopen($file, 'r')));
 
-            if (ctype_digit((string) $ttl)) {
+            if (ctype_digit($ttl)) {
                 return (int) $ttl;
             }
         }
@@ -182,7 +171,7 @@ class FileCache extends CacheAbstract
 
     protected function checkGarbageCollection()
     {
-        if ($this->gcDivisor > 0 and mt_rand(1, $this->gcDivisor) <= $this->gcProbability) {
+        if ($this->gcDivisor > 0 && mt_rand(1, $this->gcDivisor) <= $this->gcProbability) {
             $this->collectGarbage();
         }
 

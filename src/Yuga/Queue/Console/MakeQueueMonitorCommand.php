@@ -62,6 +62,7 @@ class MakeQueueMonitorCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [

@@ -9,16 +9,12 @@ use Yuga\Interfaces\Database\Elegant\Association\Association as Relation;
 
 abstract class Association implements Relation
 {
-    protected $query;
-    protected $parent;
     protected $child;
     static $conditions;
 
-    public function __construct(Builder $query, Model $parent)
+    public function __construct(protected \Yuga\Database\Elegant\Builder $query, protected \Yuga\Database\Elegant\Model $parent)
     {
-        $this->query = $query;
-        $this->parent = $parent;
-        $this->child = $query->getModel();
+        $this->child = $this->query->getModel();
         
         $this->addConditions();
     }
@@ -51,9 +47,7 @@ abstract class Association implements Relation
 
     protected function getKeys(array $models, $key = null)
     {
-        return array_unique(array_values(array_map(function ($value) use ($key) {
-            return $key ? $value->getAttribute($key) : $value->getPrimaryKey();
-        }, $models)));
+        return array_unique(array_values(array_map(fn($value) => $key ? $value->getAttribute($key) : $value->getPrimaryKey(), $models)));
     }
 
     /**

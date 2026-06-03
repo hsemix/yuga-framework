@@ -3,7 +3,7 @@ namespace Yuga\Views\Widgets\Html;
 
 class HtmlTextarea extends Html
 {
-    protected $value;
+    protected string $value;
 
     public function __construct($name, $rows = null, $cols = null, $value = null)
     {
@@ -11,7 +11,7 @@ class HtmlTextarea extends Html
 
         $this->closingType = static::CLOSE_TYPE_TAG;
 
-        $this->value = htmlentities($value, ENT_QUOTES, app()->getCharset());
+        $this->value = htmlentities((string) $value, ENT_QUOTES, app()->getCharset());
 
         $this->addAttribute('name', $name);
 

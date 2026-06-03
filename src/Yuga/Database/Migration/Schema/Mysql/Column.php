@@ -7,7 +7,6 @@ use Yuga\Database\Migration\PdoHelper;
 
 class Column
 {
-    protected $table;
     protected $name;
     protected $renameTo;
     protected $type;
@@ -130,16 +129,13 @@ class Column
         self::RELATION_TYPE_SET_NULL,
     ];
 
-    protected $relation;
-    protected $change;
+    protected $relation = [];
+    protected $change = false;
 
     // Default values
 
-    public function __construct($table)
+    public function __construct(protected $table)
     {
-        $this->relation = [];
-        $this->table = $table;
-        $this->change = false;
     }
 
     public function primary()
@@ -317,7 +313,7 @@ class Column
 
         $query = sprintf('`%s` %s%s %s', ($this->renameTo == null) ? $this->getName() : $this->renameTo, $this->getType(), $length, $this->getAttributes());
 
-        $query .= (!$this->getNullable()) ? 'NOT null' : 'null';
+        $query .= ($this->getNullable()) ? 'null' : 'NOT null';
 
         if ($this->getDefaultValue()) {
             $query .= PdoHelper::formatQuery(' DEFAULT %s', [$this->getDefaultValue()]);

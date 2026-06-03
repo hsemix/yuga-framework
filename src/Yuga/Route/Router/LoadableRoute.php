@@ -22,10 +22,16 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
 
     protected $regex;
 
+    protected $callback;
+
+    public function hasClosureCallback(): bool
+    {
+        return $this->callback instanceof \Closure;
+    }
+
     /**
      * Loads and renders middlewares-classes
      *
-     * @param Request $request
      * @throws HttpException
      */
     public function loadMiddleware(Request $request)
@@ -52,9 +58,7 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
                     throw new HttpException($middleware . ' must inherit the IMiddleware interface');
                 }
 
-                $middleware->run($request, function($request) {
-                    return $request;
-                });
+                $middleware->run($request, fn($request) => $request);
             }
         }
     }
@@ -80,7 +84,7 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
     {
         $this->url = ($url === '/') ? '/' : '/' . trim($url, '/') . '/';
 
-        if (strpos($this->url, $this->paramModifiers[0]) !== false) {
+        if (str_contains($this->url, (string) $this->paramModifiers[0])) {
 
             $regex = sprintf(static::PARAMETERS_REGEX_FORMAT, $this->paramModifiers[0], $this->paramOptionalSymbol, $this->paramModifiers[1]);
 
@@ -140,7 +144,7 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
                 $value = $this->originalParameters[$param];
             }
 
-            if (stripos($url, $param1) !== false || stripos($url, $param) !== false) {
+            if (stripos((string) $url, $param1) !== false || stripos((string) $url, (string) $param) !== false) {
                 /* Add parameter to the correct position */
                 $url = str_ireplace([sprintf($param1, $param), sprintf($param2, $param)], $value, $url);
             } else {
@@ -148,11 +152,9 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
             }
         }
 
-        $url .= join('/', $unknownParams);
-
-        $url = rtrim($url, '/') . '/';
+        $url .= implode('/', $unknownParams);
         
-        return $url;
+        return rtrim($url, '/') . '/';
     }
 
     /**
@@ -228,10 +230,10 @@ abstract class LoadableRoute extends Route implements ILoadableRoute
     /**
      * Merge with information from another route.
      *
-     * @param array $values
      * @param bool $merge
      * @return static
      */
+    #[\Override]
     public function setSettings(array $values, $merge = false)
     {
         if (isset($values['as'])) {

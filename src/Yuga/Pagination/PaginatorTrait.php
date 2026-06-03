@@ -9,9 +9,8 @@ trait PaginatorTrait
 	// use DefaultPageMarkup;
     /**
      * Set Pagination for later
-     * 
-     * @param Pagination $pagination
-     * 
+     *
+     *
      * @return mixed
      */
     public function setPagination(Pagination $pagination)
@@ -36,7 +35,7 @@ trait PaginatorTrait
     /**
      * Print all pages
      */
-    public function pages(array $options = null)
+    public function pages(?array $options = null)
     {
         return $this->pagination->render();
     }
@@ -158,7 +157,7 @@ trait PaginatorTrait
 	 */
 	public function getRoute()
 	{
-		$url = explode('?', (new Request)->getUri());
+		explode('?', (new Request)->getUri());
 	}
 
 	/**

@@ -9,21 +9,19 @@ use Yuga\Database\Query\QueryObject;
 class Connection
 {
     protected $adapter;
-    protected $container;
+    protected \Yuga\Container\Container $container;
     protected $pdoInstance;
     protected $eventHandler;
-    protected $adapterConfig;
     protected $adapterInstance;
     protected static $connection;
     /**
      * @var QueryObject|null
      */
     protected $lastQuery;
-    public function __construct(array $adapterConfig, Container $container = null)
+    public function __construct(protected array $adapterConfig, ?Container $container = null)
     {
-        $this->adapterConfig = $adapterConfig;
-        $this->container = $container ? $container : new Container;
-        $this->setAdapter($adapterConfig['driver'])->setAdapterConfig($adapterConfig)->connect();
+        $this->container = $container instanceof \Yuga\Container\Container ? $container : new Container;
+        $this->setAdapter($this->adapterConfig['driver'])->setAdapterConfig($this->adapterConfig)->connect();
         $this->eventHandler = $this->container->resolve(EventHandler::class);
     }
     
@@ -48,7 +46,7 @@ class Connection
     {
         try {
             // Build a database connection if we don't have one connected
-            $adapter = '\Yuga\Database\Connection\Adapters\\' . ucfirst(strtolower($this->adapter));
+            $adapter = '\Yuga\Database\Connection\Adapters\\' . ucfirst(strtolower((string) $this->adapter));
             $adapterInstance = $this->container->resolve($adapter, [$this->container]);
             $pdo = $adapterInstance->connect($this->adapterConfig);
             $this->setPdoInstance($pdo);
@@ -105,7 +103,6 @@ class Connection
     /**
      * Set query-object for last executed query.
      *
-     * @param QueryObject $query
      * @return static
      */
     public function setLastQuery(QueryObject $query)

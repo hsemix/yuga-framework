@@ -26,14 +26,14 @@ class Hash
         }
             
         if ($this->algorithm == 'crypt') {
-            return crypt($string, $salt);
+            return crypt((string) $string, (string) $salt);
         }
             
         if ($this->algorithm == 'bcrypt') {
             return password_hash($string.$salt, \PASSWORD_BCRYPT);
         }
 
-        return hash($this->getAlgorithm(), $string . $salt);
+        return hash((string) $this->getAlgorithm(), $string . $salt);
     }
 
     public function setAlgorithm($algorithm = 'crypt')
@@ -56,7 +56,7 @@ class Hash
 
     public function code($length = 8, $clean = true)
     {
-        return $clean ? "$1$" . $this->salt($length) . "$" : $this->salt($length);
+        return $clean ? "$1$" . static::salt($length) . "$" : static::salt($length);
     }
 
     public function password($string, $code = null)
@@ -94,7 +94,7 @@ class Hash
     public function passwordVerify($password, $passwordHash, $salt = '')
     {
         if ($this->algorithm == 'bcrypt') {
-            return password_verify($password.$salt, $passwordHash);
+            return password_verify($password.$salt, (string) $passwordHash);
         }
         
         $crypt_password = $this->password($password, $salt);

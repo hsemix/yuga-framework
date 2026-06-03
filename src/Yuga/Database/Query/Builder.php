@@ -19,7 +19,7 @@ class Builder implements IteratorAggregate
     protected $pdo;
     protected $adapter;
     protected $container;
-    protected $connection;
+    protected ?\Yuga\Database\Connection\Connection $connection;
     protected $tablePrefix;
     protected $pdoStatement;
     protected $statements = [];
@@ -31,9 +31,9 @@ class Builder implements IteratorAggregate
 
     protected static $builder;
     
-    public function __construct(Connection $connection = null)
+    public function __construct(?Connection $connection = null)
     {
-        if ($connection === null && ($connection = Connection::getStoredConnection()) === false) {
+        if (!$connection instanceof \Yuga\Database\Connection\Connection && ($connection = Connection::getStoredConnection()) === false) {
             throw new Exception('No database connection found.', 1);
         }
         $this->connection = $connection;
@@ -46,7 +46,7 @@ class Builder implements IteratorAggregate
         }
         // Query builder grammar instance
         $this->grammarInstance = $this->container->resolve(
-            '\Yuga\Database\Query\Grammar\\' . ucfirst($this->adapter),
+            '\Yuga\Database\Query\Grammar\\' . ucfirst((string) $this->adapter),
             [$this->connection]
         );
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -133,7 +133,7 @@ class Builder implements IteratorAggregate
             if (is_int($key) === false) {
                 $target = &$key;
             }
-            if ($tableFieldMix === false || ($tableFieldMix && strpos($target, '.') !== false)) {
+            if ($tableFieldMix === false || ($tableFieldMix && str_contains((string) $target, '.'))) {
                 $target = $this->tablePrefix . $target;
             }
             $return[$key] = $value;
@@ -151,8 +151,6 @@ class Builder implements IteratorAggregate
     }
 
     /**
-     * @param Builder $builder
-     * @param null $alias
      * @throws Exception
      * @return Raw
      */
@@ -210,7 +208,7 @@ class Builder implements IteratorAggregate
             if (!$field instanceof Raw) {
                 $field = $this->addTablePrefix($field);
             }
-            $this->statements['orderBys'][] = compact('field', 'type');
+            $this->statements['orderBys'][] = ['field' => $field, 'type' => $type];
         }
         return $this;
     }
@@ -224,10 +222,7 @@ class Builder implements IteratorAggregate
 
     public function limit($lower, $upper = null)
     {
-        if(!is_null($upper))
-            $this->statements['limit'] = $lower .', '. $upper;
-        else
-            $this->statements['limit'] = $lower;
+        $this->statements['limit'] = is_null($upper) ? $lower : $lower .', '. $upper;
         return $this;
     }
 
@@ -273,8 +268,8 @@ class Builder implements IteratorAggregate
 
     protected function whereHandler($column, $operator = null, $value = null, $type = 'AND')
     {
-        $key = $this->addTablePrefix($column);
-        $this->statements['wheres'][] = compact('column', 'operator', 'value', 'type');
+        $this->addTablePrefix($column);
+        $this->statements['wheres'][] = ['column' => $column, 'operator' => $operator, 'value' => $value, 'type' => $type];
         return $this;
     }
 
@@ -303,7 +298,7 @@ class Builder implements IteratorAggregate
 
     public function getQuery($type = 'select', $dataToBePassed = [])
     {
-        if (in_array(strtolower($type), $this->acceptableTypes, true) === false) {
+        if (in_array(strtolower((string) $type), $this->acceptableTypes, true) === false) {
             throw new Exception($type . ' is not a known type.', 2);
         }
         $queryArr = $this->grammarInstance->$type($this->statements, $dataToBePassed);
@@ -440,7 +435,7 @@ class Builder implements IteratorAggregate
     public function having($column, $operator, $value, $type = 'and')
     {
         $column = $this->addTablePrefix($column);
-        $this->statements['havings'][] = compact('column', 'operator', 'value', 'type');
+        $this->statements['havings'][] = ['column' => $column, 'operator' => $operator, 'value' => $value, 'type' => $type];
         return $this;
     }
 
@@ -466,9 +461,9 @@ class Builder implements IteratorAggregate
          return $this;
      }
 
-    public function newQuery(Connection $connection = null)
+    public function newQuery(?Connection $connection = null)
     {
-        if ($connection === null) {
+        if (!$connection instanceof \Yuga\Database\Connection\Connection) {
             $connection = $this->connection;
         }
         return new static($connection);
@@ -478,7 +473,7 @@ class Builder implements IteratorAggregate
     {
         $queryObject = new QueryObject($sql, $bindings, $this->getConnection());
         $this->connection->setLastQuery($queryObject);
-        list($this->pdoStatement) = $this->statement($sql, $bindings);
+        [$this->pdoStatement] = $this->statement($sql, $bindings);
         return $this;
     }
 
@@ -491,7 +486,7 @@ class Builder implements IteratorAggregate
     public function join($table, $column, $operator = null, $value = null, $joinType = 'inner')
     {
         if (($column instanceof Closure) === false) {
-            $column = function (JoinBuilder $joinBuilder) use ($column, $operator, $value) {
+            $column = function (JoinBuilder $joinBuilder) use ($column, $operator, $value): void {
                 $joinBuilder->on($column, $operator, $value);
             };
         }
@@ -503,7 +498,7 @@ class Builder implements IteratorAggregate
         $column($joinBuilder);
         $table = $this->addTablePrefix($table, false);
         // Get the criteria only query from the joinBuilder object
-        $this->statements['joins'][] = compact('joinType', 'table', 'joinBuilder');
+        $this->statements['joins'][] = ['joinType' => $joinType, 'table' => $table, 'joinBuilder' => $joinBuilder];
         return $this;
     }
 
@@ -524,7 +519,6 @@ class Builder implements IteratorAggregate
 
     /**
      * @param       $sql
-     * @param array $bindings
      *
      * @return array PDOStatement and execution time as float
      */
@@ -563,8 +557,9 @@ class Builder implements IteratorAggregate
      */
     public function get($columns = null)
     {
-        if (env('DATABASE_DB_API_ACTIVE_RECORD', false) == true)
+        if (env('DATABASE_DB_API_ACTIVE_RECORD', false) == true) {
             return new ResultSet($this->getAll($columns));
+        }
         return new Collection($this->getAll($columns));
     }
 
@@ -574,11 +569,12 @@ class Builder implements IteratorAggregate
             if (env('DATABASE_DB_API_ACTIVE_RECORD', false) == true) {
                 $this->asObject(Row::class);
             }
-            if($columns)
+            if ($columns) {
                 $this->select($columns);
+            }
             $queryObject = $this->getQuery('select');
             $this->connection->setLastQuery($queryObject);
-            list($this->pdoStatement) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
+            [$this->pdoStatement] = $this->statement($queryObject->getSql(), $queryObject->getBindings());
         }
         $result = call_user_func_array([$this->pdoStatement, 'fetchAll'], $this->fetchParameters);
         $this->pdoStatement = null;
@@ -646,9 +642,7 @@ class Builder implements IteratorAggregate
 
     public function getSelects()
     {
-        if (isset($this->statements['selects']))
-            return $this->statements['selects'];
-        return null;
+        return $this->statements['selects'] ?? null;
     }
 
     /**
@@ -659,7 +653,7 @@ class Builder implements IteratorAggregate
     protected function aggregate($type)
     {
         // Get the current selects
-        $mainSelects = isset($this->statements['selects']) ? $this->statements['selects'] : null;
+        $mainSelects = $this->statements['selects'] ?? null;
         // Replace select with a scalar value like `count`
         $this->statements['selects'] = [$this->raw($type . '(*) as field')];
         $row = $this->get();
@@ -718,7 +712,7 @@ class Builder implements IteratorAggregate
 
         $this->connection->setLastQuery($queryObject);
 
-        list($response) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
+        [$response] = $this->statement($queryObject->getSql(), $queryObject->getBindings());
         
         return $response;
     }
@@ -755,7 +749,7 @@ class Builder implements IteratorAggregate
     {
         $queryObject = $this->getQuery('delete');
         $this->connection->setLastQuery($queryObject);
-        list($response) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
+        [$response] = $this->statement($queryObject->getSql(), $queryObject->getBindings());
 
         return $response;
     }
@@ -775,7 +769,7 @@ class Builder implements IteratorAggregate
 
             $this->connection->setLastQuery($queryObject);
 
-            list($result) = $this->statement($queryObject->getSql(), $queryObject->getBindings());
+            [$result] = $this->statement($queryObject->getSql(), $queryObject->getBindings());
 
             $return = $result->rowCount() === 1 ? $this->pdo->lastInsertId() : null;
         } else {
@@ -784,7 +778,7 @@ class Builder implements IteratorAggregate
 
             if ($this->pdo->inTransaction() === false) {
 
-                $this->transaction(function (Transaction $transaction) use (&$return, $data, $type) {
+                $this->transaction(function (Transaction $transaction) use (&$return, $data, $type): void {
                     foreach ($data as $subData) {
                         $return[] = $transaction->doInsert($subData, $type);
                     }
@@ -804,7 +798,6 @@ class Builder implements IteratorAggregate
     /**
      * Performs the transaction
      *
-     * @param \Closure $callback
      *
      * @throws Exception
      * @return Transaction
@@ -814,7 +807,6 @@ class Builder implements IteratorAggregate
         /**
          * Get the Transaction class
          *
-         * @var \Yuga\Database\Query\Transaction $queryTransaction
          * @throws \Exception
          */
         $queryTransaction = new Transaction($this->connection);
@@ -832,7 +824,7 @@ class Builder implements IteratorAggregate
             // If no errors have been thrown or the transaction wasn't completed within the closure, commit the changes
             $this->pdo->commit();
 
-        } catch (TransactionHaltException $e) {
+        } catch (TransactionHaltException) {
 
             // Commit or rollback behavior has been triggered in the closure
             return $queryTransaction;

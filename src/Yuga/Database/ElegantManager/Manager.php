@@ -9,16 +9,14 @@ class Manager
 {
     protected $manager;
     private $container;
-    private $connection;
     
-    public function __construct(Container $container = null)
+    public function __construct(?Container $container = null)
     {
         $this->setContainer($container ?: new Container);       
     }
     
     public function addConnection(Connection $connection)
     {
-        $this->connection = $connection;
         $this->setManager($connection);
     }
 

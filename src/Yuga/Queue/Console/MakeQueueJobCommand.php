@@ -80,13 +80,13 @@ class MakeQueueJobCommand extends Command
 
         $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Jobs');
 
-		$namespace->addUse('Yuga\Queue\DispatchableTrait');
-        $namespace->addUse('Yuga\Interfaces\Queue\JobInterface');
+		$namespace->addUse(\Yuga\Queue\DispatchableTrait::class);
+        $namespace->addUse(\Yuga\Interfaces\Queue\JobInterface::class);
 
         $class = $namespace->addClass(trim($name));
 
-        $class->addImplement('Yuga\Interfaces\Queue\JobInterface');
-		$class->addTrait('Yuga\Queue\DispatchableTrait');
+        $class->addImplement(\Yuga\Interfaces\Queue\JobInterface::class);
+		$class->addTrait(\Yuga\Queue\DispatchableTrait::class);
 
 		$classConstructor = $class->addMethod('__construct')->setBody('//');
 		$classConstructor->addComment('Create a new job instance.')->addComment('@return void');
@@ -102,6 +102,7 @@ class MakeQueueJobCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [

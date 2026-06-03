@@ -65,7 +65,7 @@ class Queue implements QueueInterface
 	public function connect()
 	{
 		return app()->resolve(
-			'\\Yuga\\Queue\\Connectors\\' . ucfirst($this->connectionConfig['driver']) . 'Connector', 
+			'\\Yuga\\Queue\\Connectors\\' . ucfirst((string) $this->connectionConfig['driver']) . 'Connector', 
 			[$this->connectionConfig, $this->config]
 		);
 	}

@@ -60,6 +60,7 @@ class MakeEventHandlerCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [
@@ -72,6 +73,7 @@ class MakeEventHandlerCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [
@@ -85,6 +87,7 @@ class MakeEventHandlerCommand extends Command
      *
      * @return void
      */
+    #[\Override]
     protected function createDirectories()
     {
         if (!is_dir($directory = path('app/Handlers'))) {
@@ -129,14 +132,13 @@ class MakeEventHandlerCommand extends Command
         $file->addComment('This file was auto-generated.');
 
         $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Handlers');
-        $namespace->addUse('Yuga\EventHandlers\HandlerInterface');
-        if ($event != 'yuga.auto.events') {
-            if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
-                $namespace->addUse(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+        $namespace->addUse(\Yuga\EventHandlers\HandlerInterface::class);
+        if ($event != 'yuga.auto.events' && \class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event)) {
+            $namespace->addUse(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
         }
 
         $class = $namespace->addClass(trim($handler));
-        $class->addImplement('Yuga\EventHandlers\HandlerInterface');
+        $class->addImplement(\Yuga\EventHandlers\HandlerInterface::class);
 
         $classMethod = $class->addMethod('handle')->setBody('return null;');
         $classMethod->addComment('Event Handler Logic in this method');
@@ -144,12 +146,13 @@ class MakeEventHandlerCommand extends Command
         $classMethod->addComment('@return mixed');
         $paramether = $classMethod->addParameter('event');
         
-        if (trim($method) != 'handle') {
+        if (trim($method) !== 'handle') {
             $classMethod = $class->addMethod(trim($method))->setBody('return null;');
             $classMethod->addComment('Your Event Handler Logic in this method');
             if ($event != 'yuga.auto.events') {
-                if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
+                if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event)) {
                     $classMethod->addComment('@param ' . env('APP_NAMESPACE', 'App') . '\\Events\\' . $event . ' $event');
+                }
             } else {
                 $classMethod->addComment('@param \Yuga\Events\Dispatcher $event');
             }
@@ -157,8 +160,9 @@ class MakeEventHandlerCommand extends Command
             $classMethod->addComment('@return mixed');
             $paramether = $classMethod->addParameter('event');
             if ($event != 'yuga.auto.events') {
-                if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event))
+                if (\class_exists(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event)) {
                     $paramether->setType(env('APP_NAMESPACE', 'App') . '\\Events\\' . $event);
+                }
             } else {
                 $paramether->setType('\Yuga\Events\Dispatcher');
             }
@@ -224,12 +228,10 @@ class MakeEventHandlerCommand extends Command
                 foreach ($handlers as $handler) {
                     if ($method != 'handle' && $sentHandler == $handler && $sentEvent == $eventName) {
                         $generatedEvents .= "\n\t\t['" . $handler . "', '" . $method . "'],";
+                    } elseif (is_array($handler)) {
+                        $generatedEvents .= "\n\t\t['" . $handler[0] . "', '" . $handler[1] . "'],";
                     } else {
-                        if (is_array($handler)) {
-                            $generatedEvents .= "\n\t\t['" . $handler[0] . "', '" . $handler[1] . "'],";
-                        } else {
-                            $generatedEvents .= "\n\t\t" . $handler . "::class,";
-                        }
+                        $generatedEvents .= "\n\t\t" . $handler . "::class,";
                     }
                 }
             } else {
@@ -238,14 +240,11 @@ class MakeEventHandlerCommand extends Command
             $generatedEvents .= "\n\t],";
         }
         $generatedEvents .= "\n];";
-        
 
-        $handlers = str_replace(
+        return str_replace(
             '{handlers}',
             $generatedEvents,
             file_get_contents(__DIR__ . '/temps/config.temp')
         );
-
-        return $handlers;
     }
 }

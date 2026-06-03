@@ -107,7 +107,7 @@ class YugaMailer extends Mailable
 	 *
 	 * @var	string
 	 */
-	public $charset		= 'UTF-8';
+	public $charset		= Application::CHARSET_UTF8;
 
 	/**
 	 * Alternative message (for HTML messages only)
@@ -186,11 +186,9 @@ class YugaMailer extends Mailable
 	
 
 	/**
-	 * Whether PHP is running in safe mode. Initialized by the class constructor.
-	 *
-	 * @var	bool
-	 */
-	protected $safeModel		= false;
+     * Whether PHP is running in safe mode. Initialized by the class constructor.
+     */
+    protected string|false $safeModel;
 
 	/**
 	 * Subject header
@@ -345,24 +343,20 @@ class YugaMailer extends Mailable
 	];
 
 	/**
-	 * mbstring.func_overload flag
-	 *
-	 * @var	bool
-	 */
-	protected static $functionOverload;
+     * mbstring.func_overload flag
+     */
+    protected static bool $functionOverload;
 
 	/**
-	 * Constructor - Sets Email Preferences
-	 *
-	 * The constructor can be passed an array of config values
-	 *
-	 * @param	array	$config = []
-	 * @return	void
-	 */
-	public function __construct(array $config = [])
+     * Constructor - Sets Email Preferences
+     *
+     * The constructor can be passed an array of config values
+     *
+     * @param	array	$config = []
+     */
+    public function __construct(array $config = [])
 	{
 		parent::__construct();
-		$this->charset = Application::CHARSET_UTF8;
 		if (extension_loaded('mbstring')) {
 			define('MB_ENABLED', true);
 			// @ini_set('mbstring.internal_encoding', $this->charset);
@@ -379,21 +373,22 @@ class YugaMailer extends Mailable
 		}
 		$this->boot($config);
 		$this->safeModel =  ini_get('safe_mode');
-		isset(static::$functionOverload) || static::$functionOverload = (extension_loaded('mbstring') && ini_get('mbstring.func_overload'));
+		if (!isset(static::$functionOverload)) {
+            static::$functionOverload = (extension_loaded('mbstring') && ini_get('mbstring.func_overload'));
+        }
 	}
 
 	/**
-	 * Initialize preferences
-	 *
-	 * @param	array	$config
-	 * @return	static
-	 */
-	public function boot(array $config = [])
+     * Initialize preferences
+     *
+     * @return	static
+     */
+    public function boot(array $config = [])
 	{
 		$this->clear();
 		foreach ($config as $key => $val) {
 			if (isset($this->$key)) {
-				$method = 'set'.ucfirst($key);
+				$method = 'set'.ucfirst((string) $key);
 
 				if (method_exists($this, $method)) {
 					$this->$method($val);
@@ -402,7 +397,7 @@ class YugaMailer extends Mailable
 				}
 			}
 		}
-		if (strtolower($config['protocol']) == 'smtp') {
+		if (strtolower((string) $config['protocol']) === 'smtp') {
 			$this->setNewLine("\r\n");
 		}
 		$this->charset = strtoupper($this->charset);
@@ -473,7 +468,9 @@ class YugaMailer extends Mailable
 
 		$this->setHeader('From', $name.' <'.$from.'>');
 
-		isset($return_path) or $return_path = $from;
+		if (!isset($return_path)) {
+            $return_path = $from;
+        }
 		$this->setHeader('Return-Path', '<'.$return_path.'>');
 
 		return $this;
@@ -488,7 +485,7 @@ class YugaMailer extends Mailable
 	 */
 	public function addReplyTo($replyto, $name = '')
 	{
-		if (preg_match('/\<(.*)\>/', $replyto, $match)) {
+		if (preg_match('/\<(.*)\>/', (string) $replyto, $match)) {
 			$replyto = $match[1];
 		}
 
@@ -498,9 +495,9 @@ class YugaMailer extends Mailable
 
 		if ($name !== '' && !is_null($name)) {
 			// only use Q encoding if there are characters that would require it
-			if (!preg_match('/[\200-\377]/', $name)) {
+			if (!preg_match('/[\200-\377]/', (string) $name)) {
 				// add slashes for non-printing characters, slashes, and double quotes, and surround it in double quotes
-				$name = '"'.addcslashes($name, "\0..\37\177'\"\\").'"';
+				$name = '"'.addcslashes((string) $name, "\0..\37\177'\"\\").'"';
 			} else {
 				$name = $this->prepareQEncoding($name);
 			}
@@ -579,7 +576,7 @@ class YugaMailer extends Mailable
 			$this->validateEmail($bcc);
 		}
 
-		if ($this->getProtocol() === 'smtp' or ($this->bccBatchMode && count($bcc) > $this->bccBatchSize)) {
+		if ($this->getProtocol() === 'smtp' || $this->bccBatchMode && count($bcc) > $this->bccBatchSize) {
 			$this->bccArray = $bcc;
 		} else {
 			$this->setHeader('Bcc', implode(', ', $bcc));
@@ -627,7 +624,7 @@ class YugaMailer extends Mailable
 	public function addAttachment($file, $disposition = '', $newname = null, $mime = '')
 	{
 		if ($mime === '') {
-			if (strpos($file, '://') === false && !file_exists($file)) {
+			if (!str_contains($file, '://') && !file_exists($file)) {
 				$this->setErrorMessage('lang:email_attachment_missing', $file);
 				return false;
 			}
@@ -668,7 +665,7 @@ class YugaMailer extends Mailable
 		for ($i = 0, $c = count($this->attachments); $i < $c; $i++) {
 			if ($this->attachments[$i]['name'][0] === $filename) {
 				$this->attachments[$i]['multipart'] = 'related';
-				$this->attachments[$i]['cid'] = uniqid(basename($this->attachments[$i]['name'][0]).'@');
+				$this->attachments[$i]['cid'] = uniqid(basename((string) $this->attachments[$i]['name'][0]).'@');
 				return $this->attachments[$i]['cid'];
 			}
 		}
@@ -685,7 +682,7 @@ class YugaMailer extends Mailable
 	 */
 	public function setHeader($header, $value)
 	{
-		$this->headers[$header] = str_replace(array("\n", "\r"), '', $value);
+		$this->headers[$header] = str_replace(["\n", "\r"], '', $value);
 		return $this;
 	}
 
@@ -698,7 +695,7 @@ class YugaMailer extends Mailable
 	protected function stringToArray($email)
 	{
 		if (!is_array($email)) {
-			return (strpos($email, ',') !== false) ? preg_split('/[\s,]/', $email, -1, PREG_SPLIT_NO_EMPTY) : (array) trim($email);
+			return (str_contains((string) $email, ',')) ? preg_split('/[\s,]/', (string) $email, -1, PREG_SPLIT_NO_EMPTY) : (array) trim((string) $email);
 		}
 
 		return $email;
@@ -760,7 +757,7 @@ class YugaMailer extends Mailable
 	 */
 	public function setPriority($n = 3)
 	{
-		$this->priority = preg_match('/^[1-5]$/', $n) ? (int) $n : 3;
+		$this->priority = preg_match('/^[1-5]$/', (string) $n) ? (int) $n : 3;
 		return $this;
 	}
 
@@ -784,7 +781,7 @@ class YugaMailer extends Mailable
 	 */
 	public function setCrlf($crlf = "\n")
 	{
-		$this->crlf = ($crlf !== "\n" && $crlf !== "\r\n" && $crlf !== "\r") ? "\n" : $crlf;
+		$this->crlf = (in_array($crlf, ["\n", "\r\n", "\r"], true)) ? $crlf : "\n";
 		return $this;
 	}
 
@@ -795,7 +792,7 @@ class YugaMailer extends Mailable
 	 */
 	protected function getMessageId()
 	{
-		$from = str_replace(array('>', '<'), '', $this->headers['Return-Path']);
+		$from = str_replace(['>', '<'], '', $this->headers['Return-Path']);
 		return '<'.uniqid('').strstr($from, '@').'>';
 	}
 
@@ -807,7 +804,9 @@ class YugaMailer extends Mailable
 	protected function getProtocol()
 	{
 		$this->protocol = strtolower($this->protocol);
-		in_array($this->protocol, $this->protocols, true) or $this->protocol = 'mail';
+		if (!in_array($this->protocol, $this->protocols, true)) {
+            $this->protocol = 'mail';
+        }
 		return $this->protocol;
 	}
 
@@ -818,10 +817,12 @@ class YugaMailer extends Mailable
 	 */
 	protected function getEncoding()
 	{
-		in_array($this->encoding, $this->bitDepths) or $this->encoding = '8bit';
+		if (!in_array($this->encoding, $this->bitDepths)) {
+            $this->encoding = '8bit';
+        }
 
 		foreach ($this->baseCharsets as $charset) {
-			if (strpos($this->charset, $charset) === 0) {
+			if (str_starts_with($this->charset, $charset)) {
 				$this->encoding = '7bit';
 			}
 		}
@@ -913,13 +914,13 @@ class YugaMailer extends Mailable
 	public function cleanEmail($email)
 	{
 		if (!is_array($email)) {
-			return preg_match('/\<(.*)\>/', $email, $match) ? $match[1] : $email;
+			return preg_match('/\<(.*)\>/', (string) $email, $match) ? $match[1] : $email;
 		}
 
 		$cleanEmail = [];
 
 		foreach ($email as $addy) {
-			$cleanEmail[] = preg_match('/\<(.*)\>/', $addy, $match) ? $match[1] : $addy;
+			$cleanEmail[] = preg_match('/\<(.*)\>/', (string) $addy, $match) ? $match[1] : $addy;
 		}
 
 		return $cleanEmail;
@@ -969,17 +970,17 @@ class YugaMailer extends Mailable
 		}
 
 		// Standardize newlines
-		if (strpos($str, "\r") !== false) {
-			$str = str_replace(array("\r\n", "\r"), "\n", $str);
+		if (str_contains((string) $str, "\r")) {
+			$str = str_replace(["\r\n", "\r"], "\n", $str);
 		}
 
 		// Reduce multiple spaces at end of line
-		$str = preg_replace('| +\n|', "\n", $str);
+		$str = preg_replace('| +\n|', "\n", (string) $str);
 
 		// If the current word is surrounded by {unwrap} tags we'll
 		// strip the entire chunk and replace it with a marker.
 		$unwrap = [];
-		if (preg_match_all('|\{unwrap\}(.+?)\{/unwrap\}|s', $str, $matches)) {
+		if (preg_match_all('|\{unwrap\}(.+?)\{/unwrap\}|s', (string) $str, $matches)) {
 			for ($i = 0, $c = count($matches[0]); $i < $c; $i++) {
 				$unwrap[] = $matches[1][$i];
 				$str = str_replace($matches[0][$i], '{{unwrapped'.$i.'}}', $str);
@@ -989,7 +990,7 @@ class YugaMailer extends Mailable
 		// Use PHP's native function to do the initial wordwrap.
 		// We set the cut flag to false so that any individual words that are
 		// too long get left alone. In the next step we'll deal with them.
-		$str = wordwrap($str, $charlim, "\n", false);
+		$str = wordwrap((string) $str, $charlim, "\n", false);
 
 		// Split the string into individual lines of text and cycle through them
 		$output = '';
@@ -1023,11 +1024,9 @@ class YugaMailer extends Mailable
 		}
 
 		// Put our markers back
-		if (count($unwrap) > 0) {
-			foreach ($unwrap as $key => $val) {
+		foreach ($unwrap as $key => $val) {
 				$output = str_replace('{{unwrapped'.$key.'}}', $val, $output);
 			}
-		}
 
 		return $output;
 	}
@@ -1054,12 +1053,10 @@ class YugaMailer extends Mailable
 	 */
 	protected function writeHeaders()
 	{
-		if ($this->protocol === 'mail') {
-			if (isset($this->headers['Subject'])) {
-				$this->subject = $this->headers['Subject'];
-				unset($this->headers['Subject']);
-			}
-		}
+		if ($this->protocol === 'mail' && isset($this->headers['Subject'])) {
+            $this->subject = $this->headers['Subject'];
+            unset($this->headers['Subject']);
+        }
 
 		reset($this->headers);
 		$this->headerString = '';
@@ -1106,7 +1103,7 @@ class YugaMailer extends Mailable
 					$this->finalBody = $hdr.$this->newline.$this->newline.$this->body;
 				}
 
-				return;
+				return null;
 
 			case 'html':
 
@@ -1141,7 +1138,7 @@ class YugaMailer extends Mailable
 					$this->finalBody .= '--'.$boundary.'--';
 				}
 
-				return;
+				return null;
 
 			case 'plain-attach':
 
@@ -1254,7 +1251,7 @@ class YugaMailer extends Mailable
 				continue;
 			}
 
-			$name = isset($this->attachments[$i]['name'][1]) ? $this->attachments[$i]['name'][1] : basename($this->attachments[$i]['name'][0]);
+			$name = $this->attachments[$i]['name'][1] ?? basename((string) $this->attachments[$i]['name'][0]);
 
 			$body .= '--'.$boundary.$this->newline
 				.'Content-Type: '.$this->attachments[$i]['type'].'; name="'.$name.'"'.$this->newline
@@ -1267,7 +1264,9 @@ class YugaMailer extends Mailable
 
 		// $name won't be set if no attachments were appended,
 		// and therefore a boundary wouldn't be necessary
-		empty($name) or $body .= '--'.$boundary.'--';
+		if (!empty($name)) {
+            $body .= '--'.$boundary.'--';
+        }
 	}
 
 	/**
@@ -1284,7 +1283,7 @@ class YugaMailer extends Mailable
 		// ASCII code numbers for "safe" characters that can always be
 		// used literally, without encoding, as described in RFC 2049.
 		// http://www.ietf.org/rfc/rfc2049.txt
-		static $ascii_safe_chars = array(
+		static $ascii_safe_chars = [
 			// ' (  )   +   ,   -   .   /   :   =   ?
 			39, 40, 41, 43, 44, 45, 46, 47, 58, 61, 63,
 			// numbers
@@ -1293,11 +1292,11 @@ class YugaMailer extends Mailable
 			65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90,
 			// lower-case letters
 			97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122
-		);
+		];
 
 		// We are intentionally wrapping so mail servers will encode characters
 		// properly and MUAs will behave, so {unwrap} must go!
-		$str = str_replace(array('{unwrap}', '{/unwrap}'), '', $str);
+		$str = str_replace(['{unwrap}', '{/unwrap}'], '', $str);
 
 		// RFC 2045 specifies CRLF as "\r\n".
 		// However, many developers choose to override that and violate
@@ -1308,11 +1307,11 @@ class YugaMailer extends Mailable
 		}
 
 		// Reduce multiple spaces & remove nulls
-		$str = preg_replace(array('| +|', '/\x00+/'), array(' ', ''), $str);
+		$str = preg_replace(['| +|', '/\x00+/'], [' ', ''], $str);
 
 		// Standardize newlines
-		if (strpos($str, "\r") !== false) {
-			$str = str_replace(array("\r\n", "\r"), "\n", $str);
+		if (str_contains($str, "\r")) {
+			$str = str_replace(["\r\n", "\r"], "\n", $str);
 		}
 
 		$escape = '=';
@@ -1331,7 +1330,7 @@ class YugaMailer extends Mailable
 				$ascii = ord($char);
 
 				// Convert spaces and tabs but only if it's the end of the line
-				if ($ascii === 32 or $ascii === 9) {
+				if ($ascii === 32 || $ascii === 9) {
 					if ($i === ($length - 1)) {
 						$char = $escape.sprintf('%02s', dechex($ascii));
 					}
@@ -1377,21 +1376,21 @@ class YugaMailer extends Mailable
 	 */
 	protected function prepareQEncoding($str)
 	{
-		$str = str_replace(array("\r", "\n"), '', $str);
+		$str = str_replace(["\r", "\n"], '', $str);
 
 		if ($this->charset === 'UTF-8') {
 			// Note: We used to have mb_encode_mimeheader() as the first choice
 			//       here, but it turned out to be buggy and unreliable. DO NOT
 			//       re-add it! -- Narf
-			if (ICONV_ENABLED === true) {
+			if (ICONV_ENABLED) {
 				$output = @iconv_mime_encode('', $str,
-					array(
+					[
 						'scheme' => 'Q',
 						'line-length' => 76,
 						'input-charset' => $this->charset,
 						'output-charset' => $this->charset,
 						'line-break-chars' => $this->crlf
-					)
+					]
 				);
 
 				// There are reports that iconv_mime_encode() might fail and return false
@@ -1403,17 +1402,19 @@ class YugaMailer extends Mailable
 				}
 
 				$chars = iconv_strlen($str, 'UTF-8');
-			} elseif (MB_ENABLED === true) {
+			} elseif (MB_ENABLED) {
 				$chars = mb_strlen($str, 'UTF-8');
 			}
 		}
 
 		// We might already have this set for UTF-8
-		isset($chars) or $chars = static::strlen($str);
+		if (!isset($chars)) {
+            $chars = static::strlen($str);
+        }
 
 		$output = '=?'.$this->charset.'?Q?';
 		for ($i = 0, $length = static::strlen($output); $i < $chars; $i++) {
-			$chr = ($this->charset === 'UTF-8' && ICONV_ENABLED === true) ? '='.implode('=', str_split(strtoupper(bin2hex(iconv_substr($str, $i, 1, $this->charset))), 2)) : '='.strtoupper(bin2hex($str[$i]));
+			$chr = ($this->charset === 'UTF-8' && ICONV_ENABLED) ? '='.implode('=', str_split(strtoupper(bin2hex(iconv_substr($str, $i, 1, $this->charset))), 2)) : '='.strtoupper(bin2hex($str[$i]));
 
 			// RFC 2045 sets a limit of 76 characters per line.
 			// We'll append ?= to the end of each line though.
@@ -1437,7 +1438,7 @@ class YugaMailer extends Mailable
 	 * @param	bool	$auto_clear = true
 	 * @return	bool
 	 */
-	public function send($template = null, array $data = null, $auto_clear = true)
+	public function send($template = null, ?array $data = null, $auto_clear = true)
 	{
 		if ($template) {
 			$this->view->setTemplateDirectory(path('mailables'));
@@ -1452,7 +1453,7 @@ class YugaMailer extends Mailable
 			$this->addReplyTo($this->headers['From']);
 		}
 
-		if (!isset($this->recipients) &&!isset($this->headers['To']) &&!isset($this->bccArray) &&!isset($this->headers['Bcc']) &&!isset($this->headers['Cc'])) {
+		if ($this->recipients === null &&!isset($this->headers['To']) &&$this->bccArray === null &&!isset($this->headers['Bcc']) &&!isset($this->headers['Cc'])) {
 			$this->setErrorMessage('lang:email_norecipients');
 			return false;
 		}
@@ -1526,6 +1527,7 @@ class YugaMailer extends Mailable
 
 			$this->spoolEmail();
 		}
+        return null;
 	}
 
 	/**
@@ -1535,7 +1537,7 @@ class YugaMailer extends Mailable
 	 */
 	protected function unWrapSpecials()
 	{
-		$this->finalBody = preg_replace_callback('/\{unwrap\}(.*?)\{\/unwrap\}/si', array($this, 'removeNlCallback'), $this->finalBody);
+		$this->finalBody = preg_replace_callback('/\{unwrap\}(.*?)\{\/unwrap\}/si', $this->removeNlCallback(...), $this->finalBody);
 	}
 
 	/**
@@ -1546,8 +1548,8 @@ class YugaMailer extends Mailable
 	 */
 	protected function removeNlCallback($matches)
 	{
-		if (strpos($matches[1], "\r") !== false or strpos($matches[1], "\n") !== false) {
-			$matches[1] = str_replace(array("\r\n", "\r", "\n"), '', $matches[1]);
+		if (str_contains($matches[1], "\r") || str_contains($matches[1], "\n")) {
+			$matches[1] = str_replace(["\r\n", "\r", "\n"], '', $matches[1]);
 		}
 
 		return $matches[1];
@@ -1563,7 +1565,7 @@ class YugaMailer extends Mailable
 		$this->unWrapSpecials();
 
 		$protocol = $this->getProtocol();
-		$method   = 'sendWith'.ucfirst($protocol);
+		$method   = 'sendWith'.ucfirst((string) $protocol);
 		if (!$this->$method()) {
 			$this->setErrorMessage('lang:email_send_failure_'.($protocol === 'mail' ? 'phpmail' : $protocol));
 			return false;
@@ -1631,19 +1633,15 @@ class YugaMailer extends Mailable
 		// validateEmailForShell() below accepts by reference,
 		// so this needs to be assigned to a variable
 		$from = $this->cleanEmail($this->headers['From']);
-		if ($this->validateEmailForShell($from)) {
-			$from = '-f '.$from;
-		} else {
-			$from = '';
-		}
+		$from = $this->validateEmailForShell($from) ? '-f '.$from : '';
 
 		if (false === ($fp = @popen($this->mailPath.' -oi '.$from.' -t', 'w'))) {
 			// server probably has popen disabled, so nothing we can do to get a verbose error.
 			return false;
 		}
 
-		fputs($fp, $this->headerString);
-		fputs($fp, $this->finalBody);
+		fwrite($fp, $this->headerString);
+		fwrite($fp, $this->finalBody);
 
 		$status = pclose($fp);
 
@@ -1668,7 +1666,7 @@ class YugaMailer extends Mailable
 			return false;
 		}
 
-		if (!$this->smtpConnect() or!$this->smtpAuthenticate()) {
+		if (!$this->smtpConnect() || !$this->smtpAuthenticate()) {
 			return false;
 		}
 
@@ -1684,23 +1682,19 @@ class YugaMailer extends Mailable
 			}
 		}
 
-		if (count($this->ccArray) > 0) {
-			foreach ($this->ccArray as $val) {
+		foreach ($this->ccArray as $val) {
 				if ($val !== '' &&!$this->sendCommand('to', $val)) {
 					$this->smtpEnd();
 					return false;
 				}
 			}
-		}
 
-		if (count($this->bccArray) > 0) {
-			foreach ($this->bccArray as $val) {
+		foreach ($this->bccArray as $val) {
 				if ($val !== '' &&!$this->sendCommand('to', $val)) {
 					$this->smtpEnd();
 					return false;
 				}
 			}
-		}
 
 		if (!$this->sendCommand('data')) {
 			$this->smtpEnd();
@@ -1717,7 +1711,7 @@ class YugaMailer extends Mailable
 
 		$this->smtpEnd();
 
-		if (strpos($reply, '250') !== 0) {
+		if (!str_starts_with($reply, '250')) {
 			$this->setErrorMessage('lang:email_smtp_error', $reply);
 			return false;
 		}
@@ -1787,7 +1781,7 @@ class YugaMailer extends Mailable
 		switch ($cmd) {
 			case 'hello' :
 
-				if ($this->smtp_auth or $this->getEncoding() === '8bit') {
+				if ($this->smtp_auth || $this->getEncoding() === '8bit') {
 					$this->sendData('EHLO '.$this->getHostName());
 				} else {
 					$this->sendData('HELO '.$this->getHostName());
@@ -1868,9 +1862,9 @@ class YugaMailer extends Mailable
 
 		$reply = $this->getSmtpData();
 
-		if (strpos($reply, '503') === 0) { // Already authenticated
+		if (str_starts_with($reply, '503')) { // Already authenticated
 			return true;
-		} elseif (strpos($reply, '334') !== 0) {
+		} elseif (!str_starts_with($reply, '334')) {
 			$this->setErrorMessage('lang:email_failed_smtp_login', $reply);
 			return false;
 		}
@@ -1879,7 +1873,7 @@ class YugaMailer extends Mailable
 
 		$reply = $this->getSmtpData();
 
-		if (strpos($reply, '334') !== 0) {
+		if (!str_starts_with($reply, '334')) {
 			$this->setErrorMessage('lang:email_smtp_auth_un', $reply);
 			return false;
 		}
@@ -1888,7 +1882,7 @@ class YugaMailer extends Mailable
 
 		$reply = $this->getSmtpData();
 
-		if (strpos($reply, '235') !== 0) {
+		if (!str_starts_with($reply, '235')) {
 			$this->setErrorMessage('lang:email_smtp_auth_pw', $reply);
 			return false;
 		}
@@ -1970,11 +1964,7 @@ class YugaMailer extends Mailable
 	 */
 	protected function getHostName()
 	{
-		if (isset($_SERVER['SERVER_NAME'])) {
-			return $_SERVER['SERVER_NAME'];
-		}
-
-		return isset($_SERVER['SERVER_ADDR']) ? '['.$_SERVER['SERVER_ADDR'].']' : '[127.0.0.1]';
+		return $_SERVER['SERVER_NAME'] ?? (isset($_SERVER['SERVER_ADDR']) ? '['.$_SERVER['SERVER_ADDR'].']' : '[127.0.0.1]');
 	}
 
 	/**
@@ -1984,7 +1974,7 @@ class YugaMailer extends Mailable
 	 *					Valid options are: 'headers', 'subject', 'body'
 	 * @return	string
 	 */
-	public function printDebugger($include = array('headers', 'subject', 'body'))
+	public function printDebugger($include = ['headers', 'subject', 'body'])
 	{
 		$msg = '';
 
@@ -1996,7 +1986,9 @@ class YugaMailer extends Mailable
 
 		// Determine which parts of our raw data needs to be printed
 		$raw_data = '';
-		is_array($include) || $include = array($include);
+		if (!is_array($include)) {
+            $include = [$include];
+        }
 
 		if (in_array('headers', $include, true)) {
 			$raw_data = htmlspecialchars($this->headerString)."\n";
@@ -2037,7 +2029,7 @@ class YugaMailer extends Mailable
 	 */
 	protected function mimeTypes($ext = '')
 	{
-		$ext = strtolower($ext);
+		$ext = strtolower((string) $ext);
 
 		$mimes =& get_mimes();
 
@@ -2049,13 +2041,13 @@ class YugaMailer extends Mailable
 	}
 
 	/**
-	 * Destructor
-	 *
-	 * @return	void
-	 */
-	public function __destruct()
+     * Destructor
+     */
+    public function __destruct()
 	{
-		is_resource($this->smtpConnect) && $this->sendCommand('quit');
+		if (is_resource($this->smtpConnect)) {
+            $this->sendCommand('quit');
+        }
 	}
 
 	/**
@@ -2079,12 +2071,14 @@ class YugaMailer extends Mailable
 	 */
 	protected static function substr($str, $start, $length = NULL)
 	{
-		if (static::$functionOverload){
-			// mb_substr($str, $start, null, '8bit') returns an empty
-			// string on PHP 5.3
-			isset($length) or $length = ($start >= 0 ? static::strlen($str) - $start : -$start);
-			return mb_substr($str, $start, $length, '8bit');
-		}
+		if (static::$functionOverload) {
+            // mb_substr($str, $start, null, '8bit') returns an empty
+            // string on PHP 5.3
+            if (!isset($length)) {
+                $length = ($start >= 0 ? static::strlen($str) - $start : -$start);
+            }
+            return mb_substr($str, $start, $length, '8bit');
+        }
 
 		return isset($length) ? substr($str, $start, $length) : substr($str, $start);
 	}

@@ -18,6 +18,7 @@ trait Collection
     protected $items = [];
     protected $pagination;
     protected static $instances = [];
+    protected $query;
 
     public function __construct($items = [], $query = null)
     {
@@ -104,7 +105,7 @@ trait Collection
 
     public function offsetGet($offset) 
     {
-        return isset($this->items[$offset]) ? $this->items[$offset] : null;
+        return $this->items[$offset] ?? null;
     }
     
     public function rewind()
@@ -114,27 +115,23 @@ trait Collection
   
     public function current()
     {
-        $var = current($this->items);
-        return $var;
+        return current($this->items);
     }
   
     public function key() 
     {
-        $var = key($this->items);
-        return $var;
+        return key($this->items);
     }
   
     public function next() 
     {
-        $var = next($this->items);
-        return $var;
+        return next($this->items);
     }
   
     public function valid()
     {
         $key = key($this->items);
-        $var = ($key !== NULL && $key !== FALSE);
-        return $var;
+        return $key !== NULL && $key !== FALSE;
     }
 
     /**
@@ -150,11 +147,10 @@ trait Collection
     /**
      * Run a filter over each of the items.
      *
-     * @param  callable|null  $callback
-     * 
+     *
      * @return static
      */
-    public function filter(callable $callback = null)
+    public function filter(?callable $callback = null)
     {
         if ($callback) {
             $return = [];
@@ -182,9 +178,7 @@ trait Collection
      */
     public function where($key, $value, $strict = true)
     {
-        return $this->filter(function ($item) use ($key, $value, $strict) {
-            return $strict ? data_get($item, $key) === $value : data_get($item, $key) == $value;
-        });
+        return $this->filter(fn($item) => $strict ? data_get($item, $key) === $value : data_get($item, $key) == $value);
     }
 
     /**
@@ -251,9 +245,7 @@ trait Collection
 
     public function chunk($count = 2, $callback = null)
     {
-        $items = array_map(function($item) {
-            return new static($item);
-        }, array_chunk($this->items, $count));
+        $items = array_map(fn($item) => new static($item), array_chunk($this->items, $count));
         
         if ($callback) {
             return $callback(new static($items));
@@ -283,7 +275,7 @@ trait Collection
         return new static(array_fetch($this->items, $key));
     }
 
-    public function pagination(array $options = null)
+    public function pagination(?array $options = null)
     {
         return count($this->items) > 0 ? ((is_object($this->items[0]->getPagination())) ? $this->items[0]->getPagination()->render($options) : null) : null;
     }
@@ -303,7 +295,6 @@ trait Collection
     /**
      * Sort through each item with a callback.
      *
-     * @param  Closure  $callback
      * @return Collection
      */
     public function sort(Closure $callback)
@@ -321,9 +312,7 @@ trait Collection
      */
     protected function valueRetriever($value)
     {
-        return function($item) use ($value) {
-            return data_get($item, $value);
-        };
+        return fn($item) => data_get($item, $value);
     }
 
     /**
@@ -500,7 +489,7 @@ trait Collection
         }
     }
 
-    public function pages(array $options = null)
+    public function pages(?array $options = null)
     {
         return $this->pagination($options);
     }
@@ -512,12 +501,13 @@ trait Collection
 
     public function orderBy($key, $asc = 'ASC')
     {
-        $order = strtolower($asc);
+        $order = strtolower((string) $asc);
         if ($this->count() > 0) {
-            if ($order == 'asc') 
+            if ($order === 'asc') {
                 $order = false;
-            elseif ($order == 'desc')
+            } elseif ($order === 'desc') {
                 $order = true;
+            }
 
             $this->sksort($this->items, $key, $order); 
         }
@@ -528,26 +518,25 @@ trait Collection
     protected function sksort(&$array, $subkey = "id", $sort_ascending = false) 
     {
         $temp_array = [];
-        if (count($array))
+        if (count($array) > 0) {
             $temp_array[key($array)] = array_shift($array);
+        }
         foreach ($array as $key => $val) {
             $offset = 0;
             $found = false;
-            foreach ($temp_array as $tmp_key => $tmp_val) {
-                if (!$found && strtolower($val[$subkey]) > strtolower($tmp_val[$subkey])) {
-                    $temp_array = array_merge((array)array_slice($temp_array, 0, $offset), [$key => $val], array_slice($temp_array,$offset));
+            foreach ($temp_array as $tmp_val) {
+                if (!$found && strtolower((string) $val[$subkey]) > strtolower((string) $tmp_val[$subkey])) {
+                    $temp_array = array_merge(array_slice($temp_array, 0, $offset), [$key => $val], array_slice($temp_array,$offset));
                     $found = true;
                 }
                 $offset++;
             }
-            if(!$found) 
+            if (!$found) {
                 $temp_array = array_merge($temp_array, [$key => $val]);
+            }
         }
     
-        if ($sort_ascending) 
-            $array = array_reverse($temp_array);
-        else 
-            $array = $temp_array;
+        $array = $sort_ascending ? array_reverse($temp_array) : $temp_array;
     }
 
     /**
@@ -644,11 +633,9 @@ trait Collection
     {
         $useAsCallable = $this->useAsCallable($callback);
 
-        return $this->filter(function ($value, $key) use ($callback, $useAsCallable) {
-            return $useAsCallable
-                ? ! $callback($value, $key)
-                : $value != $callback;
-        });
+        return $this->filter(fn($value, $key) => $useAsCallable
+            ? ! $callback($value, $key)
+            : $value != $callback);
     }
 
     /**

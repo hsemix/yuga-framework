@@ -28,5 +28,6 @@ class RouteRewriteServiceProvider extends ServiceProvider implements IRouterBoot
                 return $request;
             }
         }
+        return null;
     }
 }

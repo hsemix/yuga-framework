@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Http\Middleware;
 
 use Closure;
@@ -8,7 +11,6 @@ interface IMiddleware
 {
     /**
      * Route Middleware
-     * @param Request $request
      * @return Request|null
      */
     public function run(Request $request, Closure $next);

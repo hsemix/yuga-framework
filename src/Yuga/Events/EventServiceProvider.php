@@ -28,11 +28,9 @@ class EventServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Boot the event service provider with $app 
-     * 
-     * @param \Yuga\Interfaces\Application\Application $app
-     * 
-     * @return void
+     * Boot the event service provider with $app
+     *
+     *
      */
     public function __construct(Application $app)
     {
@@ -41,20 +39,15 @@ class EventServiceProvider extends ServiceProvider
 
     /**
      * Load a service provider
-     * 
-     * @param \Yuga\Interfaces\Application\Application $app
-     * 
+     *
+     *
      * @return mixed
      */
     public function load(Application $app)
     {
-        $app->singleton('events', function ($app) {
-            return $this->loadEvents(new Event($app));
-        });
+        $app->singleton('events', fn($app) => $this->loadEvents(new Event($app)));
         if ($app->runningInConsole()) {
-            $app->singleton('console.events', function () use ($app) {
-                return new YugaStart($app);
-            });
+            $app->singleton('console.events', fn() => new YugaStart($app));
         }
     }
     

@@ -83,7 +83,7 @@ class MakeDatabaseRestoreCommand extends BaseCommand
             foreach ($finder as $dump) {
                 $i++;
 
-                if($i != $count) {
+                if($i !== $count) {
                     $this->line($dump->getFilename());
                 } else {
                     $this->line($dump->getFilename() ."\n");
@@ -146,6 +146,7 @@ class MakeDatabaseRestoreCommand extends BaseCommand
         return preg_replace('"\.gz$"', '', $fileName);
     }
 
+    #[\Override]
     protected function getArguments()
     {
         return [
@@ -153,6 +154,7 @@ class MakeDatabaseRestoreCommand extends BaseCommand
         ];
     }
 
+    #[\Override]
     protected function getOptions()
     {
         return [

@@ -13,22 +13,18 @@ use Yuga\Support\Arr;
 use Yuga\Pagination\Pagination;
 use Yuga\Route\Exceptions\NotFoundHttpException;
 
-class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
+class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable, \Stringable
 {
-    protected $query;
-    protected $items = [];
     protected $pagination;
     protected static $instances = [];
         
-    public function __construct($items = [], $query = null)
+    public function __construct(protected $items = [], protected $query = null)
     {
-        $this->items = $items;
-        $this->query = $query;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
-        return $this->toJson();
+        return (string) $this->toJson();
     }
     public function addItem($item)
     {
@@ -110,7 +106,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     #[\ReturnTypeWillChange]
     public function offsetGet($offset) 
     {
-        return isset($this->items[$offset]) ? $this->items[$offset] : null;
+        return $this->items[$offset] ?? null;
     }
     
     #[\ReturnTypeWillChange]
@@ -122,30 +118,26 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     #[\ReturnTypeWillChange]
     public function current()
     {
-        $var = current($this->items);
-        return $var;
+        return current($this->items);
     }
     
     #[\ReturnTypeWillChange]
     public function key() 
     {
-        $var = key($this->items);
-        return $var;
+        return key($this->items);
     }
     
     #[\ReturnTypeWillChange]
     public function next() 
     {
-        $var = next($this->items);
-        return $var;
+        return next($this->items);
     }
     
     #[\ReturnTypeWillChange]
     public function valid()
     {
         $key = key($this->items);
-        $var = ($key !== null && $key !== false);
-        return $var;
+        return $key !== null && $key !== false;
     }
 
     /**
@@ -162,8 +154,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Run a filter over each of the items.
      *
-     * @param  callable|null  $callback
-     * 
+     *
      * @return static
      */
     public function filter(?callable $callback = null)
@@ -194,9 +185,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
      */
     public function where($key, $value, $strict = true)
     {
-        return $this->filter(function ($item) use ($key, $value, $strict) {
-            return $strict ? data_get($item, $key) === $value : data_get($item, $key) == $value;
-        });
+        return $this->filter(fn($item) => $strict ? data_get($item, $key) === $value : data_get($item, $key) == $value);
     }
 
     /**
@@ -241,7 +230,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
     public function toArray()
     {
-        return json_decode($this->toJson(), true);
+        return json_decode((string) $this->toJson(), true);
     }
 
     public function flatten()
@@ -265,9 +254,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
     public function chunk($count = 2, $callback = null)
     {
-        $items = array_map(function($item) {
-            return new static($item);
-        }, array_chunk($this->items, $count));
+        $items = array_map(fn($item) => new static($item), array_chunk($this->items, $count));
         
         if ($callback) {
             return $callback(new static($items));
@@ -317,7 +304,6 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     /**
      * Sort through each item with a callback.
      *
-     * @param  Closure  $callback
      * @return Collection
      */
     public function sort(Closure $callback)
@@ -335,9 +321,7 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
      */
     protected function valueRetriever($value)
     {
-        return function($item) use ($value) {
-            return data_get($item, $value);
-        };
+        return fn($item) => data_get($item, $value);
     }
 
     /**
@@ -526,12 +510,13 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
 
     public function orderBy($key, $asc = 'ASC')
     {
-        $order = strtolower($asc);
+        $order = strtolower((string) $asc);
         if ($this->count() > 0) {
-            if ($order == 'asc') 
+            if ($order === 'asc') {
                 $order = false;
-            elseif ($order == 'desc')
+            } elseif ($order === 'desc') {
                 $order = true;
+            }
 
             $this->sksort($this->items, $key, $order); 
         }
@@ -542,26 +527,23 @@ class Collection  implements ArrayAccess, Iterator, JsonSerializable, Countable
     protected function sksort($array, $subkey = "id", $sort_ascending = false) 
     {
         $temp_array = [];
-        if (count($array))
+        if (count($array) > 0) {
             $temp_array[key($array)] = array_shift($array);
+        }
         foreach ($array as $key => $val) {
             $offset = 0;
             $found = false;
-            foreach ($temp_array as $tmp_key => $tmp_val) {
-                if (!$found && strtolower($val[$subkey]) > strtolower($tmp_val[$subkey])) {
-                    $temp_array = array_merge((array)array_slice($temp_array, 0, $offset), [$key => $val], array_slice($temp_array,$offset));
+            foreach ($temp_array as $tmp_val) {
+                if (!$found && strtolower((string) $val[$subkey]) > strtolower((string) $tmp_val[$subkey])) {
+                    $temp_array = array_merge(array_slice($temp_array, 0, $offset), [$key => $val], array_slice($temp_array,$offset));
                     $found = true;
                 }
                 $offset++;
             }
-            if(!$found) 
+            if (!$found) {
                 $temp_array = array_merge($temp_array, [$key => $val]);
+            }
         }
-    
-        if ($sort_ascending) 
-            $array = array_reverse($temp_array);
-        else 
-            $array = $temp_array;
     }
 
     /**

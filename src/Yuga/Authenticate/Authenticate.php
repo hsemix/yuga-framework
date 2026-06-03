@@ -36,7 +36,7 @@ class Authenticate extends BaseController implements IMiddleware
      */
     public function except(array $routes = [])
     {
-        return in_array(ltrim(request()->getUri(), '/'), $routes);
+        return in_array(ltrim((string) request()->getUri(), '/'), $routes);
     }
 
     public function user()
@@ -50,7 +50,7 @@ class Authenticate extends BaseController implements IMiddleware
                 try {
                     $token = request()->getBearerToken();
                     return $model->access($token);
-                } catch(\Exception $e) {
+                } catch(\Exception) {
                     return $model;
                 }
             }
@@ -96,8 +96,6 @@ class Authenticate extends BaseController implements IMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Yuga\Http\Request  $request
-     * @param  \Closure  $next
      * @return mixed
      */
     public function run(Request $request, Closure $next)
@@ -107,17 +105,11 @@ class Authenticate extends BaseController implements IMiddleware
             if (Auth::authRoutesExist()) {
                 $this->response->redirect('login');
             }
-
             return $this->response->redirect(env('DEFAULT_LOGIN_REDIRECT', route('login')));
-            exit();
-        } else {
-            if (session()->exists('yuga-user-link-session')) {
-                $uri = session('yuga-user-link-session');
-                session()->delete('yuga-user-link-session');
-
-                return $this->response->redirect($uri);
-                exit();
-            }
+        } elseif (session()->exists('yuga-user-link-session')) {
+            $uri = session('yuga-user-link-session');
+            session()->delete('yuga-user-link-session');
+            return $this->response->redirect($uri);
         }
 
         return $next($request);

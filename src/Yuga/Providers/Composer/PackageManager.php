@@ -8,17 +8,8 @@ use Yuga\Support\FileSystem;
 
 class PackageManager extends ModuleInstaller
 {
-    protected $basePath;
-
-    protected $vendorDir;
-
-    protected $providersPath;
-
-    public function __construct($basePath, $vendorDir, $providersPath)
+    public function __construct(protected $basePath, protected $vendorDir, protected $providersPath)
     {
-        $this->basePath = $basePath;
-        $this->providersPath = $providersPath;
-        $this->vendorDir = $vendorDir;
     }
 
     public function install()
@@ -33,13 +24,9 @@ class PackageManager extends ModuleInstaller
 
         $toBeIgnored = in_array('*', $ignore = $this->ignore());
 
-        $this->write((new Collection($packages))->mapWithKeys(function ($package) {
-            return [$this->format($package['name']) => $package['extra']['yuga'] ?? []];
-        })->each(function ($configuration) use (&$ignore) {
+        $this->write((new Collection($packages))->mapWithKeys(fn($package) => [$this->format($package['name']) => $package['extra']['yuga'] ?? []])->each(function ($configuration) use (&$ignore): void {
             $ignore = array_merge($ignore, $configuration['ignore'] ?? []);
-        })->reject(function ($configuration, $package) use ($ignore, $toBeIgnored) {
-            return $toBeIgnored || in_array($package, $ignore);
-        })->filter()->all());
+        })->reject(fn($configuration, $package) => $toBeIgnored || in_array($package, $ignore))->filter()->all());
     }
 
     /**
@@ -79,7 +66,7 @@ class PackageManager extends ModuleInstaller
      */
     protected function write(array $providersToInclude)
     {
-        if (!is_writable($dirname = dirname($this->providersPath))) {
+        if (!is_writable($dirname = dirname((string) $this->providersPath))) {
             throw new Exception("The {$dirname} directory must be present and writable.");
         }
 
@@ -87,8 +74,9 @@ class PackageManager extends ModuleInstaller
 
         foreach ($providersToInclude as $moduleProviders) {
             foreach ($moduleProviders['providers'] as $moduleProvider) {
-                if (!in_array($moduleProvider, $providers))
+                if (!in_array($moduleProvider, $providers)) {
                     $providers[] = $moduleProvider;
+                }
             }
         }
 

@@ -23,9 +23,7 @@ class QueueServiceProvider extends ServiceProvider
     {
         // if ($app->runningInConsole()) {
 
-            $app->singleton('queue', function () use($app) {
-                return (new Queue(config('queue')))->connect();
-            });
+            $app->singleton('queue', fn() => (new Queue(config('queue')))->connect());
         // }
         // $this->commands(array_keys($this->queueCommands()));
     }
@@ -38,9 +36,7 @@ class QueueServiceProvider extends ServiceProvider
     protected function queueCommands()
     {
         return [
-            'command.queue.flush' => $this->app->singleton('command.queue.flush', function () {
-                return new MakeQueueFlushCommand;
-            }),
+            'command.queue.flush' => $this->app->singleton('command.queue.flush', fn() => new MakeQueueFlushCommand),
         ];
     }
 

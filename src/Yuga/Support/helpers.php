@@ -12,11 +12,12 @@ use Yuga\Interfaces\Queue\JobDispatcherInterface;
  */
 
 if (! function_exists('view')) {
-    function view($viewName = null, array $data = null)
+    function view(?string $viewName = null, array $data = [])
     {
         if ($viewName) {
-            if ($viewName instanceof \Yuga\View\ViewModel)
+            if ($viewName instanceof \Yuga\View\ViewModel) {
                 return viewModel($viewName);
+            }
 
             return new \Yuga\Views\View($viewName, $data);
         } else {
@@ -49,8 +50,9 @@ if (! function_exists('viewModel')) {
 if (! function_exists('session')) {
     function session($param = null)
     {
-        if ($param)
+        if ($param) {
             return app()->make('session')->get($param);
+        }
         return app()->make('session');
     }
 }
@@ -58,8 +60,9 @@ if (! function_exists('session')) {
 if (! function_exists('db')) {
     function db($param = null)
     {
-        if ($param)
+        if ($param) {
             return app('db')->table($param);
+        }
         return app('db');
     }
 }
@@ -86,7 +89,7 @@ if (! function_exists('csrf_token')) {
 if (! function_exists('class_base')) {
     function class_base($class)
     {
-        $class = is_object($class) ? get_class($class) : $class;
+        $class = is_object($class) ? $class::class : $class;
         return basename(str_replace('\\', '/', $class));
     }
 }
@@ -171,17 +174,17 @@ if(!function_exists('host')) {
         if ($includeHost) {
             if (!is_null(request()->processHost())) {
                 if (request()->getServer() != request()->gethost()) {
-                    $host = '/'.ltrim($value, '/');
-                } else if(strpos(request()->processHost(), '/public') !== false) {
-                    $host = scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim($value, '/'));
+                    $host = '/'.ltrim((string) $value, '/');
+                } elseif (str_contains(request()->processHost(), '/public')) {
+                    $host = scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim((string) $value, '/'));
                 } else {
-                    $host = scheme(request()->getServer(). '/' . ltrim($value, '/'));
+                    $host = scheme(request()->getServer(). '/' . ltrim((string) $value, '/'));
                 } 
             } else {
-                $host = scheme(request()->getHost() . '/' . ltrim($value, '/'));
+                $host = scheme(request()->getHost() . '/' . ltrim((string) $value, '/'));
             }
         } else {
-            $host = '/'.ltrim($value, '/');
+            $host = '/'.ltrim((string) $value, '/');
         }
         
         return $host;
@@ -209,10 +212,11 @@ if (!function_exists('app')) {
     function app($param = null)
     {
         if ($param) {
-            if (class_exists($param))
+            if (class_exists($param)) {
                 return \Yuga\Application\Application::getInstance()->resolve($param);
-            else
+            } else {
                 return \Yuga\Application\Application::getInstance()->make($param);
+            }
         }            
         return \Yuga\Application\Application::getInstance();
     }
@@ -222,17 +226,15 @@ if(!function_exists('route')) {
     {
         $route = Route::getUrl($name, $parameters, $getParams);
         if (!is_null(request()->processHost())) {
-            if (strpos(request()->getHost(), ':') !== false) {
-                $route = rtrim(Route::getUrl($name, $parameters, $getParams), '/');
-                if (str_contains(request()->getUri(true), 'public')) {
-                    $route = rtrim(request()->processHost().ltrim(Route::getUrl($name, $parameters, $getParams), '/'), '/');
+            if (str_contains((string) request()->getHost(), ':')) {
+                $route = rtrim((string) Route::getUrl($name, $parameters, $getParams), '/');
+                if (str_contains((string) request()->getUri(true), 'public')) {
+                    $route = rtrim(request()->processHost().ltrim((string) Route::getUrl($name, $parameters, $getParams), '/'), '/');
                 }
+            } elseif (str_contains(request()->processHost(), '/public')) {
+                $route = rtrim(request()->processHost().ltrim((string) Route::getUrl($name, $parameters, $getParams), '/'), '/');
             } else {
-                if(strpos(request()->processHost(), '/public') !== false) {
-                    $route = rtrim(request()->processHost().ltrim(Route::getUrl($name, $parameters, $getParams), '/'), '/');
-                } else {
-                    $route = rtrim(Route::getUrl($name, $parameters, $getParams), '/');
-                }
+                $route = rtrim((string) Route::getUrl($name, $parameters, $getParams), '/');
             }
         }
         return $route;
@@ -271,13 +273,15 @@ if(!function_exists('input')) {
 }
 
 if(!function_exists('redirect')) {
-    function redirect($url = null, $code = null)
+    function redirect($url = null, $code = 302)
     {
         if ($code !== null) {
             response()->httpCode($code);
         }
         
         return response()->redirect($url);
+
+        // return new \Yuga\Http\Redirect(request())->setPath($url);
     }
 }
 
@@ -291,7 +295,7 @@ if(!function_exists('full_host')) {
 if(!function_exists('scheme')) {
     function scheme($value = null)
     {
-        $scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
+        $scheme = $_SERVER['REQUEST_SCHEME'] ?? 'http';
         return $scheme .'://'.$value;
     }
 }
@@ -299,19 +303,21 @@ if(!function_exists('scheme')) {
 if(!function_exists('assets')) {
     function assets($value = "")
     {
+        // echo request()->getHeader('http-host');
+        // die();
         if (!is_null(request()->processHost())) {
             if (request()->getServer() != request()->gethost()) {
-                if (str_contains(request()->getUri(true), 'public')) {
-                    return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim($value, '/'));
+                if (str_contains((string) request()->getUri(true), 'public')) {
+                    return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim((string) $value, '/'));
                 }
-                return '/'.ltrim($value, '/');
-            } else if(strpos(request()->processHost(), '/public') !== false) {
-                return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim($value, '/'));
+                return '/'.ltrim((string) $value, '/');
+            } elseif (str_contains(request()->processHost(), '/public')) {
+                return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim((string) $value, '/'));
             } else {
-                return scheme(request()->getServer(). '/' . ltrim($value, '/'));
+                return scheme(request()->getServer(). '/' . ltrim((string) $value, '/'));
             } 
         } else {
-            return scheme(request()->getHost() . '/' . ltrim($value, '/'));
+            return scheme(request()->getHost() . '/' . ltrim((string) $value, '/'));
         }
     }
 }
@@ -333,10 +339,12 @@ if(!function_exists('slug')) {
 if(!function_exists('array_get')) {
     function array_get($array, $key, $default = null)
     {
-        if (is_null($key)) return $array;
+        if (is_null($key)) {
+            return $array;
+        }
         foreach (explode('.', $key) as $segment)
         {
-            if ( ! is_array($array) or ! array_key_exists($segment, $array))
+            if ( ! is_array($array) || ! array_key_exists($segment, $array))
             {
                 return value($default);
             }
@@ -417,7 +425,7 @@ if (!function_exists('config')) {
     function config($key = null, $default = 'Yuga')
     {
         if ($key) {
-            $fileKeys = explode('.', $key);
+            $fileKeys = explode('.', (string) $key);
             $file = array_shift($fileKeys);
             if (file_exists(path('config/' . $file . '.php'))) {
                 return app()->config->load('config.' . $file)->get(implode('.', $fileKeys), $default);
@@ -460,7 +468,7 @@ if ( ! function_exists('get_mimes')) {
 		static $mimes;
 
 		if (empty($mimes)) {
-			$mimes = file_exists('mimes.php') ? require 'mimes.php' : [];
+			$mimes = file_exists('mimes.php') ? require __DIR__ . '/mimes.php' : [];
 		}
 
 		return $mimes;
@@ -668,8 +676,9 @@ if (!function_exists('await')) {
      */
     function await($operation)
     {   
-        if (!$operation instanceof \Fiber)
+        if (!$operation instanceof \Fiber) {
             $operation = async(fn() => $operation);
+        }
 
         return Async::await($operation);     
     }
@@ -686,7 +695,7 @@ if (!function_exists('trans')) {
         
         // If the exact language file does not exist, try the base language (e.g., en for en-US)
         if (!file_exists($lang_file)) {
-            $base_language = substr($language, 0, 2);
+            $base_language = substr((string) $language, 0, 2);
             $lang_file = __DIR__ . "/lang/{$base_language}.php";
         }
         

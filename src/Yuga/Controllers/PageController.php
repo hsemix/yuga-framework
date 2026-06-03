@@ -10,7 +10,7 @@ class PageController extends Controller
         if (env('NOT_FOUND_404_FILE')) {
             return view(env('NOT_FOUND_404_FILE'))->withRequest($request);
         } else {
-            include_once 'not-found.php';
+            include_once __DIR__ . '/not-found.php';
         }
     }
 
@@ -19,7 +19,7 @@ class PageController extends Controller
         if (env('FORM_EXPIRED_FILE')) {
             return view(env('FORM_EXPIRED_FILE'))->withRequest($request);
         } else {
-            include_once 'form-expired.php';
+            include_once __DIR__ . '/form-expired.php';
         }
     }
 }

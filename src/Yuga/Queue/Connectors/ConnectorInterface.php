@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yuga\Queue\Connectors;
 
 interface ConnectorInterface
@@ -7,7 +9,6 @@ interface ConnectorInterface
     /**
      * Establish a queue connection.
      *
-     * @param  array  $config
      * @return \Yuga\Queue\Connectors\QueueInterface
      */
     public function connect(array $config);

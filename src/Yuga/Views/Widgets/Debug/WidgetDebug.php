@@ -5,10 +5,9 @@ use Yuga\Views\Widgets\Widget;
 
 class WidgetDebug extends Widget
 {
-	protected $stack;
 	protected $group;
 
-	public function __construct(array $stack)
+	public function __construct(protected array $stack)
 	{
 		parent::__construct();
 
@@ -16,7 +15,6 @@ class WidgetDebug extends Widget
 		$this->getSite()->addWrappedJs('js/yuga-debug.js', 'debug');
 
 		$this->setTemplate(null);
-		$this->stack = $stack;
 	}
 
 	protected function getTemplatePath()
@@ -24,7 +22,7 @@ class WidgetDebug extends Widget
 		$path = explode('\\', static::class);
 		$path = array_slice($path, 2);
 
-		return env('framework_path') . '/views/content/' . join(DIRECTORY_SEPARATOR, $path) . '.php';
+		return env('framework_path') . '/views/content/' . implode(DIRECTORY_SEPARATOR, $path) . '.php';
 	}
 
 	/**

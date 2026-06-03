@@ -17,8 +17,9 @@ trait CanResetPassword
         $validation = $this->validate->validator([
             $fieldName =>'findUser',
         ]);
-        if ($this->request->isAjax()) 
-            return (!$validation->hasErrors()) ? true : $validation;
-        return ($validation->passed()) ? true : false;
+        if ($this->request->isAjax()) {
+            return ($validation->hasErrors()) ? $validation : true;
+        }
+        return (bool) $validation->passed();
     }   
 }

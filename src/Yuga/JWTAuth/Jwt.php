@@ -13,28 +13,20 @@ use Yuga\Application\Application;
 class Jwt
 {
     /**
-     * The JSON Web Token string
-     *
-     * @var string $token
+     * The secret used to create the JWT signature
      */
-    private $token;
-
-    /**
-    * The secret used to create the JWT signature
-    *
-    * @var string $secret
-    */
-    private $secret;
+    private ?string $secret;
 
     /**
      * JWT Constructor
      *
-     * @param string $token
      * @param string $secret
      */
-    public function __construct(string $token, ?string $secret = null)
+    public function __construct(/**
+     * The JSON Web Token string
+     */
+    private readonly string $token, ?string $secret = null)
     {
-        $this->token = $token;
         if ($secret) {
             $this->secret = $secret;
         } else {
@@ -45,8 +37,6 @@ class Jwt
 
     /**
      * Return the JSON Web Token String
-     *
-     * @return string
      */
     public function getToken(): string
     {
@@ -55,8 +45,6 @@ class Jwt
 
     /**
      * Return the secret used to encode the JWT signature
-     *
-     * @return string
      */
     public function getSecret(): string
     {

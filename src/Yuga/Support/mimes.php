@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 return [
 	'hqx'	=>	['application/mac-binhex40', 'application/mac-binhex', 'application/x-binhex40', 'application/x-mac-binhex40'],
 	'cpt'	=>	'application/mac-compactpro',

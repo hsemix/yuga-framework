@@ -31,9 +31,6 @@ trait Manager
 
     /**
      * Create a new manager instance.
-     *
-     * @param  \Yuga\Interfaces\Application\Application  $app
-     * @return void
      */
     public function __construct(Application $app)
     {
@@ -71,7 +68,7 @@ trait Manager
 
         if (isset($this->customCreators[$driver])) {
             return $this->callCustomCreator($driver);
-        } else if (method_exists($this, $method)) {
+        } elseif (method_exists($this, $method)) {
             return $this->$method();
         }
 
@@ -93,7 +90,6 @@ trait Manager
      * Register a custom driver creator Closure.
      *
      * @param  string   $driver
-     * @param  Closure  $callback
      * @return static
      */
     public function extend($driver, Closure $callback)

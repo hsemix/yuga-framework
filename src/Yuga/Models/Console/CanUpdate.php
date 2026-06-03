@@ -10,15 +10,14 @@ trait CanUpdate
 {
     /**
      * Make the scaffold for a update form
-     * 
-     * @param \Yuga\Database\Elegant\Model $model
+     *
      * @param mixed
      */
     protected function makeUpdateForm(Model $model)
     {
         $name = \class_base($model);
         $inputs = "";
-        $property = \strtolower($name);
+        $property = \strtolower((string) $name);
         $isEditor = false;
         $editors = 0;
 

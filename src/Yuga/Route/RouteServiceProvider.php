@@ -14,7 +14,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         if (!$app->runningInConsole()) {
             $app->singleton('router', Route::class);
-            $app->resolve('router')->start();
+            $app->resolve('router');//->start();
         }
     }
 

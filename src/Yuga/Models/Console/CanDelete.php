@@ -10,15 +10,14 @@ trait CanDelete
 {
     /**
      * Make the scaffold for a delete form
-     * 
-     * @param \Yuga\Database\Elegant\Model $model
+     *
      * @param mixed
      */
     public function makeDeleteForm(Model $model)
     {
         $name = \class_base($model);
         $inputs = "";
-        $property = \strtolower($name);
+        $property = \strtolower((string) $name);
         foreach ($model->scaffold as $fieldName => $type) {
 
             $fieldType = Scaffold::getFormType($type);

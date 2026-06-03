@@ -57,7 +57,7 @@ class Session implements ISession
 
 	public function getUserId()
 	{
-		return $this->get($this->sessionName);
+		return static::get($this->sessionName);
 	}
 	
 	public function logout()
@@ -85,7 +85,7 @@ class Session implements ISession
 	
 	public static function exists($name)
 	{
-		return (isset($_SESSION[$name])) ? true : false;
+		return isset($_SESSION[$name]);
 	}
 
 	public static function has($name)
@@ -112,17 +112,17 @@ class Session implements ISession
 
 	public static function getSecret()
     {
-        return md5(env('APP_SECRET', 'NoApplicationSecretDefined'));
+        return md5((string) env('APP_SECRET', 'NoApplicationSecretDefined'));
     }
 
 	public static function get($name, $defaultValue = null)
 	{
 		if (static::exists($name)) {
             $value = $_SESSION[$name];
-            if (trim($value) !== '') {
+            if (trim((string) $value) !== '') {
                 $value = Guid::decrypt(static::getSecret(), $value);
-                $data = explode('|', $value);
-                if (is_array($data) && trim(end($data)) === static::getSecret()) {
+                $data = explode('|', (string) $value);
+                if (trim(end($data)) === static::getSecret()) {
                     return unserialize($data[0]);
                 }
             }
@@ -134,12 +134,11 @@ class Session implements ISession
 	public static function flash($name, $string = null)
 	{
 		if (self::exists($name)) {
-			$session = self::get($name);
-			self::delete($name);
-			return $session;
-		} else {
-			if ($string)
-				self::put($name, $string);
-		}
+            $session = self::get($name);
+            self::delete($name);
+            return $session;
+        } elseif ($string) {
+            self::put($name, $string);
+        }
 	}
 }

@@ -17,8 +17,6 @@ class CacheMutex
 
     /**
      * Create a new overlapping strategy.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -34,7 +32,6 @@ class CacheMutex
     /**
      * Attempt to obtain a mutex for the given job.
      *
-     * @param  \Yuga\Scheduler\Job  $job
      * @return bool
      */
     public function create(Job $job)
@@ -47,7 +44,6 @@ class CacheMutex
     /**
      * Determine if a mutex exists for the given job.
      *
-     * @param  \Yuga\Scheduler\Job  $job
      * @return bool
      */
     public function exists(Job $job)
@@ -58,7 +54,6 @@ class CacheMutex
     /**
      * Clear the mutex for the given job.
      *
-     * @param  \Yuga\Scheduler\Job  $job
      * @return void
      */
     public function forget(Job $job)

@@ -50,18 +50,9 @@ class Job
     public $user;
 
 	/**
-	 * The type of action.
-	 *
-	 * @var string
-	 */
-	protected $type;
-
-	/**
-	 * The actual content that should be run.
-	 *
-	 * @var mixed
-	 */
-	protected $action;
+     * The type of action.
+     */
+    protected string $type;
 
 	/**
 	 * If not empty, lists the allowed environments
@@ -137,7 +128,7 @@ class Job
      */
     protected $beforeCallbacks = [];
 
-	protected $mutex;
+	protected \Yuga\Scheduler\CacheMutex $mutex;
 
     /**
      * The array of callbacks to be run after the job is finished.
@@ -145,14 +136,19 @@ class Job
      * @var array
      */
     protected $afterCallbacks = [];
-	public function __construct(String $type, $action)
+	/**
+     * @param mixed $action
+     */
+    public function __construct(String $type, /**
+     * The actual content that should be run.
+     */
+    protected $action)
 	{
 		if (!in_array($type, $this->types, true)) {
 			throw SchedulerException::forInvalidTaskType( $type );
 		}
 
 		$this->type   = $type;
-		$this->action = $action;
 
 		$this->mutex = new CacheMutex();
 	}
@@ -170,13 +166,11 @@ class Job
 	}
 
 	/**
-	 * Set the name to reference this task by
-	 *
-	 * @param string $name
-	 *
-	 * @return $this
-	 */
-	public function named( String $name ) : Job
+     * Set the name to reference this task by
+     *
+     *
+     */
+    public function named( String $name ) : Job
 	{
 		$this->name = $name;
 
@@ -184,11 +178,9 @@ class Job
 	}
 
 	/**
-	 * Returns the type.
-	 *
-	 * @return string
-	 */
-	public function getType(): String
+     * Returns the type.
+     */
+    public function getType(): String
 	{
 		return $this->type;
 	}
@@ -246,16 +238,14 @@ class Job
 	}
 
 	/**
-	 * Determines whether this task should be run now
-	 * according to its schedule and environment.
-	 *
-	 * @return boolean
-	 */
-	public function shouldRun( \Datetime $testTime = null ) : bool
+     * Determines whether this task should be run now
+     * according to its schedule and environment.
+     */
+    public function shouldRun( ?\Datetime $testTime = null ) : bool
 	{
 		$cron = new \Cron\CronExpression( $this->getExpression() );
 
-		$testTime = ( $testTime ) ? $testTime : 'now';
+		$testTime = ( $testTime instanceof \Datetime ) ? $testTime : 'now';
 		
 		return $cron->isDue( $testTime );
 	}
@@ -275,7 +265,6 @@ class Job
 	/**
      * Call all of the "before" callbacks for the job.
      *
-     * @param  \Yuga\Container\Container  $container
      * @return void
      */
     public function callBeforeCallbacks(Container $container)
@@ -310,7 +299,7 @@ class Job
 
         $this->expiresAt = $expiresAt;
 
-        return $this->then(function () {	
+        return $this->then(function (): void {	
             $this->mutex->forget($this);
         });
     }
@@ -318,7 +307,6 @@ class Job
 	/**
      * Register a callback to be called before the operation.
      *
-     * @param  \Closure  $callback
      * @return $this
      */
     public function before(Closure $callback)
@@ -331,7 +319,6 @@ class Job
     /**
      * Register a callback to be called after the operation.
      *
-     * @param  \Closure  $callback
      * @return $this
      */
     public function after(Closure $callback)
@@ -342,7 +329,6 @@ class Job
     /**
      * Register a callback to be called after the operation.
      *
-     * @param  \Closure  $callback
      * @return $this
      */
     public function then(Closure $callback)
@@ -379,7 +365,7 @@ class Job
 
         $redirect = $this->shouldAppendOutput ? ' >> ' : ' > ';
 
-		if ($this->type == 'shell') {
+		if ($this->type === 'shell') {
 			if (!$this->runInBackground) {
 				return $this->getAction().$redirect.$output .' 2>&1';
 			}
@@ -448,16 +434,14 @@ class Job
 	}
 
 	/**
-	 * Checks if it runs within the specified environment.
-	 *
-	 * @param string $environment
-	 *
-	 * @return boolean
-	 */
-	protected function runsInEnvironment(string $environment): bool
+     * Checks if it runs within the specified environment.
+     *
+     *
+     */
+    protected function runsInEnvironment(string $environment): bool
 	{
 		// If nothing is specified then it should run
-		if (empty($this->environments)) {
+		if ($this->environments === []) {
 			return true;
 		}
 
@@ -554,13 +538,12 @@ class Job
     }
 
 	/**
-	 * Magic getter
-	 *
-	 * @param string $key
-	 *
-	 * @return mixed
-	 */
-	public function __get( String $key )
+     * Magic getter
+     *
+     *
+     * @return mixed
+     */
+    public function __get( String $key )
 	{
 		if ($key === 'name' && empty($this->name)) {
             return $this->buildName();

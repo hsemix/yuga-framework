@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Exceptions;
 
 use Closure;
@@ -15,16 +18,11 @@ use Yuga\Http\Request;
 class CallbackException implements IException
 {
 
-    protected $callback;
-
-    public function __construct(Closure $callback)
+    public function __construct(protected \Closure $callback)
     {
-        $this->callback = $callback;
     }
 
     /**
-     * @param Request $request
-     * @param \Exception $error
      * @return Request|null
      */
     public function handleError(Request $request, Exception $error)

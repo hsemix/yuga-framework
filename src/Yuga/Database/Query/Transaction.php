@@ -15,11 +15,7 @@ class Transaction extends Builder
 
     protected $transactionStatement;
 
-    /**
-     * @param \Closure $callback
-     *
-     * @return static
-     */
+    #[\Override]
     public function transaction(\Closure $callback): Transaction
     {
         $callback($this);
@@ -80,8 +76,6 @@ class Transaction extends Builder
     /**
      * Execute statement
      *
-     * @param string $sql
-     * @param array $bindings
      *
      * @return array PDOStatement and execution time as float
      * @throws \Yuga\Database\Query\Exceptions\TableNotFoundException
@@ -95,6 +89,7 @@ class Transaction extends Builder
      * @throws \Yuga\Database\Query\Exceptions\NotNullException
      * @throws Exception
      */
+    #[\Override]
     public function statement(string $sql, array $bindings = []): array
     {
         if ($this->transactionStatement === null && $this->pdo->inTransaction() === true) {

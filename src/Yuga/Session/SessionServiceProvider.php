@@ -11,9 +11,9 @@ class SessionServiceProvider extends ServiceProvider
 {
     public function load(Application $app)
     {
-        if (!$app->runningInConsole()) {
+        // if (!$app->runningInConsole()) {
             $app->singleton('session', Session::class);
             $app->resolve('session');
-        }
+        // }
     }
 }

@@ -38,7 +38,7 @@ class DatabaseConnector extends BaseConnector
 	/**
 	 * @var 
 	 */
-	protected $db;
+	protected \Yuga\Database\Query\DB $db;
 
 	/**
 	 * constructor.
@@ -60,12 +60,11 @@ class DatabaseConnector extends BaseConnector
 	}
 
 	/**
-	 * send message to queueing system.
-	 *
-	 * @param array  $data
-	 * @param string $queue
-	 */
-	public function send($data, string $queue = '')
+     * send message to queueing system.
+     *
+     * @param array  $data
+     */
+    public function send($data, string $queue = '')
 	{       
 		if ($queue === '') {
 			$queue = $this->defaultQueue;
@@ -95,14 +94,12 @@ class DatabaseConnector extends BaseConnector
 	}
 
 	/**
-	 * Fetch message from queueing system.
-	 * When there are no message, this method will return (won't wait).
-	 *
-	 * @param  callable $callback
-	 * @param  string   $queue
-	 * @return boolean  whether callback is done or not.
-	 */
-	public function fetch(callable $callback, string $queue = '', $shouldStop = false): bool
+     * Fetch message from queueing system.
+     * When there are no message, this method will return (won't wait).
+     *
+     * @return boolean  whether callback is done or not.
+     */
+    public function fetch(callable $callback, string $queue = '', $shouldStop = false): bool
 	{
 		$row = $this->db->table($this->table)
 			->where('queue', $queue !== '' ? $queue : $this->defaultQueue)
@@ -124,7 +121,7 @@ class DatabaseConnector extends BaseConnector
 		//set the status to executing if it hasn't already been taken.
 		$this->db->table($this->table)
 			->where('id', (int) $row->id)
-			->where('status', (int) self::STATUS_WAITING)
+			->where('status', self::STATUS_WAITING)
 			->update([
 				'status'     => self::STATUS_EXECUTING,
 				'updated_at' => date('Y-m-d H:i:s'),
@@ -132,7 +129,7 @@ class DatabaseConnector extends BaseConnector
 
 		//don't run again if its already been taken.
 
-		$data = json_decode($row->data, true);
+		$data = json_decode((string) $row->data, true);
 
 		//if the callback doesn't throw an exception mark it as done.
 		try {
@@ -166,14 +163,12 @@ class DatabaseConnector extends BaseConnector
 	}
 
 	/**
-	 * Receive message from queueing system.
-	 * When there are no message, this method will wait.
-	 *
-	 * @param  callable $callback
-	 * @param  string   $queue
-	 * @return boolean  whether callback is done or not.
-	 */
-	public function receive(callable $callback, string $queue = ''): bool
+     * Receive message from queueing system.
+     * When there are no message, this method will wait.
+     *
+     * @return boolean  whether callback is done or not.
+     */
+    public function receive(callable $callback, string $queue = ''): bool
 	{
 		while (!$this->fetch($callback, $queue)) {
 			usleep(1000000);
@@ -227,7 +222,7 @@ class DatabaseConnector extends BaseConnector
 	{
 		//set the status to executing if it hasn't already been taken.
 		$this->db->table($this->table)
-			->where('status', (int) self::STATUS_FAILED)
+			->where('status', self::STATUS_FAILED)
 			->update([
 				'status'     => self::STATUS_WAITING,
 				'attempts' => 0,

@@ -6,16 +6,15 @@ namespace Yuga;
 
 use Yuga\Views\Widgets\Debug\WidgetDebug;
 
-class Debug
+class Debug implements \Stringable
 {
     protected $lastTime;
-    protected $stack;
-    protected $startTime;
+    protected $stack = [];
+    protected float $startTime;
 
     public function __construct()
     {
         $this->startTime = microtime(true);
-        $this->stack = [];
         $this->add('Debugger initialized.');
     }
 
@@ -82,7 +81,7 @@ class Debug
         $this->addObject($text);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         $widget = new WidgetDebug($this->stack);
 

@@ -31,7 +31,7 @@ class MakeQueueFlushCommand extends Command
 	 */
 	public function handle()
 	{
-		
+
 		$cli = new CLI;
 
 		// print_r($cli);

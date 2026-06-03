@@ -4,17 +4,9 @@ namespace Yuga\Cache;
 
 class SqliteCache extends CacheAbstract
 {
-    private $tableName;
-
-    private $adapter;
-
-    public function __construct(\PDO $adapter, int $ttl = 300, $tableName = 'Cache')
+    public function __construct(private readonly \PDO $adapter, int $ttl = 300, private $tableName = 'Cache')
     {
-        $this->adapter = $adapter;
-
         $this->ttl = $this->validateTTL($ttl);
-
-        $this->tableName = $tableName;
 
         $this->checkAndBuildStructure();
 
@@ -44,6 +36,7 @@ class SqliteCache extends CacheAbstract
         return true;
     }
 
+    #[\Override]
     public function hasMultiple(array $keys): bool
     {
         $stmt = $this->adapter->prepare("SELECT Key, ExpiresAt FROM {$this->tableName} WHERE Key IN ({$this->stmtKeys($keys)})");
@@ -64,13 +57,13 @@ class SqliteCache extends CacheAbstract
             $count++;
         }
 
-        if ($expiredKeys) {
+        if ($expiredKeys !== []) {
             $this->deleteMultiple($expiredKeys);
 
             return false;
         }
 
-        return $count == count($keys);
+        return $count === count($keys);
     }
 
     public function get(string $key, $default = null)
@@ -94,6 +87,7 @@ class SqliteCache extends CacheAbstract
         return $row['Value'] ? $this->unserialize($row['Value']) : $default;
     }
 
+    #[\Override]
     public function getMultiple(array $keys, $default = null)
     {
         $stmt = $this->adapter->prepare("SELECT Key, Value, ExpiresAt FROM {$this->tableName} WHERE Key IN ({$this->stmtKeys($keys)})");
@@ -118,7 +112,7 @@ class SqliteCache extends CacheAbstract
             }
         }
 
-        if ($expiredKeys) {
+        if ($expiredKeys !== []) {
             $this->deleteMultiple($expiredKeys);
         }
 
@@ -161,6 +155,7 @@ class SqliteCache extends CacheAbstract
         return $this;
     }
 
+    #[\Override]
     public function deleteMultiple(array $keys)
     {
         $stmt = $this->adapter->prepare("DELETE FROM {$this->tableName} WHERE Key IN ({$this->stmtKeys($keys)})");
@@ -183,7 +178,7 @@ class SqliteCache extends CacheAbstract
     {
         $stmt = $this->adapter->query("SELECT 1 FROM sqlite_master WHERE type = 'table' and name = '{$this->tableName}'");
 
-        return $stmt->fetch() ? true : false;
+        return (bool) $stmt->fetch();
     }
 
     protected function buildStructure()

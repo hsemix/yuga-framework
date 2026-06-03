@@ -13,7 +13,7 @@ use Yuga\Models\ElegantModel;
 use Yuga\Views\Widgets\Form\Form;
 use Yuga\Views\Widgets\Html\Html;
 
-class ViewModel extends BaseView
+class ViewModel extends BaseView implements \Stringable
 {
     const EXT = '.php';
     
@@ -22,7 +22,7 @@ class ViewModel extends BaseView
     public $fieldClasses = [];
     public $handleAjax = true;
     protected $contentTemplate;
-    protected $templatePath = null;
+    protected $templatePath;
     protected $defaultLayout = 'default';
 
     public function __construct()
@@ -50,7 +50,7 @@ class ViewModel extends BaseView
         if ($this->templatePath) {
             return $this->templatePath;
         } else {
-            $unAltered = str_replace('ViewModel', '', join(DIRECTORY_SEPARATOR, $path));
+            $unAltered = str_replace('ViewModel', '', implode(DIRECTORY_SEPARATOR, $path));
             $lower = strtolower($unAltered);
             if (file_exists(path('resources'. DIRECTORY_SEPARATOR .'views'. DIRECTORY_SEPARATOR .'templates'. DIRECTORY_SEPARATOR . $unAltered . '.php'))) {
                 return path('resources'. DIRECTORY_SEPARATOR .'views'. DIRECTORY_SEPARATOR .'templates'. DIRECTORY_SEPARATOR . $unAltered . '.php');
@@ -73,10 +73,10 @@ class ViewModel extends BaseView
 
         return '<span class="'. $class .'"></span>';
     }
-    public function validatedField($field_name, array $options = null, $placeholder = null, $value = null)
+    public function validatedField($field_name, ?array $options = null, $placeholder = null, $value = null)
     {
         $showLabel = true;
-        $fieldOptions = explode(':', $field_name);
+        $fieldOptions = explode(':', (string) $field_name);
         $name = $fieldOptions[0];
         $inputType = 'text';
         $fieldClass = 'form-control';
@@ -107,46 +107,34 @@ class ViewModel extends BaseView
                 }
             }
 
-            if (isset($options['parent'])) {
-                if ($options['parent'] !== false && $options['parent'] !== null) {
-                    $parentOptions = $this->processField($options['parent']);
-                
-                    if (isset($parentOptions['class'])) {
-                        $parentClass = $parentOptions['class'];
-                    }
-
-                    if (isset($parentOptions['tag'])) {
-                        $parentElem = $parentOptions['tag'];
-                    }
-
-                    if (isset($parentOptions['error-class'])) {
-                        $parentErrorClass = $parentOptions['error-class'];
-                    }
-                } 
+            if (isset($options['parent']) && ($options['parent'] !== false && $options['parent'] !== null)) {
+                $parentOptions = $this->processField($options['parent']);
+                if (isset($parentOptions['class'])) {
+                    $parentClass = $parentOptions['class'];
+                }
+                if (isset($parentOptions['tag'])) {
+                    $parentElem = $parentOptions['tag'];
+                }
+                if (isset($parentOptions['error-class'])) {
+                    $parentErrorClass = $parentOptions['error-class'];
+                }
             }
 
-            if (isset($options['field-parent'])) {
-                if ($options['field-parent'] !== false && $options['field-parent'] !== null) {
-                    $fieldParentOptions = $this->processField($options['field-parent']);
-                
-                    if (isset($fieldParentOptions['class'])) {
-                        $fieldParentClass = $fieldParentOptions['class'];
-                    }
-
-                    if (isset($fieldParentOptions['tag'])) {
-                        $fieldParentElem = $fieldParentOptions['tag'];
-                    }
-                } 
+            if (isset($options['field-parent']) && ($options['field-parent'] !== false && $options['field-parent'] !== null)) {
+                $fieldParentOptions = $this->processField($options['field-parent']);
+                if (isset($fieldParentOptions['class'])) {
+                    $fieldParentClass = $fieldParentOptions['class'];
+                }
+                if (isset($fieldParentOptions['tag'])) {
+                    $fieldParentElem = $fieldParentOptions['tag'];
+                }
             }
 
-            if (isset($options['field'])) {
-                if ($options['field'] !== false && $options['field'] !== null) {
-                    $fieldOptions = $this->processField($options['field']);
-                
-                    if (isset($fieldOptions['class'])) {
-                        $fieldClass = $fieldOptions['class'];
-                    }
-                } 
+            if (isset($options['field']) && ($options['field'] !== false && $options['field'] !== null)) {
+                $fieldOptions = $this->processField($options['field']);
+                if (isset($fieldOptions['class'])) {
+                    $fieldClass = $fieldOptions['class'];
+                }
             }
         }
 
@@ -167,7 +155,7 @@ class ViewModel extends BaseView
             $container->append($label);
         }
 
-        $input = $this->form()->input($inputType, $name, ($inputType != 'password') ? $value ?: old($name) : null);
+        $input = $this->form()->input($inputType, $name, ($inputType !== 'password') ? $value ?: old($name) : null);
         if ($fieldClass != "false" && $fieldClass != 'null') {
             $input->addClass($fieldClass);
         }
@@ -248,7 +236,7 @@ class ViewModel extends BaseView
     {
         $output = '';
         foreach ((array)$this->getSite()->getCss($section) as $css) {
-            $output .= (new Html('link'))
+            $output .= new Html('link')
                 ->setClosingType(Html::CLOSE_TYPE_NONE)
                 ->attr('href', $css)
                 ->attr('rel', 'stylesheet');
@@ -262,7 +250,7 @@ class ViewModel extends BaseView
         $output = '';
 
         foreach ((array)$this->getSite()->getJs($section) as $js) {
-            $output .= (new Html('script'))->attr('src', $js);
+            $output .= new Html('script')->attr('src', $js);
         }
 
         return $output;
@@ -334,12 +322,10 @@ class ViewModel extends BaseView
      * by filling the path to the desired snippet.
      *
      * @author Hamidouh Semix <semix.hamidouh@gmail.com>
-     * 
+     *
      * @param string $file
-     * 
-     * @return null
      */
-    public function display($file, array $data = null)
+    public function display($file, ?array $data = null)
     {
         $file = str_replace('.', DIRECTORY_SEPARATOR, $file);
         if ($data) {
@@ -350,11 +336,10 @@ class ViewModel extends BaseView
 
     /**
      * Include viewmodel on page.
-     * 
+     *
      * @author Hamidouh Semix <semix.hamidouh@gmail.com>
-     * 
-     * @param \Yuga\View\ViewModel $viewmodel
-     * 
+     *
+     *
      * @return ViewModel $viewmodel
      */
     public function viewModel(ViewModel $viewmodel)
@@ -365,7 +350,7 @@ class ViewModel extends BaseView
         return $viewmodel;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         try {
             return $this->render();
@@ -399,9 +384,9 @@ class ViewModel extends BaseView
 
         // Trigger events
         if (in_array($this->request->getMethod(), ['post', 'get'])) {
-            $event = ucfirst($this->request->getMethod());
+            $event = ucfirst((string) $this->request->getMethod());
         } else {
-            $event = 'Post'.ucfirst($this->request->getMethod());
+            $event = 'Post'.ucfirst((string) $this->request->getMethod());
         }
         $this->handlePostRequest($event);
 
@@ -415,14 +400,12 @@ class ViewModel extends BaseView
     }
 
     /**
-     * Emulate all methods passed by the form but through the post and create appropriate onPost[method] events 
+     * Emulate all methods passed by the form but through the post and create appropriate onPost[method] events
      * e.g. onPostSave
-     * 
+     *
      * @author Hamidouh Semix <semix.hamidouh@gmail.com>
-     * 
+     *
      * @param string $event
-     * 
-     * @return null
      */
     protected function handlePostRequest($event)
     {
@@ -556,11 +539,7 @@ class ViewModel extends BaseView
         foreach ($reflectionParameters as $parameter) {
             if (!is_null($parameter->getClass())) {
                 $dependency = $parameter->getClass()->name;
-                if($binding = $this->isSingleton($dependency)) {
-                    $dependecies[] = $binding;
-                } else {
-                    $dependecies[] = $this->app->resolve($dependency);
-                }
+                $dependecies[] = ($binding = $this->isSingleton($dependency)) ? $binding : $this->app->resolve($dependency);
             } 
         }
         
@@ -577,7 +556,7 @@ class ViewModel extends BaseView
     protected function isSingleton($class)
     {
         foreach(array_values($this->app->getSingletons()) as $instance){
-            if(get_class($instance) == $class){
+            if($instance::class == $class){
                 return $instance;
             }
         }

@@ -52,17 +52,18 @@ class MakeQueueWorkCommand extends Command
 			$maxTries = 5;
 			do {
 				try {
-					if ($shouldStop == true)
-						$this->stopIfNecessary($startTime, $jobsProcessed);
+					if ($shouldStop == true) {
+                        $this->stopIfNecessary($startTime, $jobsProcessed);
+                    }
 	
-					$response = $this->yuga['queue']->fetch([$this, 'fire'], $queue, $shouldStop);
+					$response = $this->yuga['queue']->fetch($this->fire(...), $queue, $shouldStop);
 	
 					// echo $response;
 					$jobsProcessed++;
 
 					// After working, sleep
 					$this->yuga['queue']->sleep();
-				} catch (DatabaseQueryException $e) {
+				} catch (DatabaseQueryException) {
 					usleep(5 * 1000000);
 					$response = false;
 				} catch (\Exception $e) {
@@ -122,17 +123,15 @@ class MakeQueueWorkCommand extends Command
 
 		//max time limit.
 		if ($maxTime > 0 && time() - $startTime > $maxTime) {
-			$shouldQuit = true;
-			$reason     = 'Time Limit Reached';
-		}
-		//max memory
-		else if ($maxMemory > 0 && $memoryUsage > $maxMemory) {
-			$shouldQuit = true;
-			$reason     = 'Memory Limit Reached';
-		} else if ($maxBatch > 0 && $jobsProcessed >= $maxBatch) {
-			$shouldQuit = true;
-			$reason     = 'Maximum Batch Size Reached';
-		}
+            $shouldQuit = true;
+            $reason     = 'Time Limit Reached';
+        } elseif ($maxMemory > 0 && $memoryUsage > $maxMemory) {
+            $shouldQuit = true;
+            $reason     = 'Memory Limit Reached';
+        } elseif ($maxBatch > 0 && $jobsProcessed >= $maxBatch) {
+            $shouldQuit = true;
+            $reason     = 'Maximum Batch Size Reached';
+        }
 
 		if (isset($reason)) {
 			$cli->writeLine('Exiting Worker: ' . $reason, 'yellow');
@@ -150,30 +149,23 @@ class MakeQueueWorkCommand extends Command
 		$memory_limit = ini_get('memory_limit');
 
 		//if there is no memory limit just set it to 2GB
-		if($memory_limit = -1)
-			return 2 * 1024 * 1024 * 1024;
+		if (($memory_limit = -1) !== 0) {
+            return 2 * 1024 * 1024 * 1024;
+        }
 
 		preg_match('/^(\d+)(.)$/', $memory_limit, $matches);
 
-		if (!isset($matches[2]))
-			throw new \Exception('Unknown Memory Limit');
+		if (!isset($matches[2])) {
+            throw new \Exception('Unknown Memory Limit');
+        }
 
-		switch($matches[2])
-		{
-			case 'G' :
-				$memoryLimit = $matches[1] * 1024 * 1024 * 1024;
-				break;
-			case 'M' :
-				$memoryLimit = $matches[1] * 1024 * 1024;
-				break;
-			case 'K' :
-				$memoryLimit = $matches[1] * 1024;
-				break;
-			default :
-				throw new \Exception('Unknown Memory Limit');
-
-			return $memoryLimit;
-		}
+		match ($matches[2]) {
+            'G' => $matches[1] * 1024 * 1024 * 1024,
+            'M' => $matches[1] * 1024 * 1024,
+            'K' => $matches[1] * 1024,
+            default => throw new \Exception('Unknown Memory Limit'),
+        };
+        return null;
 	}
 
     /**
@@ -181,6 +173,7 @@ class MakeQueueWorkCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getArguments()
     {
         return [
@@ -193,6 +186,7 @@ class MakeQueueWorkCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [

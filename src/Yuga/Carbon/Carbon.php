@@ -10,7 +10,7 @@ use JsonSerializable;
 use DateTimeInterface;
 use InvalidArgumentException;
 
-class Carbon extends DateTime implements JsonSerializable
+class Carbon extends DateTime implements JsonSerializable, \Stringable
 {
     const DEFAULT_TO_STRING_FORMAT = 'Y-m-d H:i:s';
     protected static $toStringFormat = self::DEFAULT_TO_STRING_FORMAT;
@@ -21,7 +21,7 @@ class Carbon extends DateTime implements JsonSerializable
         parent::__construct($time ?? 'now', $timezone);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->format(self::$toStringFormat);
     }
@@ -31,9 +31,7 @@ class Carbon extends DateTime implements JsonSerializable
     {
         $carbon = $this;
 
-        return call_user_func(function () use ($carbon) {
-            return get_object_vars($carbon);
-        });
+        return get_object_vars($carbon);
     }
 
     /**

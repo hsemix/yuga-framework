@@ -44,7 +44,6 @@ class CLI
 
     /**
      * Returns text formatted with color, background color and/or attributes.
-     * @param array $args
      * @return string
      */
     protected function createColor($text, array $args)
@@ -78,7 +77,7 @@ class CLI
         // $args = func_get_args();
         // $args[0] = (is_null($text)) ? chr(10) : $text . chr(10);
         $text = (is_null($text)) ? chr(10) : $text . chr(10);
-        echo call_user_func_array([$this, 'write'], [$text, $args]);
+        echo call_user_func_array($this->write(...), [$text, $args]);
     }
 
     /**
@@ -89,14 +88,14 @@ class CLI
     public function write($text, $args = null)
     {
         $args = func_get_args();
-        echo call_user_func_array([$this, 'createColor'], [$text, $args]);
+        echo call_user_func_array($this->createColor(...), [$text, $args]);
     }
 
     public function get($text, $args = null)
     {
         $args = func_get_args();
 
-        return call_user_func_array([$this, 'createColor'], [$args]);
+        return call_user_func_array($this->createColor(...), [$args]);
     }
 
     public function getCols()

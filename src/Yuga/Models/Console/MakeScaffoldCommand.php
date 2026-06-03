@@ -40,9 +40,7 @@ class MakeScaffoldCommand extends Command
             $models = (new FileLocator)->getClassesOfNamespace(env('APP_NAMESPACE', 'App'). '\\' . $directory);
         } else {
             $models = \explode(',', $modelStrings);
-            $models = array_map(function ($model) {
-                return env('APP_NAMESPACE', 'App') . '\\Models\\' . $model;
-            }, $models);
+            $models = array_map(fn($model) => env('APP_NAMESPACE', 'App') . '\\Models\\' . $model, $models);
         }
 
         $this->formsCreator($models);
@@ -100,6 +98,7 @@ class MakeScaffoldCommand extends Command
      *
      * @return array
      */
+    #[\Override]
     protected function getOptions()
     {
         return [

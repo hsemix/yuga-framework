@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yuga\Database\Console\Backup;
 
 use Exception;
@@ -9,12 +11,9 @@ class DatabaseBuilder
 {
     protected $database;
 
-    protected $console;
 
-
-    public function __construct(Console $console)
+    public function __construct(protected \Yuga\Database\Console\Backup\Console $console)
     {
-        $this->console = $console;
     }
 
     public function getDatabase(array $config)
@@ -23,9 +22,9 @@ class DatabaseBuilder
 
         if ($driver == 'mysql') {
             return $this->buildMySQL($config);
-        } else if ($driver == 'sqlite') {
+        } elseif ($driver == 'sqlite') {
             return $this->buildSqlite($config);
-        } else if ($driver == 'pgsql') {
+        } elseif ($driver == 'pgsql') {
             return $this->buildPostgres($config);
         }
 
@@ -34,7 +33,7 @@ class DatabaseBuilder
 
     protected function buildMySQL(array $config)
     {
-        $port = isset($config['port']) ? $config['port'] : 3306;
+        $port = $config['port'] ?? 3306;
 
         return $this->database = new Databases\MySQLDatabase(
             $this->console,

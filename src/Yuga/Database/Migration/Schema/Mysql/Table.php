@@ -30,14 +30,10 @@ class Table extends SqlTable
      * @var array
      */
     protected $columns = [];
-    protected $name;
-    protected $engine;
+    protected $engine = self::ENGINE_INNODB;
 
-    public function __construct($name = null, $getTableSchema = false)
+    public function __construct(protected $name = null, $getTableSchema = false)
     {
-        $this->name = $name;
-        $this->engine = self::ENGINE_INNODB;
-
         if ($getTableSchema) {
             $this->getTableColumns();
         }
@@ -77,12 +73,10 @@ class Table extends SqlTable
 
     public function getPrimary($default = null)
     {
-        if (count($this->columns) > 0) {
-            /* @var $column Column */
-            foreach ($this->columns as $column) {
-                if ($column->getIndex() == Column::INDEX_PRIMARY) {
-                    return $column;
-                }
+        /* @var $column Column */
+        foreach ($this->columns as $column) {
+            if ($column->getIndex() == Column::INDEX_PRIMARY) {
+                return $column;
             }
         }
 
@@ -102,11 +96,7 @@ class Table extends SqlTable
             if ($excludePrimary && $column->getIndex() === Column::INDEX_PRIMARY) {
                 continue;
             }
-            if ($lower) {
-                $names[] = strtolower($column->getName());
-            } else {
-                $names[] = $column->getName();
-            }
+            $names[] = $lower ? strtolower((string) $column->getName()) : $column->getName();
         }
 
         return $names;
@@ -116,7 +106,7 @@ class Table extends SqlTable
     {
         /* @var $column Column */
         foreach ($this->columns as $column) {
-            if (($strict === true && $column->getName() === $name) || ($strict === false && strtolower($column->getName()) === strtolower($name))) {
+            if (($strict === true && $column->getName() === $name) || ($strict === false && strtolower((string) $column->getName()) === strtolower((string) $name))) {
                 return $column;
             }
         }
@@ -170,7 +160,7 @@ class Table extends SqlTable
                 $query[] = $column->getQuery();
             }
 
-            $sql = sprintf('CREATE TABLE `%s` (%s) ENGINE = %s;', $this->name, join(', ', $query), $this->engine);
+            $sql = sprintf('CREATE TABLE `%s` (%s) ENGINE = %s;', $this->name, implode(', ', $query), $this->engine);
             PDO::getInstance()->nonQuery($sql);
         }
     }
@@ -240,8 +230,9 @@ class Table extends SqlTable
     {
         if ($this->exists()) {
             $result = PDO::getInstance()->doQuery(sprintf("SHOW COLUMNS FROM `%s` LIKE '%s'", $this->name, $column));
-            return ($result->rowCount() == 1) ? true : false;   
+            return $result->rowCount() == 1;   
         }
+        return null;
 
     }
 
@@ -292,10 +283,8 @@ class Table extends SqlTable
 
     public function renameColumn(string $fromName, string $toName)
     {
-        if ($this->exists()) {
-            if ($this->columnExists($fromName)) {
-                PDO::getInstance()->nonQuery(sprintf('ALTER TABLE `%s` RENAME COLUMN `%s` TO %s', $this->name, $fromName, $toName));
-            }
+        if ($this->exists() && $this->columnExists($fromName)) {
+            PDO::getInstance()->nonQuery(sprintf('ALTER TABLE `%s` RENAME COLUMN `%s` TO %s', $this->name, $fromName, $toName));
         }
     }
 

@@ -9,14 +9,13 @@ trait CreateRoutes
 {
     /**
      * Make the scaffold for a routes
-     * 
-     * @param \Yuga\Database\Elegant\Model $model
+     *
      * @param mixed
      */
     protected function processRoutes(Model $model)
     {
         $name = \class_base($model);
-        $property = \strtolower($name);
+        $property = \strtolower((string) $name);
         
         $routes = str_replace(
             ['{routes}', '{class}', '{classes}'], 

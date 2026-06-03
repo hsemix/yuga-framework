@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Yuga\Route\Support;
 
 use Yuga\Http\Request;
@@ -10,7 +12,6 @@ interface IGroupRoute extends IRoute
     /**
      * Method called to check if a domain matches
      *
-     * @param Request $request
      * @return bool
      */
     public function matchDomain(Request $request);
@@ -26,7 +27,6 @@ interface IGroupRoute extends IRoute
     /**
      * Set exception-handlers for group
      *
-     * @param array $handlers
      * @return static $this
      */
     public function setExceptionHandlers(array $handlers);
@@ -48,7 +48,6 @@ interface IGroupRoute extends IRoute
     /**
      * Set allowed domains for group.
      *
-     * @param array $domains
      * @return $this
      */
     public function setDomains(array $domains);

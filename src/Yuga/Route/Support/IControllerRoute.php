@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\Route\Support;
 
 interface IControllerRoute extends IRoute

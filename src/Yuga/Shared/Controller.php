@@ -73,13 +73,12 @@ trait Controller
     }
     /**
      * Run Controller method or contructor specific middleware
-     * 
+     *
      * @param string | array $ware
-     * @param array | null $except
-     * 
+     *
      * @return \Yuga\Http\Middleware\MiddleWare
      */
-    public function middleWare($ware, array $except = null)
+    public function middleWare($ware, ?array $except = null)
     {
         $middleWare = new MiddleWare();
         $wares = $middleWare->routerMiddleWare;
@@ -91,14 +90,16 @@ trait Controller
         $request = request();
         $ware = (array) $ware;
 
-        if (is_null($except)) $except = [];
+        if (is_null($except)) {
+            $except = [];
+        }
 
-        if (in_array(ltrim(request()->getUri(), '/'), $except)) return;
+        if (in_array(ltrim(request()->getUri(), '/'), $except)) {
+            return;
+        }
 
-        $next = function ($next) use ($middleWare, $request) {
-            $result = $middleWare->run($request, function ($next) {
-                return $next;
-            });
+        $next = function ($next) use ($middleWare, $request): void {
+            $result = $middleWare->run($request, fn($next) => $next);
             
             if ($result instanceof ViewModel || is_string($result) || $result instanceof View || is_scalar($result)) {
                 echo $result;
@@ -134,7 +135,7 @@ trait Controller
                 //     }
                 // }
 
-                $next = function ($request) use ($routeMiddleWare, $next) {
+                $next = function ($request) use ($routeMiddleWare, $next): void {
                     $result = $routeMiddleWare->run($request, $next);
 
                     if ($result instanceof ViewModel || is_string($result) || $result instanceof View || is_scalar($result)) {
@@ -165,73 +166,59 @@ trait Controller
 
     /**
      * Route every uri to resources/views/Page/Route.php
-     * 
-     * @param Request $request
+     *
      * @param string|null $slug
-     * 
-     * @return View
+     *
      */
     public function show(Request $request, $slug = null): View
     {
         $segments = [];
-        $slug = trim($slug, '/');
+        $slug = trim((string) $slug, '/');
 
-        if (!empty($slug)) {
+        if ($slug !== '' && $slug !== '0') {
             $segments = explode('/', $slug, 2);
         }
 
         // Compute the page and subpage.
-        list ($page, $subPage) = array_pad($segments, 2, null);
+        [$page, $subPage] = array_pad($segments, 2, null);
 
         // Compute the full View name, i.e. 'about-us' -> 'Pages/Users'
         array_unshift($segments, 'pages');
 
-        $view = implode('/', array_map(function ($value) {
-            return Str::studly($value);
-        }, $segments));
+        $view = implode('/', array_map(Str::studly(...), $segments));
 
         $view = rtrim($view, '/');
 
         if (View::exists($view)) {
             // We found a proper View for the given URI.
-        }
-
-        // We will look for a Home View before going to Exception.
-        else if (!View::exists($viewFile = $view .'/Home')) {
+        } elseif (!View::exists($viewFile = $view .'/Home')) {
             throw new NotFoundHttpException('no template file "' . $viewFile . '.php" or "' . $view . '.php"  present in directory "./resources/views"');
         }
 
-        $title = Str::title(str_replace(array('-', '_'), ' ', $subPage ?: ($page ?: 'Home')));
+        $title = Str::title(str_replace(['-', '_'], ' ', $subPage ?: ($page ?: 'Home')));
     
         $methods = explode('/', $slug);
-        $methodCamel = implode('', array_map(function ($value) {
-            return Str::studly($value);
-        }, $methods));
+        $methodCamel = implode('', array_map(Str::studly(...), $methods));
 
         $method_snake = Str::deCamelize($methodCamel);
 
         $requestMethod = strtolower($request->getMethod());
-        if ($requestMethod != 'get') {
-            if ($requestMethod == 'post') {
+        if ($requestMethod !== 'get') {
+            if ($requestMethod === 'post') {
                 if (method_exists($this, "on" . ucfirst($requestMethod) . $methodCamel)) {
                     App::call([$this, "on" . ucfirst($requestMethod) . $methodCamel]);
                 } elseif (method_exists($this, "on_" . $requestMethod . '_' . $method_snake)) {
                     App::call([$this, "on_" . $requestMethod . '_' . $method_snake]);
                 }
-            } else {
-                if (method_exists($this, "onPost" . ucfirst($requestMethod) . $methodCamel)) {
-                    App::call([$this, "onPost" . ucfirst($requestMethod) . $methodCamel]);
-                } elseif (method_exists($this, "on_post_" . $requestMethod . '_' . $method_snake)) {
-                    App::call([$this, "on_post_" . $requestMethod . '_' . $method_snake]);
-                }
+            } elseif (method_exists($this, "onPost" . ucfirst($requestMethod) . $methodCamel)) {
+                App::call([$this, "onPost" . ucfirst($requestMethod) . $methodCamel]);
+            } elseif (method_exists($this, "on_post_" . $requestMethod . '_' . $method_snake)) {
+                App::call([$this, "on_post_" . $requestMethod . '_' . $method_snake]);
             }
-            
-        } else {
-            if (method_exists($this, 'render' . $methodCamel)) {
-                App::call([$this, 'render' . $methodCamel]);
-            } elseif (method_exists($this, 'render_' . $method_snake)) {
-                App::call([$this, 'render_' . $method_snake]);
-            }
+        } elseif (method_exists($this, 'render' . $methodCamel)) {
+            App::call([$this, 'render' . $methodCamel]);
+        } elseif (method_exists($this, 'render_' . $method_snake)) {
+            App::call([$this, 'render_' . $method_snake]);
         }
         
         return View::make($view)->shares('title', $title);

@@ -180,8 +180,7 @@ class Jquery
     /**
      * addQuery
      * add query to stack
-     * 
-     * @param  Element $element
+     *
      * @return void
      */
     public static function addElement(Element &$element)
@@ -195,9 +194,8 @@ class Jquery
     /**
      * addAction
      * add query to stack
-     * 
+     *
      * @param  string $name
-     * @param  Action $action
      * @return void
      */
     public static function addAction($name, Action &$action)

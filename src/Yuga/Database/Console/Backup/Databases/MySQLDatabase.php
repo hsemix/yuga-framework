@@ -6,23 +6,11 @@ use Yuga\Database\Console\Backup\Console;
 
 class MySQLDatabase implements DatabaseInterface
 {
-    protected $console;
-    protected $database;
-    protected $user;
-    protected $password;
-    protected $host;
-    protected $port;
     protected $config;
 
 
-    public function __construct(Console $console, $database, $user, $password, $host, $port)
+    public function __construct(protected \Yuga\Database\Console\Backup\Console $console, protected $database, protected $user, protected $password, protected $host, protected $port)
     {
-        $this->console  = $console;
-        $this->database = $database;
-        $this->user     = $user;
-        $this->password = $password;
-        $this->host     = $host;
-        $this->port     = $port;
         $this->config   = app()->config->load('config.Config');
     }
 
@@ -30,12 +18,12 @@ class MySQLDatabase implements DatabaseInterface
     {
         $command = sprintf('%s --user=%s --password=%s --host=%s --port=%s %s > %s',
             $this->getDumpCommandPath(),
-            escapeshellarg($this->user),
-            escapeshellarg($this->password),
-            escapeshellarg($this->host),
-            escapeshellarg($this->port),
-            escapeshellarg($this->database),
-            escapeshellarg($destinationFile)
+            escapeshellarg((string) $this->user),
+            escapeshellarg((string) $this->password),
+            escapeshellarg((string) $this->host),
+            escapeshellarg((string) $this->port),
+            escapeshellarg((string) $this->database),
+            escapeshellarg((string) $destinationFile)
         );
 
         return $this->console->run($command);
@@ -45,12 +33,12 @@ class MySQLDatabase implements DatabaseInterface
     {
         $command = sprintf('%s --user=%s --password=%s --host=%s --port=%s %s < %s',
             $this->getRestoreCommandPath(),
-            escapeshellarg($this->user),
-            escapeshellarg($this->password),
-            escapeshellarg($this->host),
-            escapeshellarg($this->port),
-            escapeshellarg($this->database),
-            escapeshellarg($sourceFile)
+            escapeshellarg((string) $this->user),
+            escapeshellarg((string) $this->password),
+            escapeshellarg((string) $this->host),
+            escapeshellarg((string) $this->port),
+            escapeshellarg((string) $this->database),
+            escapeshellarg((string) $sourceFile)
         );
 
         return $this->console->run($command);

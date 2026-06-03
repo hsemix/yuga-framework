@@ -8,13 +8,10 @@ use Yuga\Database\Migration\Schema\Table as SqlTable;
 
 class Table extends SqlTable
 {
-    protected $name;
     protected $columns = [];
     
-    public function __construct($name = null, $getTableSchema = false)
+    public function __construct(protected $name = null, $getTableSchema = false)
     {
-        $this->name = $name;
-
         if ($getTableSchema) {
             $this->getTableColumns();
         }
@@ -78,11 +75,7 @@ class Table extends SqlTable
             if ($excludePrimary && $column->getIndex() === Column::INDEX_PRIMARY) {
                 continue;
             }
-            if ($lower) {
-                $names[] = strtolower($column->getName());
-            } else {
-                $names[] = $column->getName();
-            }
+            $names[] = $lower ? strtolower((string) $column->getName()) : $column->getName();
         }
 
         return $names;
@@ -92,7 +85,7 @@ class Table extends SqlTable
     {
         /* @var $column Column */
         foreach ($this->columns as $column) {
-            if (($strict === true && $column->getName() === $name) || ($strict === false && strtolower($column->getName()) === strtolower($name))) {
+            if (($strict === true && $column->getName() === $name) || ($strict === false && strtolower((string) $column->getName()) === strtolower((string) $name))) {
                 return $column;
             }
         }
@@ -148,9 +141,9 @@ class Table extends SqlTable
 
                 //NULL and DEFAULT cannot be set while changing column type
                 $sql = preg_replace('/ not null/', '', $sql);
-                $sql = preg_replace('/ null/', '', $sql);
+                $sql = preg_replace('/ null/', '', (string) $sql);
                 //If it is set, DEFAULT is the last definition
-                $sql = preg_replace('/DEFAULT .*/', '', $sql);
+                $sql = preg_replace('/DEFAULT .*/', '', (string) $sql);
                 PDO::getInstance()->nonQuery($sql);
                 if ($column->getKeyRelationsQuery() !== '') {
                     PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" ADD %s', $this->name, $column->getKeyRelationsQuery()));
@@ -163,8 +156,9 @@ class Table extends SqlTable
     {
         if ($this->exists()) {
             $result = PDO::getInstance()->doQuery(sprintf("SELECT column_name FROM information_schema.columns WHERE table_name='%s' and column_name='%s'", $this->name, $column));
-            return ($result->rowCount() == 1) ? true : false;   
+            return $result->rowCount() == 1;   
         }
+        return null;
 
     }
 
@@ -248,10 +242,8 @@ class Table extends SqlTable
 
     public function renameColumn(string $fromName, string $toName)
     {
-        if ($this->exists()) {
-            if ($this->columnExists($fromName)) {
-                PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" RENAME COLUMN "%s" TO %s', $this->name, $fromName, $toName));
-            }
+        if ($this->exists() && $this->columnExists($fromName)) {
+            PDO::getInstance()->nonQuery(sprintf('ALTER TABLE "%s" RENAME COLUMN "%s" TO %s', $this->name, $fromName, $toName));
         }
     }
 }

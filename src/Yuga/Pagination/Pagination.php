@@ -6,11 +6,11 @@ use Yuga\Views\Widgets\Html\Html;
 
 class Pagination
 {
-	protected $currentPage;
-	protected $perPage;
-	protected $totalCount;
+	protected int $currentPage;
+	protected int $perPage;
+	protected int $totalCount;
 	protected $adjacents = 2;
-	protected $pageName;
+	protected string $pageName;
 	
 	public function __construct($page = 1, $perPage = 15, $totalCount = 0, $pageName = 'page')
 	{
@@ -163,7 +163,7 @@ class Pagination
 	 */
 	public function hasPreviousPage()
 	{
-		return $this->previousPage() >= 1 ? true : false;
+		return $this->previousPage() >= 1;
 	}
 
 	/**
@@ -175,7 +175,7 @@ class Pagination
 	 */
 	public function hasNextPage()
 	{
-		return $this->nextPage() <= $this->totalPages() ? true : false;
+		return $this->nextPage() <= $this->totalPages();
 	}
 
 	/**
@@ -191,14 +191,12 @@ class Pagination
 	}
 
 	/**
-	 * Print out all the pages according to the user's preference
-	 * 
-	 * @param null|array $options 
-	 * @param array $controlButtons
-	 * 
-	 * @return string $paginate
-	 */
-	public function render(array $options = null, $controlButtons = [])
+     * Print out all the pages according to the user's preference
+     *
+     * @param array $controlButtons
+     * @return string $paginate
+     */
+    public function render(?array $options = null, $controlButtons = [])
 	{
 		$url = explode('?', (new Request)->getUri(true));
 		$pageUrl = $url[0].'?page=';
@@ -232,20 +230,20 @@ class Pagination
 			}
 		}
 
-		$parentElement = (new Html($parent))->addClass($parentClass);
+		$parentElement = new Html($parent)->addClass($parentClass);
     	$lastPageLessOne = $this->totalPages() - 1;
     	if ($this->totalPages() > 1) {
       		if ($this->hasPreviousPage()) {
-				$previousPageListItem = (new Html($child))->addClass('previous');
-				$previousPageLink = (new Html('a'))->addAttribute('href', host('/' . $pageUrl.$this->previousPage(), false))->addInnerHtml('&laquo; Prev');
+				$previousPageListItem = new Html($child)->addClass('previous');
+				$previousPageLink = new Html('a')->addAttribute('href', host('/' . $pageUrl.$this->previousPage(), false))->addInnerHtml('&laquo; Prev');
 				$previousPageListItem->addInnerHtml($previousPageLink);
 				$parentElement->addInnerHtml($previousPageListItem);
       		}
       		if ($this->totalPages() < 7 + ($this->adjacents * 2)) {   
 				for ($counter = 1; $counter <= $this->totalPages(); $counter++) {
 					$paginationListItem = new Html($child);
-					$paginationPageLink = (new Html('a'))->addAttribute('href', host('/' . $pageUrl.$counter, false))->addInnerHtml($counter);
-					if ($counter == $this->currentPage) {
+					$paginationPageLink = new Html('a')->addAttribute('href', host('/' . $pageUrl.$counter, false))->addInnerHtml($counter);
+					if ($counter === $this->currentPage) {
 						$paginationListItem->addClass('active');
 					}
 					$paginationListItem->addInnerHtml($paginationPageLink);
@@ -255,39 +253,39 @@ class Pagination
 				if($this->currentPage < 1 + ($this->adjacents * 2)) {
 					for($counter = 1; $counter < 4 + ($this->adjacents * 2); $counter++) {
 						$paginationListItem = new Html($child);
-						$paginationPageLink = (new Html('a'))->addAttribute('href', host('/' . $pageUrl.$counter, false))->addInnerHtml($counter);
-						if ($counter == $this->currentPage) {
+						$paginationPageLink = new Html('a')->addAttribute('href', host('/' . $pageUrl.$counter, false))->addInnerHtml($counter);
+						if ($counter === $this->currentPage) {
 							$paginationListItem->addClass('active');
 						}
 						$paginationListItem->addInnerHtml($paginationPageLink);
 						$parentElement->addInnerHtml($paginationListItem);    
 					}
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('span'))->addInnerHtml('...')));
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('a'))->addAttribute('href', host('/' . $pageUrl.$lastPageLessOne, false))->addInnerHtml($lastPageLessOne)));
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('a'))->addAttribute('href', host('/' . $pageUrl.$this->totalPages(), false))->addInnerHtml($this->totalPages())));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('span')->addInnerHtml('...')));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('a')->addAttribute('href', host('/' . $pageUrl.$lastPageLessOne, false))->addInnerHtml($lastPageLessOne)));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('a')->addAttribute('href', host('/' . $pageUrl.$this->totalPages(), false))->addInnerHtml($this->totalPages())));
 				} elseif($this->totalPages()  - ($this->adjacents * 2) > $this->currentPage && $this->currentPage > ($this->adjacents * 2)) {
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('a'))->addInnerHtml('1')->addAttribute('href', host('/' . $pageUrl.'1', false))));
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('a'))->addInnerHtml('2')->addAttribute('href', host('/' . $pageUrl.'2', false))));
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('span'))->addInnerHtml('...')));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('a')->addInnerHtml('1')->addAttribute('href', host('/' . $pageUrl.'1', false))));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('a')->addInnerHtml('2')->addAttribute('href', host('/' . $pageUrl.'2', false))));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('span')->addInnerHtml('...')));
 					for($counter = $this->currentPage - $this->adjacents; $counter <= $this->currentPage + $this->adjacents; $counter++) {
 						$paginationListItem = new Html($child);
-						$paginationPageLink = (new Html('a'))->addAttribute('href', host('/' . $pageUrl.$counter, false))->addInnerHtml($counter);
+						$paginationPageLink = new Html('a')->addAttribute('href', host('/' . $pageUrl.$counter, false))->addInnerHtml($counter);
 						if ($counter == $this->currentPage) {
 							$paginationListItem->addClass('active');
 						}
 						$paginationListItem->addInnerHtml($paginationPageLink);
 						$parentElement->addInnerHtml($paginationListItem);      
 					}
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('span'))->addInnerHtml('...')));
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('a'))->addAttribute('href', host('/' . $pageUrl.$lastPageLessOne, false))->addInnerHtml($lastPageLessOne)));
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('a'))->addAttribute('href', host('/' . $pageUrl.$this->totalPages(), false))->addInnerHtml($this->totalPages()))); 
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('span')->addInnerHtml('...')));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('a')->addAttribute('href', host('/' . $pageUrl.$lastPageLessOne, false))->addInnerHtml($lastPageLessOne)));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('a')->addAttribute('href', host('/' . $pageUrl.$this->totalPages(), false))->addInnerHtml($this->totalPages()))); 
 				} else {
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('a'))->addInnerHtml('1')->addAttribute('href', host('/' . $pageUrl.'1', false))));
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('a'))->addInnerHtml('2')->addAttribute('href', host('/' . $pageUrl.'2', false))));
-					$parentElement->addInnerHtml((new Html($child))->addInnerHtml((new Html('span'))->addInnerHtml('...')));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('a')->addInnerHtml('1')->addAttribute('href', host('/' . $pageUrl.'1', false))));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('a')->addInnerHtml('2')->addAttribute('href', host('/' . $pageUrl.'2', false))));
+					$parentElement->addInnerHtml(new Html($child)->addInnerHtml(new Html('span')->addInnerHtml('...')));
 					for($counter = $this->totalPages() - (2 + ($this->adjacents * 2)); $counter <= $this->totalPages(); $counter++) {
 						$paginationListItem = new Html($child);
-						$paginationPageLink = (new Html('a'))->addAttribute('href', host('/' . $pageUrl.$counter, false))->addInnerHtml($counter);
+						$paginationPageLink = new Html('a')->addAttribute('href', host('/' . $pageUrl.$counter, false))->addInnerHtml($counter);
 						if ($counter == $this->currentPage) {
 							$paginationListItem->addClass('active');
 						}
@@ -297,8 +295,8 @@ class Pagination
 				}
       		} 
 			if ($this->hasNextPage()) {
-				$nextPageListItem = (new Html($child))->addClass('next');
-				$nextPageLink = (new Html('a'))->addAttribute('href', host('/' . $pageUrl.$this->nextPage(), false))->addInnerHtml('Next &raquo;');
+				$nextPageListItem = new Html($child)->addClass('next');
+				$nextPageLink = new Html('a')->addAttribute('href', host('/' . $pageUrl.$this->nextPage(), false))->addInnerHtml('Next &raquo;');
 				$nextPageListItem->addInnerHtml($nextPageLink);
 				$parentElement->addInnerHtml($nextPageListItem);
 			}
@@ -314,7 +312,7 @@ class Pagination
 	 */
 	public function hasPages()
 	{
-		return $this->getTotalCount() > $this->getPerPage() ? true : false;
+		return $this->getTotalCount() > $this->getPerPage();
 	}
 
 	/**
@@ -327,44 +325,43 @@ class Pagination
 	{
 		$pageLinks = [];
 		$lastPageLessOne = $this->totalPages() - 1;
-		if ($this->totalPages() < 7 + ($this->adjacents * 2)) { 
-			$pages = [];
-			for ($counter = 1; $counter <= $this->totalPages(); $counter++) {
+		if ($this->totalPages() < 7 + ($this->adjacents * 2)) {
+            $pages = [];
+            for ($counter = 1; $counter <= $this->totalPages(); $counter++) {
 				$pages[] = $counter;
 			}
-			$pageLinks[] = $pages;
-		} else if($this->totalPages() > 5 + ($this->adjacents * 2)) {
-			if($this->currentPage < 1 + ($this->adjacents * 2)) {
-				$pages = [];
-				
-				for($counter = 1; $counter < 4 + ($this->adjacents * 2); $counter++) {
+            $pageLinks[] = $pages;
+        } elseif ($this->totalPages() > 5 + ($this->adjacents * 2)) {
+            if ($this->currentPage < 1 + ($this->adjacents * 2)) {
+                $pages = [];
+                for($counter = 1; $counter < 4 + ($this->adjacents * 2); $counter++) {
 					$pages[] = $counter;
 				}
-				$pageLinks[] = $pages;
-				$pageLinks[] = '...';
-				$pageLinks[] = [$lastPageLessOne, $this->totalPages()];
-			}  else if($this->totalPages()  - ($this->adjacents * 2) > $this->currentPage && $this->currentPage > ($this->adjacents * 2)) {
-				$before = [];
-				for ($gaps = 1; $gaps <= $this->adjacents; $gaps++) {
+                $pageLinks[] = $pages;
+                $pageLinks[] = '...';
+                $pageLinks[] = [$lastPageLessOne, $this->totalPages()];
+            } elseif ($this->totalPages()  - ($this->adjacents * 2) > $this->currentPage && $this->currentPage > ($this->adjacents * 2)) {
+                $before = [];
+                for ($gaps = 1; $gaps <= $this->adjacents; $gaps++) {
 					$before[] = $gaps;
 				}
-				$pageLinks[] = $before;
-				$pageLinks[] = '...';
-				$pages = [];
-				for($counter = $this->currentPage - $this->adjacents; $counter <= $this->currentPage + $this->adjacents; $counter++) {
+                $pageLinks[] = $before;
+                $pageLinks[] = '...';
+                $pages = [];
+                for($counter = $this->currentPage - $this->adjacents; $counter <= $this->currentPage + $this->adjacents; $counter++) {
 					$pages[] = $counter;    
 				}
-				$pageLinks[] = $pages;
-				$pageLinks[] = '...';
-
-				$after = [];
-				for ($gaps = $this->totalPages(); $gaps >= $this->adjacents; $gaps--) {
+                $pageLinks[] = $pages;
+                $pageLinks[] = '...';
+                $after = [];
+                for ($gaps = $this->totalPages(); $gaps >= $this->adjacents; $gaps--) {
 					$after[] = $gaps;
-					if (($this->totalPages() - $gaps) + 1 == $this->adjacents)
-						break;
+					if (($this->totalPages() - $gaps) + 1 == $this->adjacents) {
+                        break;
+                    }
 				}
-				$pageLinks[] = array_reverse($after);
-			} else {
+                $pageLinks[] = array_reverse($after);
+            } else {
 				$before = [];
 				for ($gaps = 1; $gaps <= $this->adjacents; $gaps++) {
 					$before[] = $gaps;
@@ -377,7 +374,7 @@ class Pagination
 				}
 				$pageLinks[] = $pages;
 			}
-		}
+        }
 
 		return $pageLinks;
 	}

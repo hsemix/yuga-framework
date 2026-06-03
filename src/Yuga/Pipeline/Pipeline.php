@@ -32,9 +32,7 @@ class Pipeline
         $pipeline = array_reduce(
             array_reverse($this->pipes),
             $this->carry(),
-            function ($passable) use ($destination) {
-                return $destination($passable);
-            }
+            fn($passable) => $destination($passable)
         );
 
         return $pipeline($this->passable);
@@ -42,29 +40,25 @@ class Pipeline
 
     public function thenReturn()
     {
-        return $this->then(function ($passable) {
-            return $passable;
-        });
+        return $this->then(fn($passable) => $passable);
     }
 
     protected function carry()
     {
-        return function ($pipeStack, $pipe) {
-            return function ($passable) use ($pipeStack, $pipe) {
-                
-                if (is_callable($pipe)) {
-                    return $pipe($passable, $pipeStack);
-                } elseif (is_object($pipe)) {
-                    return $pipe->{$this->method}($passable, $pipeStack);
-                } elseif (is_string($pipe) && class_exists($pipe)) {
+        return fn($pipeStack, $pipe) => function ($passable) use ($pipeStack, $pipe) {
+            
+            if (is_callable($pipe)) {
+                return $pipe($passable, $pipeStack);
+            } elseif (is_object($pipe)) {
+                return $pipe->{$this->method}($passable, $pipeStack);
+            } elseif (is_string($pipe) && class_exists($pipe)) {
 
-                    $pipeInstance = app($pipe);
+                $pipeInstance = app($pipe);
 
-                    return $pipeInstance->{$this->method}($passable, $pipeStack);
-                } else {
-                    throw new InvalidArgumentException('Invalid pipe type.');
-                }
-            };
+                return $pipeInstance->{$this->method}($passable, $pipeStack);
+            } else {
+                throw new InvalidArgumentException('Invalid pipe type.');
+            }
         };
     }
 }

@@ -29,30 +29,23 @@ trait AuthenticateUser
      */
     public function getView()
     {
-        if ($this->getStyle() == 'mvc') {
-            $view = 'auth.login';
-        } else {
-            $view = new Login;
-        }
-        return $view;
+        return $this->getStyle() == 'mvc' ? 'auth.login' : new Login;
     }
 
     /**
      * Handle a login request to the application. Saves number of login attemps and returns appropriate response
      *
-     * @param  \Yuga\Http\Request  $request
      * @return \Yuga\Http\RedirectResponse|\Yuga\Http\Response|\Yuga\Http\JsonResponse
      *
      */
     public function login(Request $request, Response $response, Auth $auth)
     {
-        $login = $auth->login($request->get($this->formFields['username']), $request->get($this->formFields['password']), $request->get($this->formFields['remember']));
+        $auth->login($request->get($this->formFields['username']), $request->get($this->formFields['password']), $request->get($this->formFields['remember']));
         return $this->loggedIn($request, $auth->user()) ?: redirect($this->redirectPath());
     }
     /**
      * The user has been logged in.
      *
-     * @param  \Yuga\Http\Request  $request
      * @param  mixed  $user
      * @return mixed
      */

@@ -70,7 +70,7 @@ class Event implements IDispatcher
         if ($eventName instanceof Dispatcher) {
             $eventName = $eventName->getName();
         }
-        if (count($args) == 1) {
+        if (count($args) === 1) {
             $this->triggerObjectHandlers($eventName);
         } else {
             if (!isset($this->listeners[$eventName])) {
@@ -111,14 +111,14 @@ class Event implements IDispatcher
         if (is_array($handlers)) {
             foreach ($handlers as $handler) {
                 if (!method_exists($handler, 'handle')) {
-                    throw new EventException(get_class($handler).' must implement the `handle` method');
+                    throw new EventException($handler::class.' must implement the `handle` method');
                 }
                 $this->listeners[$this->name][1][] = [$handler, 'handle'];
             }
             return;
         }
         if (!method_exists($handlers, 'handle')) {
-            throw new EventException(get_class($handlers).' must implement the `handle` method');
+            throw new EventException($handlers::class.' must implement the `handle` method');
         }
 
         $this->listeners[$this->name][1][] = [$handlers, 'handle'];
@@ -134,13 +134,14 @@ class Event implements IDispatcher
      */
     public function dispatch($event = null, $parameters = null, $callback = null)
     {
-        if (count(func_get_args()) == 2) {
+        if (func_num_args() === 2) {
             extract($this->getParameters($parameters));
         } else {
             $params = $parameters;
         }
-        if (!$event)
+        if (!$event) {
             $event = $this->name;
+        }
         if (!$event instanceof Dispatcher) {
             $event = new Dispatcher($event, $params);
         }
@@ -149,8 +150,8 @@ class Event implements IDispatcher
         $event->setAttribute('dispatcher', $this);
         
         $params = array_merge([$event], $params ?:[]);
-        if (false !== strpos($event->getName(), ':')) {
-            $namespace = substr($event->getName(), 0, strpos($event->getName(), ':'));
+        if (str_contains((string) $event->getName(), ':')) {
+            $namespace = substr((string) $event->getName(), 0, strpos((string) $event->getName(), ':'));
             if (isset($this->listeners[$namespace])) {
                 $this->fire($this->listeners[$namespace], $event, $params, $callback);
             }
@@ -173,7 +174,7 @@ class Event implements IDispatcher
      */
     public function trigger($event = null, $parameters = null, $callback = null)
     {
-        if (count(func_get_args()) == 2) {
+        if (func_num_args() === 2) {
             return $this->dispatch($event, $parameters);
         }
         return $this->dispatch($event, $parameters, $callback);
@@ -205,9 +206,7 @@ class Event implements IDispatcher
      *
      * @param  array $listeners
      * @param  Dispatcher $event
-     * @param array $params
      * @param callable|null $callback
-     *
      * @return void
      */
     protected function fire($listeners, $event, array $params = [], $callback = null)
@@ -223,17 +222,16 @@ class Event implements IDispatcher
                     $eventListener = $listener;
                 } else {
                     $eventListener = [$listener, 'handle'];
-                    if ($listener instanceof HandlerInterface) {
-                        if (array_values($params) !== $params) {
-                            $event->setAttributes($params);
-                            $eventParams = [$event];
-                        } 
+                    if ($listener instanceof HandlerInterface && array_values($params) !== $params) {
+                        $event->setAttributes($params);
+                        $eventParams = [$event];
                     }
                 }
 
                 call_user_func_array($eventListener, array_values($eventParams));
-                if($callback instanceof Closure)
+                if ($callback instanceof Closure) {
                     $callback($event);
+                }
             }
         }
     }

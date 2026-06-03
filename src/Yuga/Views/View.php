@@ -7,18 +7,17 @@ namespace Yuga\Views;
 use Yuga\App;
 use Yuga\Support\Str;
 
-class View
+class View implements \Stringable
 {
 	protected $viewFile;
 	protected $viewEngine;
 
 	/**
-	 * Get the yuga-view-engine instance
-	 * 
-	 * @param string $view 
-	 * @param array|null $data
-	 */
-	public function __construct($view = null, array $data = null)
+     * Get the yuga-view-engine instance
+     *
+     * @param string $view
+     */
+    public function __construct($view = null, ?array $data = null)
 	{
 		$this->viewEngine = App::make('view');
 		$view = $this->processViewPath($view);
@@ -31,9 +30,16 @@ class View
 	}
 
 	protected function processViewPath($path = null)
+    {
+        if ($path) {
+            return str_replace(".", "/", $path);
+        }
+        return null;
+    }
+
+	public function render(): string
 	{
-		if ($path)
-			return str_replace(".", "/", $path);
+		return $this->viewEngine->render($this->viewFile);
 	}
 
 	/**
@@ -43,7 +49,7 @@ class View
 	 * 
 	 * @return string
 	 */
-	public function __toString()
+	public function __toStringOld()
 	{
 		$obLevel = ob_get_level();
 		try {
@@ -57,13 +63,28 @@ class View
 		}
 	}
 
+	public function __toString(): string
+	{
+		try {
+			return $this->render();
+		} catch (\Throwable $e) {
+			trigger_error(
+				'Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}",
+				E_USER_ERROR
+			);
+
+			return '';
+		}
+	}
+
 	protected function processHaxRuntime()
 	{
 		$root = str_replace("./", "", $this->viewEngine->getTemplateDirectory());
 
 		$haxFile = str_replace("/", DIRECTORY_SEPARATOR, $root) . $this->viewFile . ".hax.php";
-		if (file_exists($haxFile))
-			return $haxFile;
+		if (file_exists($haxFile)) {
+            return $haxFile;
+        }
 		return false;
 	}
 
@@ -98,7 +119,7 @@ class View
 	 * 
 	 * @return static
 	 */
-	public function first(array $views = null)
+	public function first(?array $views = null)
 	{
 		if ($views) {
 			foreach ($views as $view) {
@@ -132,7 +153,7 @@ class View
 
 	public function __call($method, $parameters)
 	{
-        if (preg_match('/^with(.+)$/', $method, $matches)) {
+        if (preg_match('/^with(.+)$/', (string) $method, $matches)) {
 			$decamelized = Str::deCamelize($matches[1]);
 			$camelized = Str::camelize($decamelized);
 			return $this->with($camelized, $parameters[0]);
@@ -154,7 +175,7 @@ class View
 	 * 
 	 * @return string
 	 */
-	public function asString()
+	public function asStringOld()
 	{
 		ob_start();
         $this->__toString();
@@ -162,5 +183,10 @@ class View
         ob_end_clean();
 
 		return $string;
+	}
+
+	public function asString()
+	{
+		return $this->render();
 	}
 }

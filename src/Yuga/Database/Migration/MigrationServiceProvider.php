@@ -11,19 +11,17 @@ class MigrationServiceProvider extends ServiceProvider
     {
         $config = $app->config->load('config.migrations');
 
-        if (env('APP_RUN_MIGRATIONS', false) && !is_null(env('DATABASE_NAME')) && !$app->runningInConsole()) {
-            if (count($config->get('migrate')) > 0) {
-                foreach (glob($this->getMigrationPath()."*.php") as $migration) {
-                    require_once $migration;
-                }
-                $this->runMigrations($config->get('migrate'));
-            } 
+        if (env('APP_RUN_MIGRATIONS', false) && !is_null(env('DATABASE_NAME')) && !$app->runningInConsole() && count($config->get('migrate')) > 0) {
+            foreach (glob($this->getMigrationPath()."*.php") as $migration) {
+                require_once $migration;
+            }
+            $this->runMigrations($config->get('migrate'));
         }    
     }
 
     protected function runMigrations($migrations)
     {
-        $migrationsTable = require_once "000000_create_migrations_table.php";
+        $migrationsTable = require_once __DIR__ . "/000000_create_migrations_table.php";
 
         $migrationsTable->up();
 
@@ -56,13 +54,11 @@ class MigrationServiceProvider extends ServiceProvider
     {
         $config = $app->config->load('config.migrations');
 
-        if ($app->runningInConsole()) {
-            if (count($config->get('migrate')) > 0) {
-                foreach (glob($this->getMigrationPath()."*.php") as $migration) {
-                    require_once $migration;
-                }
-                $this->runMigrations($config->get('migrate'));
-            } 
+        if ($app->runningInConsole() && count($config->get('migrate')) > 0) {
+            foreach (glob($this->getMigrationPath()."*.php") as $migration) {
+                require_once $migration;
+            }
+            $this->runMigrations($config->get('migrate'));
         }    
     }
 
@@ -70,13 +66,11 @@ class MigrationServiceProvider extends ServiceProvider
     {
         $config = $app->config->load('config.migrations');
 
-        if ($app->runningInConsole()) {
-            if (count($config->get('migrate')) > 0) {
-                foreach (glob($this->getMigrationPath()."*.php") as $migration) {
-                    require_once $migration;
-                }
-                $this->rollBackMigrations($config->get('migrate'));
-            } 
+        if ($app->runningInConsole() && count($config->get('migrate')) > 0) {
+            foreach (glob($this->getMigrationPath()."*.php") as $migration) {
+                require_once $migration;
+            }
+            $this->rollBackMigrations($config->get('migrate'));
         }    
     }
 
@@ -94,13 +88,11 @@ class MigrationServiceProvider extends ServiceProvider
     {
         $config = $app->config->load('config.migrations');
 
-        if ($app->runningInConsole()) {
-            if (count($config->get('migrate')) > 0) {
-                foreach (glob($this->getMigrationPath()."*.php") as $migration) {
-                    require_once $migration;
-                }
-                $this->runSeeders($config->get('migrate'));
-            } 
+        if ($app->runningInConsole() && count($config->get('migrate')) > 0) {
+            foreach (glob($this->getMigrationPath()."*.php") as $migration) {
+                require_once $migration;
+            }
+            $this->runSeeders($config->get('migrate'));
         }    
     }
 

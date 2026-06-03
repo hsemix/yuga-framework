@@ -11,10 +11,13 @@
         }
     ],
     "require": {
-        "php": ">= 7.1",
+        "php": "^8.2 || ^8.3 || ^8.4",
+        "psr/http-message": "^1.1 || ^2.0",
+        "nyholm/psr7": "^1.8",
+        "nyholm/psr7-server": "^1.1",
         "tracy/tracy": "^2.10",
         "josegonzalez/dotenv": "dev-master",
-        "symfony/console": "~4.0",
+        "symfony/console": "5.4.x-dev",
         "symfony/process": "^5.3",
         "symfony/finder": "^5.3",
         "nette/php-generator": "^4.1",
@@ -22,7 +25,10 @@
         "opis/closure": "^3.6"
     },
     "require-dev": {
-        "phpunit/phpunit": "^7.5|^8.0"
+        "phpunit/phpunit": "^7.5|^8.0",
+         "phpstan/phpstan": "2.2.x-dev",
+        "rector/rector": "dev-main",
+        "friendsofphp/php-cs-fixer": "^3.4"
     },
     "autoload": {
         "files": [

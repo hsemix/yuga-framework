@@ -53,10 +53,9 @@ class MakeListerCommand extends SchedulerCommand
 			];
 		}
 
-		usort($tasks, function ($a, $b) {
-			return ( $a[ 'next_run' ] < $b[ 'next_run' ]) ? -1 : 1;
-		});
+		usort($tasks, fn($a, $b) => ( $a[ 'next_run' ] < $b[ 'next_run' ]) ? -1 : 1);
 
 		$this->table(['Name', 'Type', 'Next Run'], $tasks);
+        return null;
 	}
 }

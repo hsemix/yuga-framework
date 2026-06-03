@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Yuga\View\Client;
 /**
  * Element - class for work with jQuery framework
@@ -9,12 +12,6 @@ namespace Yuga\View\Client;
  */
 class Element
 {
-    /**
-     * selector path
-     * @var string
-     */
-    public $selector;
-    
     /**
      * methods
      * @var array
@@ -31,12 +28,15 @@ class Element
      * __construct
      * contructor of jQuery
      *
-     * 
+     *
+     * @param string $selector
      */
-    public function __construct($selector)
+    public function __construct(/**
+     * selector path
+     */
+    public $selector)
     {
-        Jquery::addElement($this); 
-        $this->selector = $selector;
+        Jquery::addElement($this);
     }
     
     /**
