@@ -12,9 +12,7 @@
     ],
     "require": {
         "php": "^8.2 || ^8.3 || ^8.4",
-        "psr/http-message": "^1.1 || ^2.0",
-        "nyholm/psr7": "^1.8",
-        "nyholm/psr7-server": "^1.1",
+        "yuga/runtime": "^1.0",
         "tracy/tracy": "^2.10",
         "josegonzalez/dotenv": "dev-master",
         "symfony/console": "5.4.x-dev",
