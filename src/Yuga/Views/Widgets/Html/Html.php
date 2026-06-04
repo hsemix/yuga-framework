@@ -354,7 +354,7 @@ class Html implements \Stringable
             if ($parent instanceof static) {
                 $this->parent = $parent->setAttributes($attributes);
             } else {
-                $this->parent = new self($parent)->setAttributes($attributes);
+                $this->parent = (new self($parent))->setAttributes($attributes);
             }
         }
         

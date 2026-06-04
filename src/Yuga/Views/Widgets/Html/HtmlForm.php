@@ -2,6 +2,7 @@
 namespace Yuga\Views\Widgets\Html;
 
 use Yuga\Http\Middleware\BaseCsrfVerifier;
+use Yuga\Support\Collection;
 
 class HtmlForm extends Html
 {
@@ -35,7 +36,7 @@ class HtmlForm extends Html
 
         // Add csrf token
         if (strtolower((string) $method) !== 'get') {
-            $this->addInnerHtml("\n".new HtmlInput('hidden', BaseCsrfVerifier::POST_KEY, csrf_token())->setClosingType(static::CLOSE_TYPE_SHORT)."\n");
+            $this->addInnerHtml("\n".(new HtmlInput('hidden', BaseCsrfVerifier::POST_KEY, csrf_token()))->setClosingType(static::CLOSE_TYPE_SHORT)."\n");
         }
     }
 
@@ -83,7 +84,7 @@ class HtmlForm extends Html
             $value = input()->get($name);
         }
 
-        return new HtmlInput($type, $name, $value)->id($name);
+        return (new HtmlInput($type, $name, $value))->id($name);
     }
 
     /**
@@ -100,7 +101,7 @@ class HtmlForm extends Html
             $value = input()->get($name);
         }
 
-        return new HtmlSubmitButton($type, $name, $value)->id($name);
+        return (new HtmlSubmitButton($type, $name, $value))->id($name);
     }
 
     /**
@@ -129,7 +130,7 @@ class HtmlForm extends Html
             $value = input()->get($name);
         }
 
-        return new HtmlTextarea($name, $rows, $cols, $value)->id($name);
+        return (new HtmlTextarea($name, $rows, $cols, $value))->id($name);
     }
 
     public function submit($name, $value)
@@ -309,7 +310,7 @@ class HtmlForm extends Html
                 $buttonControls[] = $controlObject['control'];
             }
         }
-        $buttonsContainer->append($buttonsPadding . " " . new Html('td')->append(implode(" ", $buttonControls)));
+        $buttonsContainer->append($buttonsPadding . " " . (new Html('td'))->append(implode(" ", $buttonControls)));
         $layout->append($buttonsContainer);
         
         $this->append($layout);
