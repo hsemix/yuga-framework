@@ -13,6 +13,9 @@ class ClassAliasServiceProvider extends ServiceProvider
         $config = $app->config->load('config.ClassAlias');
 
         foreach ($config->getAll() as $alias => $class) {
+            if (class_exists($alias)) {
+                continue;
+            }
             class_alias($class, $alias);
         }
     }
