@@ -44,7 +44,7 @@ class InputFile implements IInputItem
             'error'    => null,
         ], $values);
 
-        return new static($values['index'])
+        return (new static($values['index']))
             ->setSize($values['size'])
             ->setError($values['error'])
             ->setType($values['type'])

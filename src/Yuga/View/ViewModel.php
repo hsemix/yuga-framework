@@ -236,7 +236,7 @@ class ViewModel extends BaseView implements \Stringable
     {
         $output = '';
         foreach ((array)$this->getSite()->getCss($section) as $css) {
-            $output .= new Html('link')
+            $output .= (new Html('link'))
                 ->setClosingType(Html::CLOSE_TYPE_NONE)
                 ->attr('href', $css)
                 ->attr('rel', 'stylesheet');
@@ -250,7 +250,7 @@ class ViewModel extends BaseView implements \Stringable
         $output = '';
 
         foreach ((array)$this->getSite()->getJs($section) as $js) {
-            $output .= new Html('script')->attr('src', $js);
+            $output .= (new Html('script'))->attr('src', $js);
         }
 
         return $output;
