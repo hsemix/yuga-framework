@@ -77,7 +77,7 @@ class HaxCompiler extends View
         event('on:hax-instance', ['compiler' => $this]);
     }
 
-    public function display($temp, array $data = null)
+    public function display($temp, ?array $data = null)
     {
         $temp = str_replace('.', '/', $temp);
         
@@ -99,7 +99,7 @@ class HaxCompiler extends View
         }
     }
 
-    public function renderHaxTemplate($templateName, array $data = null) 
+    public function renderHaxTemplate($templateName, ?array $data = null) 
     {
         $tempContents = $this->getTemplateDirectory() . $templateName.$this->hax;
         $compiled = $this->compiled($templateName).'.php';
