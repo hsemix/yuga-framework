@@ -7,11 +7,17 @@ use Yuga\Views\Widgets\Xml\Support\IXmlNode;
 class XmlElement implements IXmlNode
 {
 
+    private $tag;
     private $parent;
+    private $attrs = [];
     private $children = [];
+    private $ns;
 
-    public function __construct(private $tag = null, private $attrs = [], private $ns = '')
+    public function __construct($tag = null, $attrs = [], $ns = '')
     {
+        $this->tag = $tag;
+        $this->attrs = $attrs;
+        $this->ns = $ns;
     }
 
     public function getAttrs()
@@ -85,9 +91,9 @@ class XmlElement implements IXmlNode
         return $this->attrs[$name];
     }
 
-    public function __toString(): string
+    public function __toString()
     {
-        return (string) $this->toXml();
+        return $this->toXml();
     }
 
     public function getIndex()
@@ -143,8 +149,7 @@ class XmlElement implements IXmlNode
 
             return null;
         }
-        $counter = count($this->children);
-        for ($i = 0; $i < $counter; $i++) {
+        for ($i = 0; $i < count($this->children); $i++) {
             $result[] = $this->children[$i];
             if ($i == $offset) {
                 $result[] = $node;
@@ -196,13 +201,12 @@ class XmlElement implements IXmlNode
     public function getElementsByTagNameNS($ns, $tagName)
     {
         $result = [];
-        $counter = count($this->children);
-        for ($i = 0; $i < $counter; $i++) {
+        for ($i = 0; $i < count($this->children); $i++) {
             if (!($this->children[$i] instanceof XmlElement)) {
                 continue;
             }
-            if (strtolower((string) $this->children[$i]->getNs()) === strtolower((string) $ns)
-                && strtolower((string) $this->children[$i]->getTag()) === strtolower((string) $tagName)
+            if (strtolower($this->children[$i]->getNs()) == strtolower($ns)
+                && strtolower($this->children[$i]->getTag()) == strtolower($tagName)
             ) {
                 $result[] = $this->children[$i];
             }

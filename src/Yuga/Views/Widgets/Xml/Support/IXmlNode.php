@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 namespace Yuga\Views\Widgets\Xml\Support;
 
 interface IXmlNode

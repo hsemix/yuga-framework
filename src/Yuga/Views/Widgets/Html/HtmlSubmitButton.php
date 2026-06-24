@@ -18,8 +18,7 @@ class HtmlSubmitButton extends HtmlButton
         $this->setClosingType(self::CLOSE_TYPE_SHORT);
     }
 
-    #[\Override]
-    public function __toString(): string
+    public function __toString()
     {
         try {
             if (request()->getMethod() == 'post') {
@@ -34,10 +33,13 @@ class HtmlSubmitButton extends HtmlButton
 
     protected function clickedButton($html)
     {
-        if ($this->isClicked() && count($this->onClick) > 0) {
-            foreach ($this->onClick as $clickHandlers)
-                $clickHandlers($html, request()->except([$this->getAttribute('name')[0], '_token']));
+        if ($this->isClicked()) {
+            if (count($this->onClick) > 0) {
+                foreach ($this->onClick as $clickHandlers)
+                    $clickHandlers($html, request()->except([$this->getAttribute('name')[0], '_token']));
+            }
         }
+        return;
     }
 
     public function addOnClick($handler)

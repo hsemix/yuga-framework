@@ -22,6 +22,7 @@ class MenuItem
 
     /**
      * Add menu
+     * @param \Yuga\Views\Widgets\Menu\Menu $menu
      * @return static
      */
     public function addMenu(Menu $menu)
@@ -171,6 +172,7 @@ class MenuItem
 
     /**
      * Set parent menu
+     * @param Menu $menu
      * @return static
      */
     public function setParent(Menu $menu)

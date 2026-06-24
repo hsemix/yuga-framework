@@ -2,7 +2,6 @@
 namespace Yuga\Views\Widgets\Html;
 
 use Yuga\Http\Middleware\BaseCsrfVerifier;
-use Yuga\Support\Collection;
 
 class HtmlForm extends Html
 {
@@ -20,8 +19,9 @@ class HtmlForm extends Html
     public $submittedBy;
 
     protected $except = ['_token'];
+    public $make = false;
 
-    public function __construct($name = null, $method = self::METHOD_POST, $action = null, $encoding = self::ENCTYPE_APPLICATION_URLENCODED, public $make = true)
+    public function __construct($name = null, $method = self::METHOD_POST, $action = null, $encoding = self::ENCTYPE_APPLICATION_URLENCODED, $construct = true)
     {
         parent::__construct('form');
 
@@ -32,10 +32,11 @@ class HtmlForm extends Html
         
         $this->enctype($encoding);
         $this->method($method);
-        $this->action($action ?? route());
+        $this->action(($action === null) ? route() : $action);
+        $this->make = $construct;
 
         // Add csrf token
-        if (strtolower((string) $method) !== 'get') {
+        if (strtolower($method) !== 'get') {
             $this->addInnerHtml("\n".(new HtmlInput('hidden', BaseCsrfVerifier::POST_KEY, csrf_token()))->setClosingType(static::CLOSE_TYPE_SHORT)."\n");
         }
     }
@@ -143,8 +144,7 @@ class HtmlForm extends Html
 	 * Renders form to string.
 	 * @param can throw exceptions? (hidden parameter)
 	 */
-	#[\Override]
-    public function __toString(): string
+	public function __toString(): string
 	{
         try {
             if (request()->getMethod() == 'post') {
@@ -183,7 +183,7 @@ class HtmlForm extends Html
         $label = $this->label($label, $name);
         $control = $this->input($name, $type);
 
-        $this->controls[$name] = ['label' => $label, 'control' => $control];
+        $this->controls[$name] = compact('label', 'control');
 
         return $control;
     }
@@ -208,7 +208,7 @@ class HtmlForm extends Html
     {
         $label = $this->label($label, $name);
         $control = $this->textarea($name);
-        $this->controls[$name] = ['label' => $label, 'control' => $control];
+        $this->controls[$name] = compact('label', 'control');
 
         return $control;
     }
@@ -223,7 +223,7 @@ class HtmlForm extends Html
     public function addSubmit($name, $label)
     {
         $control = $this->submit($name, $label);
-        $this->controls[$name] = ['control' => $control];
+        $this->controls[$name] = compact('control');
         $this->buttons[] = $name;
         return $control;
     }
@@ -243,11 +243,11 @@ class HtmlForm extends Html
         if ($data !== null) {
             if ($data instanceof Collection) {
                 foreach ($data->getData() as $item) {
-                    $val = $item['value'] ?? $item['name'];
+                    $val = isset($item['value']) ? $item['value'] : $item['name'];
                     $selected = (input()->get($name) !== null && (string)input()->get($name) === (string)$val || input()->exists($name) === false && (string)$value === (string)$val || (isset($item['selected']) && $item['selected']) || $saveValue === false && (string)$value === (string)$val);
                     $element->addOption(new HtmlSelectOption($val, $item['name'], $selected));
                 }
-            } elseif (is_array($data)) {
+            } elseif (is_array($data) === true) {
                 foreach ($data as $val => $key) {
                     $selected = (input()->get($name) !== null && (string)input()->get($name) === (string)$val || input()->exists($name) === false && (string)$value === (string)$val || $saveValue === false && (string)$value === (string)$val);
                     $element->addOption(new HtmlSelectOption($val, $key, $selected));
@@ -263,23 +263,22 @@ class HtmlForm extends Html
     {
         $label = $this->label($label, $name);
         $control = $this->selectStart($name, $data, $value);
-        $this->controls[$name] = ['label' => $label, 'control' => $control];
+        $this->controls[$name] = compact('label', 'control');
 
         return $control;
     }
 
     public function buildOutput($formParent = 'table')
     {
-        if ($formParent == 'table') {
+        if ($formParent == 'table')
             return $this->buildFormWithTable();
-        } else {
+        else
             return $this->buildFormWithParent($formParent);
-        }
     }
 
     protected function buildFormWithParent(?string $formParent = null)
     {
-        foreach ($this->controls as $controlObject) {
+        foreach ($this->controls as $name => $controlObject) {
             $this->append($controlObject['control']);
         }
 
@@ -288,6 +287,8 @@ class HtmlForm extends Html
 
     protected function buildFormWithTable()
     {
+        $layout = '';
+        
         $layout = new Html('table');
         $layout->addClass('table');
         $buttonsContainer = new Html('tr');

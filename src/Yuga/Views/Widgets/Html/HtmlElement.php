@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 namespace Yuga\Views\Widgets\Html;
 
 use Yuga\Views\Widgets\Xml\XmlElement;
@@ -12,10 +9,46 @@ class HtmlElement extends XmlElement implements IHtmlNode
 
     public function isContainer()
     {
-        return match (strtolower((string) $this->getTag())) {
-            'div', 'span', 'strong', 'a', 'b', 'em', 'i', 'ul', 'li', 'ol', 'dd', 'dt', 'dl', 'table', 'tr', 'thead', 'tbody', 'tfoot', 'td', 'th', 'title', 'head', 'body', 'textarea', 'html', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'h5', 'p', 'blink', 'script' => true,
-            default => false,
-        };
+        switch (strtolower($this->getTag())) {
+            case 'div':
+            case 'span':
+            case 'strong':
+            case 'a':
+            case 'b':
+            case 'em':
+            case 'i':
+            case 'ul':
+            case 'li':
+            case 'ol':
+            case 'dd':
+            case 'dt':
+            case 'dl':
+            case 'table':
+            case 'tr':
+            case 'thead':
+            case 'tbody':
+            case 'tfoot':
+            case 'td':
+            case 'th':
+            case 'title':
+            case 'head':
+            case 'body':
+            case 'textarea':
+            case 'html':
+            case 'pre':
+            case 'code':
+            case 'h1':
+            case 'h2':
+            case 'h3':
+            case 'h4':
+            case 'h5':
+            case 'p':
+            case 'blink':
+            case 'script':
+                return true;
+        }
+
+        return false;
     }
 
 }
