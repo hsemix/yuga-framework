@@ -10,10 +10,10 @@ class LineFormatter
 
         return sprintf(
             '[%s] %s.%s: %s%s',
-            $record['time'],
-            $record['channel'],
-            $record['level'],
-            $record['message'],
+            $record['time'] ?? date('c'),
+            $record['channel'] ?? 'app',
+            $record['level'] ?? 'INFO',
+            $record['message'] ?? '',
             $context ? ' ' . $context : ''
         );
     }

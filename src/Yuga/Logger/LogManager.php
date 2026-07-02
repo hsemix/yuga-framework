@@ -2,60 +2,71 @@
 
 namespace Yuga\Logger;
 
+use Yuga\Application\Application;
 use Yuga\Logger\Handlers\DailyFileHandler;
+use Yuga\Logger\Handlers\ConsoleHandler;
+use Yuga\Logger\Formatters\LineFormatter;
+use Yuga\Logger\Formatters\JsonFormatter;
 
 class LogManager
 {
     protected array $channels = [];
 
-    public function channel(string $name = 'app'): Logger
+    public function __construct(
+        protected Application $app
+    ) {
+    }
+
+    public function channel(?string $name = null): Logger
     {
+        $name ??= config('logging.default', 'app');
+
         if (!isset($this->channels[$name])) {
-            $this->channels[$name] = new Logger($name, [
-                new DailyFileHandler(storage('logs')),
-            ]);
+            $this->channels[$name] = $this->createChannel($name);
         }
 
         return $this->channels[$name];
     }
 
-    public function emergency(string $message, array $context = []): void
+    protected function createChannel(string $name): Logger
     {
-        $this->channel()->emergency($message, $context);
+        $config = config("logging.channels.{$name}");
+
+        if (!$config) {
+            $config = config('logging.channels.app', [
+                'driver' => 'daily',
+                'path' => storage('logs'),
+                'formatter' => 'line',
+            ]);
+        }
+
+        $handlers = [];
+
+        if (($config['driver'] ?? 'daily') === 'daily') {
+            $handlers[] = new DailyFileHandler(
+                $config['path'] ?? storage('logs'),
+                $this->formatter($config['formatter'] ?? 'line')
+            );
+        }
+
+        if (($config['driver'] ?? null) === 'console') {
+            $handlers[] = new ConsoleHandler(
+                $this->formatter($config['formatter'] ?? 'line')
+            );
+        }
+
+        return new Logger($name, $handlers);
     }
 
-    public function alert(string $message, array $context = []): void
+    protected function formatter(string $name)
     {
-        $this->channel()->alert($message, $context);
+        return $name === 'json'
+            ? new JsonFormatter()
+            : new LineFormatter();
     }
 
-    public function critical(string $message, array $context = []): void
+    public function __call($method, $parameters)
     {
-        $this->channel()->critical($message, $context);
-    }
-
-    public function error(string $message, array $context = []): void
-    {
-        $this->channel()->error($message, $context);
-    }
-
-    public function warning(string $message, array $context = []): void
-    {
-        $this->channel()->warning($message, $context);
-    }
-
-    public function notice(string $message, array $context = []): void
-    {
-        $this->channel()->notice($message, $context);
-    }
-
-    public function info(string $message, array $context = []): void
-    {
-        $this->channel()->info($message, $context);
-    }
-
-    public function debug(string $message, array $context = []): void
-    {
-        $this->channel()->debug($message, $context);
+        return $this->channel()->{$method}(...$parameters);
     }
 }
