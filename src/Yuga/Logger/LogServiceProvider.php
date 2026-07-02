@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Logger;
 
 use Yuga\Providers\ServiceProvider;
@@ -20,19 +21,17 @@ class LogServiceProvider extends ServiceProvider
 
     public function load(Application $app)
     {
-        
+        $app->singleton('logger', function () {
+            return new \Yuga\Logger\LogManager();
+        });
     }
 
-    public function logErrorToFile($errorNumber, $errorString, $errorFile, $errorLine, $errorContext)
-    {   
-        $message = date("Y-m-d H:i:s - ");
-        $message .= "Error: [" . $errorNumber ."], " . "$errorString in $errorFile on line $errorLine \r\n";
-        
-        $loggerFile = storage('logs/errors-' . date('Y-m-d') . '.log');
-        if (!is_file($directory = storage('logs'))) {
-            mkdir($directory, 0755, true);
-        }
-        \file_put_contents($loggerFile, $message, FILE_APPEND);
-        
+    public function logErrorToFile($errorNumber, $errorString, $errorFile, $errorLine, $errorContext = [])
+    {
+        logger('errors')->error($errorString, [
+            'number' => $errorNumber,
+            'file' => $errorFile,
+            'line' => $errorLine,
+        ]);
     }
 }
