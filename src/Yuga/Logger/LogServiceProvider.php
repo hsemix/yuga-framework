@@ -22,7 +22,7 @@ class LogServiceProvider extends ServiceProvider
     public function load(Application $app)
     {
         $app->singleton('logger', function () {
-            return new \Yuga\Logger\LogManager();
+            return new \Yuga\Logger\LogManager($this->app);
         });
     }
 
