@@ -732,3 +732,10 @@ if (!function_exists('logger')) {
         return $channel ? $manager->channel($channel) : $manager;
     }
 }
+
+if (!function_exists('auth')) {
+    function auth()
+    {
+        return new \Yuga\Authenticate\Authenticate;
+    }
+}
