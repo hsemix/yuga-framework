@@ -11,6 +11,12 @@ class HtmlElement extends XmlElement implements IHtmlNode
     {
         switch (strtolower($this->getTag())) {
             case 'div':
+            case 'section':
+            case 'header':
+            case 'footer':
+            case 'article':
+            case 'aside':
+            case 'nav':
             case 'span':
             case 'strong':
             case 'a':

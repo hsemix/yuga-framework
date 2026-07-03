@@ -26,7 +26,7 @@ class LogServiceProvider extends ServiceProvider
         });
     }
 
-    public function logErrorToFile($errorNumber, $errorString, $errorFile, $errorLine, $errorContext = [])
+    public function logErrorToFile($errorNumber, $errorString, $errorFile, $errorLine)
     {
         logger('errors')->error($errorString, [
             'number' => $errorNumber,
