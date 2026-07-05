@@ -2,6 +2,7 @@
 
 namespace Yuga\Views;
 
+use Yuga\Views\Compilers\Compiler;
 use Yuga\Views\Support\SectionManager;
 
 class Engine

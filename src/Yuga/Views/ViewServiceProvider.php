@@ -9,6 +9,7 @@ namespace Yuga\Views;
 use Yuga\Http\Request;
 use Yuga\Interfaces\Application\Application;
 use Yuga\Providers\ServiceProvider;
+use Yuga\Views\Compilers\Compiler;
 use Yuga\Views\Support\SectionManager;
 use Yuga\Views\Support\ViewCache;
 
