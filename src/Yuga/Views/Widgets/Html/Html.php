@@ -2,11 +2,12 @@
 
 namespace Yuga\Views\Widgets\Html;
 
-class Html implements \Stringable
+class Html
 {
     const CLOSE_TYPE_TAG = 'tag';
     const CLOSE_TYPE_NONE = 'none';
     const CLOSE_TYPE_SHORT = 'short';
+    protected $tag;
     protected $innerHtml = [];
     protected $closingType;
     protected $prepended = [];
@@ -18,8 +19,9 @@ class Html implements \Stringable
     protected static $instance;
     
 
-    public function __construct(protected $tag)
+    public function __construct($tag)
     {
+        $this->tag = $tag;
         $this->closingType = static::CLOSE_TYPE_TAG;
 
         if (!static::$instance) {
@@ -40,6 +42,7 @@ class Html implements \Stringable
     }
 
     /**
+     * @param array $html
      * @return static
      */
     public function setInnerHtml(array $html)
@@ -70,7 +73,7 @@ class Html implements \Stringable
      */
     public function replaceAttribute($name, $value = '')
     {
-        $this->attributes[$name] = [$value];
+        $this->attributes[$name] = array($value);
 
         return $this;
     }
@@ -101,6 +104,7 @@ class Html implements \Stringable
     }
 
     /**
+     * @param array $attributes
      * @return static $this
      */
     public function setAttributes(array $attributes)
@@ -113,6 +117,7 @@ class Html implements \Stringable
     }
 
     /**
+     * @param array $attributes
      * @return static $this
      */
     public function addAttributes(array $attributes)
@@ -121,6 +126,7 @@ class Html implements \Stringable
     }
 
     /**
+     * @param array $attributes
      * @return static $this
      */
     public function setParentAttributes(array $attributes)
@@ -130,6 +136,7 @@ class Html implements \Stringable
     }
 
     /**
+     * @param array $attributes
      * @return static $this
      */
     public function addParentAttributes(array $attributes)
@@ -167,7 +174,7 @@ class Html implements \Stringable
 
         foreach ($this->attributes as $key => $val) {
             $output .= ' ' . $key;
-            if ($val[0] !== null || strtolower((string) $key) === 'value') {
+            if ($val[0] !== null || strtolower($key) === 'value') {
                 $val = htmlentities(implode(' ', $val), ENT_QUOTES, app()->getCharset());
                 $output .= '="' . $val . '"';
             }
@@ -259,9 +266,9 @@ class Html implements \Stringable
         return $this;
     }
 
-    public function __toString(): string
+    public function __toString()
     {
-        return (string) $this->render();
+        return $this->render();
     }
 
     public function getInnerHtml()
@@ -273,7 +280,7 @@ class Html implements \Stringable
 
     public function getAttribute($name)
     {
-        return $this->attributes[$name] ?? null;
+        return isset($this->attributes[$name]) ? $this->attributes[$name] : null;
     }
 
     public function getClass()
@@ -330,11 +337,13 @@ class Html implements \Stringable
         if ($attributes !== null && isset($attributes[$name])) {
 
             if ($strict === true) {
-                if (in_array($value, $attributes[$name], true)) {
+                if (in_array($value, $attributes[$name], true) === true) {
                     return $element;
                 }
-            } elseif (in_array($value, $attributes[$name])) {
-                return $element;
+            } else {
+                if (in_array($value, array_values($attributes[$name])) !== false) {
+                    return $element;
+                }
             }
 
         }
@@ -346,6 +355,7 @@ class Html implements \Stringable
      * Set parent html
      *
      * @param Html|string|null $parent
+     * @param array $attributes
      * @return static
      */
     public function setParent($parent = null, array $attributes = [])

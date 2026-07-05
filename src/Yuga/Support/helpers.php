@@ -723,3 +723,19 @@ if (! function_exists('queue'))
         return ClosureJob::dispatch($callback, $data);
     }
 }
+
+if (!function_exists('logger')) {
+    function logger(?string $channel = null)
+    {
+        $manager = \Yuga\Application\Application::getInstance()->get('logger');
+
+        return $channel ? $manager->channel($channel) : $manager;
+    }
+}
+
+if (!function_exists('auth')) {
+    function auth()
+    {
+        return new \Yuga\Authenticate\Authenticate;
+    }
+}

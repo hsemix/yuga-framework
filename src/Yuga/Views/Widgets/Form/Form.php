@@ -193,7 +193,7 @@ class Form
      */
     public function button($text, $type = null, $name = null, $value = null)
     {
-        $el = new Html('button')->addInnerHtml($text);
+        $el = (new Html('button'))->addInnerHtml($text);
 
         if ($type !== null) {
             $el->addAttribute('type', $type);

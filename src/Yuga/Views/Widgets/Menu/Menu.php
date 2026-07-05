@@ -3,16 +3,20 @@ namespace Yuga\Views\Widgets\Menu;
 
 use Yuga\Views\Widgets\Html\Html;
 
-class Menu implements \Stringable
+class Menu
 {
     protected $items = [];
     protected $attributes = [];
     protected $content = [];
     protected $class;
     protected $parent;
+    protected $parentTag;
+    protected $childTag;
 
-    public function __construct(protected $parentTag = 'ul', protected $childTag = 'li')
+    public function __construct($parentTag = 'ul', $childTag = 'li', $child = true)
     {
+        $this->childTag = $childTag;
+        $this->parentTag = $parentTag;
     }
 
     public function getItems()
@@ -36,7 +40,7 @@ class Menu implements \Stringable
      */
     public function getFirst()
     {
-        if (count($this->items) > 0) {
+        if (count($this->items)) {
             return $this->items[0];
         }
 
@@ -69,6 +73,7 @@ class Menu implements \Stringable
 
     /**
      * Add form content
+     * @param \Yuga\Views\Widgets\Html\Html $element
      */
     public function addContent(Html $element)
     {
@@ -77,6 +82,7 @@ class Menu implements \Stringable
 
     /**
      * Add form content
+     * @param \Yuga\Views\Widgets\Menu\Menu $element
      */
     public function addMenu(Menu $element)
     {
@@ -111,6 +117,7 @@ class Menu implements \Stringable
     /**
      * Add new item
      *
+     * @param \Yuga\Views\Widgets\Menu\MenuItem $item
      * @return static
      */
     public function addMenuItem(MenuItem $item)
@@ -163,6 +170,7 @@ class Menu implements \Stringable
     /**
      * Set parent menu-item
      *
+     * @param MenuItem $parent
      * @return static
      */
     public function setParent(MenuItem $parent)
@@ -194,14 +202,14 @@ class Menu implements \Stringable
             }
 
             if ($strict === true) {
-                if (rtrim((string) $item->getUrl(), '/') === rtrim((string) $url, '/')) {
+                if (rtrim($item->getUrl(), '/') === rtrim($url, '/')) {
                     return $item;
                 }
             } else {
-                $itemUrl = rtrim((string) $item->getUrl(), '/');
+                $itemUrl = rtrim($item->getUrl(), '/');
                 $itemUrl = ($itemUrl === '') ? '/' : $itemUrl;
 
-                $url = rtrim((string) $url, '/');
+                $url = rtrim($url, '/');
                 $url = ($url === '') ? '/' : $url;
 
                 if (false !== stristr($itemUrl, $url)) {
@@ -231,11 +239,13 @@ class Menu implements \Stringable
             if ($attributes !== null && isset($attributes[$name])) {
 
                 if ($strict === true) {
-                    if (in_array($value, $attributes[$name], true)) {
+                    if (in_array($value, $attributes[$name], true) === true) {
                         return $item;
                     }
-                } elseif (stripos($attributes[$name], (string) $value) !== false) {
-                    return $item;
+                } else {
+                    if (stripos($attributes[$name], $value) !== false) {
+                        return $item;
+                    }
                 }
 
             }
@@ -250,7 +260,7 @@ class Menu implements \Stringable
             $output = ' ';
             /* Run through each attribute */
             foreach ($attributes as $name => $value) {
-                $output .= $name . '="' . implode(' ', $value) . '"';
+                $output .= $name . '="' . join(' ', $value) . '"';
             }
 
             return $output;
@@ -261,15 +271,16 @@ class Menu implements \Stringable
 
     /**
      * Write html
+     * @return string
      */
-    public function __toString(): string
+    public function __toString()
     {
         $o = '';
-        if (count($this->items) > 0) {
+        if (count($this->items)) {
 
             $o .= '<' . $this->parentTag . ($this->class ? ' class="' . $this->class . '"' : '');
 
-            if (count($this->attributes) > 0) {
+            if (count($this->attributes)) {
                 $o .= $this->formatAttributes($this->attributes);
             }
 
@@ -284,11 +295,10 @@ class Menu implements \Stringable
                     $this->formatAttributes($menuItem->getLinkAttributes()) . '>' .
                     $menuItem->getLinkIcon();
 
-                    if (!$menuItem->getReturnHtml()) {
-                        $o .= htmlspecialchars((string) $menuItem->getName());
-                    } else {
+                    if(!$menuItem->getReturnHtml()) 
+                        $o .= htmlspecialchars($menuItem->getName());
+                    else
                         $o .= $menuItem->getName();
-                    }
                 $o .= '</a>';
 
                 $inner = $menuItem->getInnerContent();
@@ -310,7 +320,9 @@ class Menu implements \Stringable
                 $o .= '</' . $this->childTag . '>';
             }
 
-            return $o . ('</' . $this->parentTag . '>');
+            $o .= '</' . $this->parentTag . '>';
+
+            return $o;
         }
 
         return '';

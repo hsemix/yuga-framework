@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 namespace Yuga\Views\Widgets\Xml;
 use Yuga\Views\Widgets\Xml\Support\IXmlNode;
 
@@ -9,9 +6,11 @@ class XmlText implements IXmlNode
 {
 
     protected $parent;
+    protected $text = '';
 
-    public function __construct(protected $text)
+    public function __construct($text)
     {
+        $this->text = $text;
     }
 
     public function getParent()
@@ -34,9 +33,9 @@ class XmlText implements IXmlNode
         $this->text = $text;
     }
 
-    public function __toString(): string
+    public function __toString()
     {
-        return (string) $this->text;
+        return $this->text;
     }
 
     public function toXml()

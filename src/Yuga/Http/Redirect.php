@@ -2,8 +2,9 @@
 
 namespace Yuga\Http;
 
-use Yuga\Route\Route;
 use Yuga\Application\Application;
+use Yuga\Route\Route;
+use Yuga\Support\Str;
 
 class Redirect
 {
@@ -84,7 +85,7 @@ class Redirect
 
     public function back()
     {
-        return $this->to($this->request->getReferer() ?: '/', 302);
+        return $this->to(request()->getReferer() ?: '/', 302);
     }
 
     public function refresh()
@@ -137,8 +138,8 @@ class Redirect
     public function __call($method, $parameters)
     {
         if (preg_match('/^with(.+)$/', (string) $method, $matches)) {
-            $decamelized = \Str::deCamelize($matches[1]);
-            $camelized = \Str::camelize($decamelized);
+            $decamelized = Str::deCamelize($matches[1]);
+            $camelized = Str::camelize($decamelized);
 
             return $this->with($camelized, $parameters[0] ?? null);
         }

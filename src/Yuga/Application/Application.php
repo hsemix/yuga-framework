@@ -509,7 +509,7 @@ class Application extends Container implements IApplication, Kernel
             if(!is_dir($logDir)) {
                 mkdir($logDir);
             }
-            Debugger::enable(Debugger::Production, $logDir);
+            // Debugger::enable(Debugger::Production, $logDir);
             set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
         }    
         return $this;

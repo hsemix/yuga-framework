@@ -4,7 +4,7 @@ namespace Yuga\Views\Widgets\Html;
 
 class HtmlButton extends Html
 {
-    public function __construct($type = 'button', $name = null, $value = null)
+    public function __construct($type = 'button', $name, $value = null)
     {
         parent::__construct('input');
 

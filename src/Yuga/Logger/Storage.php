@@ -12,30 +12,24 @@ class Storage implements LoggerInterface
     public static function put($file, $message, $append = true)
     {
         $loggerFile = storage($file);
-        
-        $message .= "\r\n";
 
-        if ($append) {
-            file_put_contents($loggerFile, $message, FILE_APPEND);
-        } else {
-            file_put_contents($loggerFile, $message);
+        $dir = dirname($loggerFile);
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
         }
+
+        file_put_contents(
+            $loggerFile,
+            $message . PHP_EOL,
+            $append ? FILE_APPEND | LOCK_EX : LOCK_EX
+        );
     }
 
-    /**
-     * Log messages
-     * 
-     * @author <semix.hamidouh@gmail.com>
-     * 
-     * @return void
-     */
     public static function log($message, ?string $fileName = null)
     {
-        if (!$fileName) {
-            $fileName = 'log-' . date('Y-m-d');
-        }
-        $outf = fopen(storage() . "logs/{$fileName}.log", "a");
-        fwrite($outf, date("c") . ": $message\n\n");
-        fclose($outf);
+        $channel = $fileName ?: 'app';
+
+        logger($channel)->info((string) $message);
     }
 }

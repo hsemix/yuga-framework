@@ -7,17 +7,18 @@ namespace Yuga\Views;
 use Yuga\App;
 use Yuga\Support\Str;
 
-class View implements \Stringable
+class View
 {
 	protected $viewFile;
 	protected $viewEngine;
 
 	/**
-     * Get the yuga-view-engine instance
-     *
-     * @param string $view
-     */
-    public function __construct($view = null, ?array $data = null)
+	 * Get the yuga-view-engine instance
+	 * 
+	 * @param string $view 
+	 * @param array|null $data
+	 */
+	public function __construct($view = null, ?array $data = null)
 	{
 		$this->viewEngine = App::make('view');
 		$view = $this->processViewPath($view);
@@ -30,16 +31,9 @@ class View implements \Stringable
 	}
 
 	protected function processViewPath($path = null)
-    {
-        if ($path) {
-            return str_replace(".", "/", $path);
-        }
-        return null;
-    }
-
-	public function render(): string
 	{
-		return $this->viewEngine->render($this->viewFile);
+		if ($path)
+			return str_replace(".", "/", $path);
 	}
 
 	/**
@@ -49,31 +43,13 @@ class View implements \Stringable
 	 * 
 	 * @return string
 	 */
-	public function __toStringOld()
+	public function __toString()
 	{
 		$obLevel = ob_get_level();
 		try {
 			return $this->viewEngine->display($this->viewFile);
 		} catch (\Throwable $e) {
 			return $this->handleViewException($e, $obLevel);
-			// if ($this->processHaxRuntime() !== false)
-			// 	trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()} \n({$this->processHaxRuntime()}): {$e->getLine()}", E_USER_ERROR);
-			// else
-			// 	trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}", E_USER_ERROR);
-		}
-	}
-
-	public function __toString(): string
-	{
-		try {
-			return $this->render();
-		} catch (\Throwable $e) {
-			trigger_error(
-				'Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}: {$e->getLine()}",
-				E_USER_ERROR
-			);
-
-			return '';
 		}
 	}
 
@@ -82,9 +58,8 @@ class View implements \Stringable
 		$root = str_replace("./", "", $this->viewEngine->getTemplateDirectory());
 
 		$haxFile = str_replace("/", DIRECTORY_SEPARATOR, $root) . $this->viewFile . ".hax.php";
-		if (file_exists($haxFile)) {
-            return $haxFile;
-        }
+		if (file_exists($haxFile))
+			return $haxFile;
 		return false;
 	}
 
@@ -153,7 +128,7 @@ class View implements \Stringable
 
 	public function __call($method, $parameters)
 	{
-        if (preg_match('/^with(.+)$/', (string) $method, $matches)) {
+        if (preg_match('/^with(.+)$/', $method, $matches)) {
 			$decamelized = Str::deCamelize($matches[1]);
 			$camelized = Str::camelize($decamelized);
 			return $this->with($camelized, $parameters[0]);
@@ -175,7 +150,7 @@ class View implements \Stringable
 	 * 
 	 * @return string
 	 */
-	public function asStringOld()
+	public function asString()
 	{
 		ob_start();
         $this->__toString();
@@ -183,10 +158,5 @@ class View implements \Stringable
         ob_end_clean();
 
 		return $string;
-	}
-
-	public function asString()
-	{
-		return $this->render();
 	}
 }

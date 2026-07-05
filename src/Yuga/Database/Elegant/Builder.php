@@ -44,7 +44,7 @@ class Builder
      */
     public function __construct(?Connection $connection = null, protected ?\Yuga\Database\Elegant\Model $model = null)
     {
-        $this->query = new QueryBuilder($connection)->table($this->model->getTable());
+        $this->query = (new QueryBuilder($connection))->table($this->model->getTable());
     }
 
     /**
@@ -815,7 +815,7 @@ class Builder
     public function checkTableField($table, $field)
     {
         $tableApi = '\Yuga\Database\Migration\Schema\\' . ucfirst((string) env('DATABASE_DRIVER', 'mysql')) . '\\Table';
-        return new $tableApi($table)->columnExists($field);
+        return (new $tableApi($table))->columnExists($field);
     }
 
     /**
@@ -1172,7 +1172,7 @@ class Builder
      */
     public function __wakeup()
     {
-        $this->query = new QueryBuilder()->table($this->model->getTable());
+        $this->query = (new QueryBuilder())->table($this->model->getTable());
     }
 
     public function __destruct()
