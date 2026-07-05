@@ -219,7 +219,7 @@ class Application extends Container implements IApplication, Kernel
         }
         $this->registerConfig();
         if ($this->debuggerStarted) {
-            $this['events']->dispatch('on:yuga-tracy');
+            // $this['events']->dispatch('on:yuga-tracy');
         }
         $this->registerBaseBindings($this);
         $this->registerDefaultProviders();
@@ -333,7 +333,7 @@ class Application extends Container implements IApplication, Kernel
     public function setDebugEnabled($bool)
     {
         $bool = Boolean::parse($bool);
-        $this->debug = ($bool === true) ? new Debug() : null;
+        // $this->debug = ($bool === true) ? new Debug() : null;
         $this->debugEnabled = $bool;
 
         return $this;
@@ -492,6 +492,11 @@ class Application extends Container implements IApplication, Kernel
         return array_key_exists($provider::class, $this->loadedProviders);
     }
 
+    protected function getEnvironment()
+    {
+        return env('APP_ENV', 'local');
+    }
+
     /**
      * Boot Miss Tracy for error debugging and dumping variables
      * 
@@ -500,16 +505,28 @@ class Application extends Container implements IApplication, Kernel
      * @return \Yuga\Application\Application
      */
     protected function initTracy()
-    {
-        if ($this->getDebugEnabled() === true) {
+    {   
+        $appEnv = $this->getEnvironment();
+
+        $tracyDebugger = Debugger::Development;
+
+        if (strtolower($appEnv) === 'production') {
+            $tracyDebugger = Debugger::Production;
+        }
+
+        if ($this->getDebugEnabled() == true) {
             Debugger::enable(Debugger::Development);
             $this->debuggerStarted = true;
         } else {
             $logDir = storage('logs');
             if(!is_dir($logDir)) {
+                if (!is_writable($logDir)) {
+                    chmod($logDir, 0777);
+                }
                 mkdir($logDir);
             }
-            // Debugger::enable(Debugger::Production, $logDir);
+            
+            Debugger::enable($tracyDebugger, $logDir);
             set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
         }    
         return $this;
@@ -676,7 +693,7 @@ class Application extends Container implements IApplication, Kernel
         // if ($this->debuggerStarted == true && class_exists(\Tracy\Debugger::class)) {
             ob_start();
 
-            Debugger::getBlueScreen()->render($e);
+            // Debugger::getBlueScreen()->render($e);
 
             return new \Nyholm\Psr7\Response(
                 500,
