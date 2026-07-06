@@ -12,6 +12,18 @@ class SectionManager
 
     protected string $parentPlaceholder = '##YUGA_PARENT_PLACEHOLDER##';
 
+    protected array $pushes = [];
+
+    protected array $prepends = [];
+
+    protected array $pushStack = [];
+
+    protected array $renderedOnce = [];
+
+    protected array $slots = [];
+
+    protected array $slotStack = [];
+
     public function start(string $name): void
     {
         $this->sectionStack[] = $name;
@@ -73,5 +85,90 @@ class SectionManager
         $this->sections = [];
         $this->sectionStack = [];
         $this->layout = null;
+
+        $this->pushes = [];
+        $this->prepends = [];
+        $this->pushStack = [];
+        $this->renderedOnce = [];
+
+        $this->slots = [];
+        $this->slotStack = [];
+    }
+
+    public function startPush(string $name): void
+    {
+        $this->pushStack[] = ['type' => 'push', 'name' => $name];
+        ob_start();
+    }
+
+    public function startPrepend(string $name): void
+    {
+        $this->pushStack[] = ['type' => 'prepend', 'name' => $name];
+        ob_start();
+    }
+
+    public function stopPush(): void
+    {
+        $last = array_pop($this->pushStack);
+
+        if (!$last) {
+            throw new \RuntimeException('Cannot end a push/prepend that was not started.');
+        }
+
+        $content = ob_get_clean();
+
+        if ($last['type'] === 'prepend') {
+            $this->prepends[$last['name']][] = $content;
+        } else {
+            $this->pushes[$last['name']][] = $content;
+        }
+    }
+
+    public function yieldPushContent(string $name): string
+    {
+        $output = '';
+
+        if (isset($this->prepends[$name])) {
+            $output .= implode('', array_reverse($this->prepends[$name]));
+        }
+
+        if (isset($this->pushes[$name])) {
+            $output .= implode('', $this->pushes[$name]);
+        }
+
+        return $output;
+    }
+
+    public function hasRenderedOnce(string $id): bool
+    {
+        return isset($this->renderedOnce[$id]);
+    }
+
+    public function markAsRenderedOnce(string $id): void
+    {
+        $this->renderedOnce[$id] = true;
+    }
+
+    public function startSlot(string $name): void
+    {
+        $this->slotStack[] = $name;
+
+        ob_start();
+    }
+
+    public function stopSlot(): void
+    {
+        $name = array_pop($this->slotStack);
+
+        if (!$name) {
+            throw new \RuntimeException('Cannot end a slot that was not started.');
+        }
+
+        $this->slots[$name] = ob_get_clean();
+    }
+
+    public function yieldSlot(string $name, string $default = ''): string
+    {
+        return $this->slots[$name] ?? $default;
     }
 }

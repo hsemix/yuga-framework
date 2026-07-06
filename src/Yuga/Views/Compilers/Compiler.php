@@ -2,15 +2,19 @@
 
 namespace Yuga\Views\Compilers;
 
-use Yuga\Views\Support\ViewCache;
 use Yuga\Views\Compilers\Concerns\CompilesComments;
+use Yuga\Views\Compilers\Concerns\CompilesComponents;
 use Yuga\Views\Compilers\Concerns\CompilesConditionals;
 use Yuga\Views\Compilers\Concerns\CompilesEchos;
+use Yuga\Views\Compilers\Concerns\CompilesHelpers;
 use Yuga\Views\Compilers\Concerns\CompilesIncludes;
 use Yuga\Views\Compilers\Concerns\CompilesInheritance;
 use Yuga\Views\Compilers\Concerns\CompilesLoops;
 use Yuga\Views\Compilers\Concerns\CompilesRawPhp;
+use Yuga\Views\Compilers\Concerns\CompilesSlots;
+use Yuga\Views\Compilers\Concerns\CompilesStacks;
 use Yuga\Views\Compilers\Concerns\CompilesStatements;
+use Yuga\Views\Support\ViewCache;
 
 class Compiler
 {
@@ -22,9 +26,14 @@ class Compiler
     use CompilesLoops;
     use CompilesRawPhp;
     use CompilesStatements;
+    use CompilesHelpers;
+    use CompilesStacks;
+    use CompilesSlots;
+    use CompilesComponents;
 
     protected array $compilers = [
         'comments',
+        'components',
         'echos',
         'statements',
     ];
