@@ -19,6 +19,13 @@ if (!function_exists('view')) {
     }
 }
 
+if (!function_exists('fragment')) {
+    function fragment(string $view, string $name, array $data = []): string
+    {
+        return view($view, $data)->fragment($name)->render();
+    }
+}
+
 if (! function_exists('view_old')) {
     function view_old(?string $viewName = null, array $data = [])
     {

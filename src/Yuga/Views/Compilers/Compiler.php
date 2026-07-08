@@ -6,6 +6,7 @@ use Yuga\Views\Compilers\Concerns\CompilesComments;
 use Yuga\Views\Compilers\Concerns\CompilesComponents;
 use Yuga\Views\Compilers\Concerns\CompilesConditionals;
 use Yuga\Views\Compilers\Concerns\CompilesEchos;
+use Yuga\Views\Compilers\Concerns\CompilesFragments;
 use Yuga\Views\Compilers\Concerns\CompilesHelpers;
 use Yuga\Views\Compilers\Concerns\CompilesIncludes;
 use Yuga\Views\Compilers\Concerns\CompilesInheritance;
@@ -30,30 +31,34 @@ class Compiler
     use CompilesStacks;
     use CompilesSlots;
     use CompilesComponents;
+    use CompilesFragments;
 
     protected array $compilers = [
         'comments',
+        'fragments',
         'components',
         'echos',
         'statements',
     ];
 
+    protected array $customDirectives = [];
+
     public function __construct(
         protected ViewCache $cache
-    ) {
-    }
+    ) {}
 
     public function compile(string $sourcePath): string
     {
         $compiledPath = $this->cache->path($sourcePath);
 
         if ($this->cache->expired($sourcePath, $compiledPath)) {
-            file_put_contents(
-                $compiledPath,
-                $this->compileString(
-                    file_get_contents($sourcePath)
-                )
+            $compiled = $this->compileString(
+                file_get_contents($sourcePath)
             );
+
+            $compiled = "<?php /** YUGA_VIEW_PATH: {$sourcePath} */ ?>\n" . $compiled;
+
+            file_put_contents($compiledPath, $compiled);
         }
 
         return $compiledPath;
@@ -68,5 +73,25 @@ class Compiler
         }
 
         return $value;
+    }
+
+    public function directive(string $name, callable $handler): static
+    {
+        $this->customDirectives[$name] = $handler;
+
+        return $this;
+    }
+
+    public function hasCustomDirective(string $name): bool
+    {
+        return isset($this->customDirectives[$name]);
+    }
+
+    public function compileCustomDirective(string $name, string $expression): string
+    {
+        return (string) call_user_func(
+            $this->customDirectives[$name],
+            $expression
+        );
     }
 }

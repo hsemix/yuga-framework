@@ -9,14 +9,17 @@ trait CompilesStatements
         return preg_replace_callback(
             '/\B@(\w+)([ \t]*)(\( ( (?>[^()]+) | (?3) )* \))?/x',
             function ($match) {
+                $name = $match[1];
+                $method = 'compile' . ucfirst($name);
+                $expression = $match[3] ?? '';
 
-                $method = 'compile' . ucfirst($match[1]);
+                if ($this->hasCustomDirective($name)) {
+                    return $this->compileCustomDirective($name, $expression);
+                }
 
                 if (!method_exists($this, $method)) {
                     return $match[0];
                 }
-
-                $expression = $match[3] ?? '';
 
                 return $this->{$method}($expression);
             },

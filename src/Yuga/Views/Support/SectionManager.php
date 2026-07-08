@@ -24,8 +24,13 @@ class SectionManager
 
     protected array $slotStack = [];
 
-    public function start(string $name): void
+    public function start(string $name, ?string $value = null): void
     {
+        if ($value !== null) {
+            $this->sections[$name] = $value;
+            return;
+        }
+
         $this->sectionStack[] = $name;
         ob_start();
     }

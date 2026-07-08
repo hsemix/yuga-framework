@@ -21,6 +21,25 @@ trait CompilesComponents
             $value
         );
 
+        // Self-closing component tags
+        $value = preg_replace_callback(
+            '/<x-([\w\-\.:]+)\s*(?<attributes>[^>]*)\/>/',
+            function ($matches) {
+                if (str_starts_with($matches[1], 'slot:')) {
+                    return $matches[0];
+                }
+
+                $component = str_replace(['.', ':'], '/', $matches[1]);
+
+                $attributes = $this->parseComponentAttributes(
+                    $matches['attributes'] ?? ''
+                );
+
+                return "<?php \$__engine->startComponent('components.{$component}', {$attributes}); echo \$__engine->endComponent(); ?>";
+            },
+            $value
+        );
+
         // Opening component tags
         $value = preg_replace_callback(
             '/<x-([\w\-\.:]+)\s*(?<attributes>[^>]*)>/',
@@ -59,17 +78,7 @@ trait CompilesComponents
     protected function parseComponentAttributes(string $attributes): string
     {
         preg_match_all(
-            '/
-            ([\:\@\w\-\.]+)
-            (
-                =
-                (
-                    "([^"]*)"
-                    |
-                    \'([^\']*)\'
-                )
-            )?
-        /x',
+            '/([:@\w\-\.]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'))?/',
             $attributes,
             $matches,
             PREG_SET_ORDER
@@ -78,25 +87,18 @@ trait CompilesComponents
         $compiled = [];
 
         foreach ($matches as $match) {
-
             $name = $match[1];
 
-            $value = $match[5]
-                ?? $match[6]
-                ?? true;
+            $value = $match[2] ?? $match[3] ?? true;
 
             if (str_starts_with($name, ':')) {
-
                 $name = substr($name, 1);
 
                 $compiled[] = "'{$name}' => {$value}";
             } else {
-
-                if ($value === true) {
-                    $compiled[] = "'{$name}' => true";
-                } else {
-                    $compiled[] = "'{$name}' => '{$value}'";
-                }
+                $compiled[] = $value === true
+                    ? "'{$name}' => true"
+                    : "'{$name}' => " . var_export($value, true);
             }
         }
 

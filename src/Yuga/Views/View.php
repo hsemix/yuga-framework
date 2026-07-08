@@ -7,6 +7,7 @@ use Yuga\Support\Str;
 class View
 {
     protected array $data = [];
+    protected ?string $fragmentName = null;
 
     public function __construct(
         protected Engine $engine,
@@ -49,15 +50,35 @@ class View
         return $this;
     }
 
+    public function fragment(string $name): static
+    {
+        $this->fragmentName = $name;
+
+        return $this;
+    }
+
+    public function render(): string
+    {
+        if ($this->fragmentName) {
+            return $this->engine->fragment(
+                $this->view,
+                $this->fragmentName,
+                $this->data
+            );
+        }
+
+        return $this->engine->render($this->view, $this->data);
+    }
+
     public function asString(): string
     {
-        return $this->engine->render($this->view, $this->data);
+        return $this->render();
     }
 
     public function __toString(): string
     {
         try {
-            return $this->asString();
+            return $this->render();
         } catch (\Throwable $e) {
             throw $e;
         }

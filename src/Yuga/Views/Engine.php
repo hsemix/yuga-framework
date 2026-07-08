@@ -3,7 +3,10 @@
 namespace Yuga\Views;
 
 use Yuga\Views\Compilers\Compiler;
+use Yuga\Views\Exceptions\ViewException;
+use Yuga\Views\Support\FragmentManager;
 use Yuga\Views\Support\SectionManager;
+use Yuga\Views\Support\ViewComposerManager;
 
 class Engine
 {
@@ -12,12 +15,15 @@ class Engine
     public function __construct(
         protected Finder $finder,
         protected Compiler $compiler,
-        protected SectionManager $sections
+        protected SectionManager $sections,
+        protected FragmentManager $fragments,
+        protected ViewComposerManager $composers
     ) {}
 
     public function render(string $view, array $data = []): string
     {
         $this->sections->flush();
+        $this->fragments->flush();
 
         return $this->renderView($view, $data, true);
     }
@@ -29,13 +35,15 @@ class Engine
 
     protected function renderView(string $view, array $data = [], bool $allowLayout = true): string
     {
+        $data = $this->composers->compose($view, $data);
+
         $path = $this->finder->find($view);
 
         $compiled = str_ends_with($path, '.hax.php')
             ? $this->compiler->compile($path)
             : $path;
 
-        $output = $this->evaluate($compiled, $data);
+        $output = $this->evaluate($compiled, $data, $path);
 
         if ($allowLayout && $layout = $this->sections->layout()) {
             return $this->renderView($layout, $data, false);
@@ -44,7 +52,14 @@ class Engine
         return $output;
     }
 
-    protected function evaluate(string $path, array $data): string
+    public function composer(array|string $views, callable|string $composer): static
+    {
+        $this->composers->composer($views, $composer);
+
+        return $this;
+    }
+
+    protected function evaluate(string $path, array $data, ?string $viewPath = null): string
     {
         $__engine = $this;
         $__sections = $this->sections;
@@ -60,7 +75,11 @@ class Engine
                 ob_end_clean();
             }
 
-            throw $e;
+            throw new ViewException(
+                $viewPath ?? $path,
+                $path,
+                $e
+            );
         }
 
         return ob_get_clean();
@@ -133,5 +152,31 @@ class Engine
                 ]
             )
         );
+    }
+
+    public function compiler(): Compiler
+    {
+        return $this->compiler;
+    }
+
+    public function startFragment(string $name): void
+    {
+        $this->fragments->start($name);
+    }
+
+    public function endFragment(): string
+    {
+        return $this->fragments->stop();
+    }
+
+    public function fragment(string $view, string $name, array $data = []): string
+    {
+        $this->render($view, $data);
+
+        if (!$this->fragments->has($name)) {
+            throw new \RuntimeException("Fragment [{$name}] was not found.");
+        }
+
+        return $this->fragments->get($name);
     }
 }

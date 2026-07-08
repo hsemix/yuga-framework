@@ -7,8 +7,7 @@ class Factory
     public function __construct(
         protected Engine $engine,
         protected Finder $finder
-    ) {
-    }
+    ) {}
 
     public function make(string $view, array $data = []): View
     {
@@ -23,5 +22,12 @@ class Factory
     public function exists(string $view): bool
     {
         return $this->finder->exists($view);
+    }
+
+    public function composer(array|string $views, callable|string $composer): static
+    {
+        $this->engine->composer($views, $composer);
+
+        return $this;
     }
 }
