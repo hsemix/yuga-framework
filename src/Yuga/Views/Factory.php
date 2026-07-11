@@ -30,4 +30,30 @@ class Factory
 
         return $this;
     }
+
+    public function addLocation(string $path): static
+    {
+        $this->finder->addLocation($path);
+
+        return $this;
+    }
+
+    public function addNamespace(string $namespace, string|array $paths): static
+    {
+        $this->finder->addNamespace($namespace, $paths);
+
+        return $this;
+    }
+
+    public function prependNamespace(string $namespace, string $path): static
+    {
+        $this->finder->prependNamespace($namespace, $path);
+
+        return $this;
+    }
+
+    public function finder(): Finder
+    {
+        return $this->finder;
+    }
 }

@@ -11,6 +11,7 @@ use Yuga\Views\Support\ViewComposerManager;
 class Engine
 {
     protected array $componentStack = [];
+    protected int $renderDepth = 0;
 
     public function __construct(
         protected Finder $finder,
@@ -22,10 +23,18 @@ class Engine
 
     public function render(string $view, array $data = []): string
     {
-        $this->sections->flush();
-        $this->fragments->flush();
+        if ($this->renderDepth === 0) {
+            $this->sections->flush();
+            $this->fragments->flush();
+        }
 
-        return $this->renderView($view, $data, true);
+        $this->renderDepth++;
+
+        try {
+            return $this->renderView($view, $data, true);
+        } finally {
+            $this->renderDepth--;
+        }
     }
 
     public function renderPartial(string $view, array $data = []): string
@@ -43,9 +52,20 @@ class Engine
             ? $this->compiler->compile($path)
             : $path;
 
+        // Save and clear the layout so nested renders (e.g. ylc components) don't
+        // inherit the parent's @extends and trigger a spurious layout render.
+        $savedLayout = $this->sections->takeLayout();
+
         $output = $this->evaluate($compiled, $data, $path);
 
-        if ($allowLayout && $layout = $this->sections->layout()) {
+        $layout = $this->sections->takeLayout();
+
+        // Restore the parent layout so the parent's renderView can still pick it up.
+        if ($savedLayout !== null) {
+            $this->sections->extend($savedLayout);
+        }
+
+        if ($allowLayout && $layout !== null) {
             return $this->renderView($layout, $data, false);
         }
 

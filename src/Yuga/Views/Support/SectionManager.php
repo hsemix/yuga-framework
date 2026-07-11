@@ -85,6 +85,14 @@ class SectionManager
         return $this->layout;
     }
 
+    public function takeLayout(): ?string
+    {
+        $layout = $this->layout;
+        $this->layout = null;
+
+        return $layout;
+    }
+
     public function flush(): void
     {
         $this->sections = [];

@@ -104,4 +104,23 @@ trait CompilesComponents
 
         return '[' . implode(', ', $compiled) . ']';
     }
+
+    protected function resolveComponentView(string $component): string
+    {
+        if (str_contains($component, '::')) {
+            [$namespace, $name] = explode('::', $component, 2);
+
+            $name = str_replace(
+                ['.', ':'],
+                '.',
+                $name
+            );
+
+            return "{$namespace}::components.{$name}";
+        }
+
+        $component = str_replace(['.', ':'], '.', $component);
+
+        return "components.{$component}";
+    }
 }

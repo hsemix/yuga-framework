@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Providers;
 
 use Yuga\Interfaces\Application\Application;
@@ -7,7 +8,7 @@ use Yuga\Interfaces\Providers\IServiceProvider;
 abstract class ServiceProvider implements IServiceProvider
 {
     protected $app;
-    
+
     /**
      * The paths that should be published.
      *
@@ -86,7 +87,7 @@ abstract class ServiceProvider implements IServiceProvider
         // give us the Yuga console instance which we will give commands to.
         $events = $this->app['console.events'];
 
-        $events->attach('yuga.start', function($event, $yuga) use ($commands): void {
+        $events->attach('yuga.start', function ($event, $yuga) use ($commands): void {
             $yuga->resolveCommands($commands);
         });
     }
@@ -99,5 +100,13 @@ abstract class ServiceProvider implements IServiceProvider
     public function provides()
     {
         return [];
+    }
+
+    protected function loadViewsFrom(string $path, string $namespace): void
+    {
+        app('view')->addNamespace($namespace, [
+            path("resources/views/vendor/{$namespace}"),
+            $path,
+        ]);
     }
 }
