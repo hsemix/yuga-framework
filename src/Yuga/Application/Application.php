@@ -517,19 +517,21 @@ class Application extends Container implements IApplication, Kernel
         }
 
         // $debug = $this->shouldEnableDebug();
+        if ($this->getDebugEnabled() && $this->getEnvironment() != 'production') {
+            Debugger::enable(Debugger::Development);
+            Debugger::$strictMode = true;
+            // Debugger::$showBar = $debug;
+        }
 
-        Debugger::enable(
-            Debugger::Production,
-            // $this->getDebugEnabled()
-                // ? Debugger::Development
-                // : Debugger::Production,
-            // storage('logs')
-        );
+        if (!$this->getDebugEnabled() && $this->getEnvironment() != 'production') {
+            Debugger::enable(Debugger::Development);
+            
+        }
 
-        // Debugger::$showBar = $debug;
-        Debugger::$strictMode = true;
-
-        // $this->debuggerStarted = true;
+        if ($this->getDebugEnabled() && $this->getEnvironment() == 'production') {
+            Debugger::enable(Debugger::Development, storage('logs'));
+            set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
+        }
 
         return $this;
     }
@@ -731,25 +733,46 @@ class Application extends Container implements IApplication, Kernel
         }
     }
 
-    protected function renderThrowable(\Throwable $e)//: \Psr\Http\Message\ResponseInterface
+    protected function renderThrowable(\Throwable $e): \Psr\Http\Message\ResponseInterface
     {
-        // if ($this->debuggerStarted && class_exists(\Tracy\Debugger::class)) {
-        //     ob_start();
+        if ($this->debuggerStarted == true && class_exists(\Tracy\Debugger::class)) {
+            ob_start();
+
+            Debugger::getBlueScreen()->render($e);
+
+            return new \Nyholm\Psr7\Response(
+                500,
+                ['Content-Type' => 'text/html; charset=UTF-8'],
+                ob_get_clean()
+            );
+        }
+
+        return new \Nyholm\Psr7\Response(
+            500,
+            ['Content-Type' => 'text/html; charset=UTF-8'],
+            $this->renderProductionErrorPage($e)
+        );
+    }
+
+    protected function renderThrowableLater(\Throwable $e)//: \Psr\Http\Message\ResponseInterface
+    {
+        if ($this->debuggerStarted && class_exists(\Tracy\Debugger::class)) {
+            ob_start();
 
             \Tracy\Debugger::getBlueScreen()->render($e);
 
-            // return new \Nyholm\Psr7\Response(
-            //     500,
-            //     ['Content-Type' => 'text/html; charset=UTF-8'],
-            //     ob_get_clean()
-            // );
-        // }
+            return new \Nyholm\Psr7\Response(
+                500,
+                ['Content-Type' => 'text/html; charset=UTF-8'],
+                ob_get_clean()
+            );
+        }
 
-        // return new \Nyholm\Psr7\Response(
-        //     500,
-        //     ['Content-Type' => 'text/html; charset=UTF-8'],
-        //     $this->renderProductionErrorPage($e)
-        // );
+        return new \Nyholm\Psr7\Response(
+            500,
+            ['Content-Type' => 'text/html; charset=UTF-8'],
+            $this->renderProductionErrorPage($e)
+        );
     }
 
     protected function renderProductionErrorPage(\Throwable $e): string
