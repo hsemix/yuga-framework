@@ -4,6 +4,8 @@ namespace Yuga\Views;
 
 class Factory
 {
+    protected array $shared = [];
+
     public function __construct(
         protected Engine $engine,
         protected Finder $finder
@@ -11,7 +13,24 @@ class Factory
 
     public function make(string $view, array $data = []): View
     {
+        $data = array_merge($this->shared, $data);
         return new View($this->engine, $this->finder, $view, $data);
+    }
+
+    public function share(array|string $key, mixed $value = null): static
+    {
+        if (is_array($key)) {
+            $this->shared = array_merge($this->shared, $key);
+        } else {
+            $this->shared[$key] = $value;
+        }
+
+        return $this;
+    }
+
+    public function shared(): array
+    {
+        return $this->shared;
     }
 
     public function render(string $view, array $data = []): string
