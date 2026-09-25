@@ -2,6 +2,8 @@
 
 namespace Yuga\Views;
 
+use Yuga\Views\Compilers\Compiler;
+
 class Factory
 {
     protected array $shared = [];
@@ -74,5 +76,10 @@ class Factory
     public function finder(): Finder
     {
         return $this->finder;
+    }
+
+    public function compiler(): Compiler
+    {
+        return $this->engine->compiler();
     }
 }

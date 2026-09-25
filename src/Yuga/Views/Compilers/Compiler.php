@@ -15,6 +15,7 @@ use Yuga\Views\Compilers\Concerns\CompilesRawPhp;
 use Yuga\Views\Compilers\Concerns\CompilesSlots;
 use Yuga\Views\Compilers\Concerns\CompilesStacks;
 use Yuga\Views\Compilers\Concerns\CompilesStatements;
+use Yuga\Views\Compilers\Support\AttributeParser;
 use Yuga\Views\Support\ViewCache;
 
 class Compiler
@@ -39,13 +40,19 @@ class Compiler
         'components',
         'echos',
         'statements',
+        'extensions',
     ];
 
     protected array $customDirectives = [];
 
+    protected array $extensions = [];
+
     public function __construct(
-        protected ViewCache $cache
-    ) {}
+        protected ViewCache $cache,
+        protected ?AttributeParser $attributeParser = null
+    ) {
+        $this->attributeParser ??= new AttributeParser();
+    }
 
     public function compile(string $sourcePath): string
     {
@@ -93,5 +100,31 @@ class Compiler
             $this->customDirectives[$name],
             $expression
         );
+    }
+
+    public function extend(callable $compiler): static
+    {
+        $this->extensions[] = $compiler;
+
+        return $this;
+    }
+
+    protected function compileExtensions(string $value): string
+    {
+        foreach ($this->extensions as $compiler) {
+            $value = $compiler($value, $this);
+        }
+
+        return $value;
+    }
+
+    public function parseAttributes(string $attributes): array
+    {
+        return $this->attributeParser->parse($attributes);
+    }
+
+    public function compileAttributes(array $attributes): string
+    {
+        return $this->attributeParser->compile($attributes);
     }
 }
