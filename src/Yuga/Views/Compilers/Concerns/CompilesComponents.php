@@ -77,32 +77,9 @@ trait CompilesComponents
 
     protected function parseComponentAttributes(string $attributes): string
     {
-        preg_match_all(
-            '/([:@\w\-\.]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'))?/',
-            $attributes,
-            $matches,
-            PREG_SET_ORDER
+        return $this->compileAttributes(
+            $this->parseAttributes($attributes)
         );
-
-        $compiled = [];
-
-        foreach ($matches as $match) {
-            $name = $match[1];
-
-            $value = $match[2] ?? $match[3] ?? true;
-
-            if (str_starts_with($name, ':')) {
-                $name = substr($name, 1);
-
-                $compiled[] = "'{$name}' => {$value}";
-            } else {
-                $compiled[] = $value === true
-                    ? "'{$name}' => true"
-                    : "'{$name}' => " . var_export($value, true);
-            }
-        }
-
-        return '[' . implode(', ', $compiled) . ']';
     }
 
     protected function resolveComponentView(string $component): string
