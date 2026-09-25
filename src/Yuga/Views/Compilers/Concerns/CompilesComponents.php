@@ -29,13 +29,13 @@ trait CompilesComponents
                     return $matches[0];
                 }
 
-                $component = str_replace(['.', ':'], '/', $matches[1]);
+                $component = $this->resolveComponentView($matches[1]);
 
                 $attributes = $this->parseComponentAttributes(
                     $matches['attributes'] ?? ''
                 );
 
-                return "<?php \$__engine->startComponent('components.{$component}', {$attributes}); echo \$__engine->endComponent(); ?>";
+                return "<?php \$__engine->startComponent('{$component}', {$attributes}); echo \$__engine->endComponent(); ?>";
             },
             $value
         );
@@ -48,13 +48,13 @@ trait CompilesComponents
                     return $matches[0];
                 }
 
-                $component = str_replace(['.', ':'], '/', $matches[1]);
+                $component = $this->resolveComponentView($matches[1]);
 
                 $attributes = $this->parseComponentAttributes(
                     $matches['attributes'] ?? ''
                 );
 
-                return "<?php \$__engine->startComponent('components.{$component}', {$attributes}); ?>";
+                return "<?php \$__engine->startComponent('{$component}', {$attributes}); ?>";
             },
             $value
         );
@@ -87,16 +87,8 @@ trait CompilesComponents
         if (str_contains($component, '::')) {
             [$namespace, $name] = explode('::', $component, 2);
 
-            $name = str_replace(
-                ['.', ':'],
-                '.',
-                $name
-            );
-
             return "{$namespace}::components.{$name}";
         }
-
-        $component = str_replace(['.', ':'], '.', $component);
 
         return "components.{$component}";
     }
