@@ -13,7 +13,7 @@
     "require": {
         "php": "^8.2 || ^8.3 || ^8.4",
         "yuga/runtime": "^1.0",
-        "tracy/tracy": "^2.10",
+        "tracy/tracy": "^2.12",
         "josegonzalez/dotenv": "dev-master",
         "symfony/console": "5.4.x-dev",
         "symfony/process": "^5.3",

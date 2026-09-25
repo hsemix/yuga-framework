@@ -33,7 +33,7 @@ class Application extends Container implements IApplication, Kernel
     const VERSION = '5.0.0';
     const CHARSET_UTF8 = 'UTF-8';
 
-     /**
+    /**
      * Start the mvvm application by defaut
      * <code>$this->getSite()</code> from a ViewModel returns $this->site
      * @var \Yuga\Views\UI\Site
@@ -69,7 +69,7 @@ class Application extends Container implements IApplication, Kernel
      * @var boolean
      */
     protected $debugEnabled = false;
-    
+
     /**
      * The names of the loaded service providers.
      *
@@ -108,17 +108,17 @@ class Application extends Container implements IApplication, Kernel
      * @var string[]
      */
     protected $absoluteCachePathPrefixes = ['/', '\\'];
-    
+
     /**
      * @param string $root
      */
     public function __construct(
-    /**
-     * The base file path of the application so we can install the framework
-     * in a different directory and access it entiry
-     */
-    protected $basePath = null)
-    {
+        /**
+         * The base file path of the application so we can install the framework
+         * in a different directory and access it entiry
+         */
+        protected $basePath = null
+    ) {
         $this->site = new UI;
         $this->charset = static::CHARSET_UTF8;
     }
@@ -131,7 +131,7 @@ class Application extends Container implements IApplication, Kernel
      */
     public function basePath($path = '')
     {
-        return $this->basePath.($path != '' ? DIRECTORY_SEPARATOR.$path : '');
+        return $this->basePath . ($path != '' ? DIRECTORY_SEPARATOR . $path : '');
     }
 
     /**
@@ -142,7 +142,7 @@ class Application extends Container implements IApplication, Kernel
      */
     public function bootPath($path = '')
     {
-        return $this->basePath.DIRECTORY_SEPARATOR.'boot'.($path != '' ? DIRECTORY_SEPARATOR.$path : '');
+        return $this->basePath . DIRECTORY_SEPARATOR . 'boot' . ($path != '' ? DIRECTORY_SEPARATOR . $path : '');
     }
 
     /**
@@ -153,7 +153,7 @@ class Application extends Container implements IApplication, Kernel
      */
     public function configPath($path = '')
     {
-        return $this->basePath.DIRECTORY_SEPARATOR.'config'.($path != '' ? DIRECTORY_SEPARATOR.$path : '');
+        return $this->basePath . DIRECTORY_SEPARATOR . 'config' . ($path != '' ? DIRECTORY_SEPARATOR . $path : '');
     }
 
     /**
@@ -200,8 +200,8 @@ class Application extends Container implements IApplication, Kernel
         }
 
         return Str::startsWith($env, $this->absoluteCachePathPrefixes)
-                ? $env
-                : $this->basePath($env);
+            ? $env
+            : $this->basePath($env);
     }
 
     /**
@@ -212,22 +212,22 @@ class Application extends Container implements IApplication, Kernel
         $this->singleton('config', Config::class);
         $this->config = $this->get('config');
         // load default class alias here
-        $this->setVendorDir($this->basePath.DIRECTORY_SEPARATOR.'vendor');
+        $this->setVendorDir($this->basePath . DIRECTORY_SEPARATOR . 'vendor');
         if (!$this->runningInConsole()) {
-            $this->setDebugEnabled(env('DEBUG_MODE', false)); 
-            $this->initTracy();  
+            $this->setDebugEnabled(env('DEBUG_MODE', false));
+            $this->initTracy();
         }
         $this->registerConfig();
         if ($this->debuggerStarted) {
-            $this['events']->dispatch('on:yuga-tracy');
+            // $this['events']->dispatch('on:yuga-tracy');
         }
         $this->registerBaseBindings($this);
         $this->registerDefaultProviders();
         $this['events']->dispatch('on:app-start');
-        
+
         if (!$this->runningInConsole()) {
             $this->make('session')->delete('errors');
-        }  
+        }
         return $this;
     }
 
@@ -260,13 +260,13 @@ class Application extends Container implements IApplication, Kernel
      */
     protected function registerConfig()
     {
-        
+
         if (!static::$app) {
             static::$app = $this;
         }
 
         $this->registerConfigProviders();
-        
+
         foreach ($this->config->load('config.ServiceProviders')->getAll() as $name => $provider) {
             if (class_exists($provider)) {
                 $this->singleton($name, $provider);
@@ -274,7 +274,7 @@ class Application extends Container implements IApplication, Kernel
                 $this->registerProvider($provider);
             }
         }
-        
+
         if (env('ROUTER_BOOTED', false) && env('ENABLE_MVP_ROUTES', false)) {
             Route::group(['middleware' => 'web', 'namespace' => 'App\Controllers', 'exceptionHandler' => NotFoundHttpExceptionHandler::class], function (): void {
                 $routePrefix = '/' . trim((string) env('PREFIX_MVP_ROUTE', '/'), '/') . '/';
@@ -315,9 +315,9 @@ class Application extends Container implements IApplication, Kernel
         $this->bind(\Yuga\Interfaces\Application\Application::class, self::class);
         $this->bind('vendor_path', $this->vendorDir);
         $this->singleton(PackageManager::class, fn() => new PackageManager(
-            $this->basePath, 
+            $this->basePath,
             env('COMPOSER_VENDOR_DIR', $this->vendorDir),
-            path('config'.DIRECTORY_SEPARATOR.'ServiceProviders.php')
+            path('config' . DIRECTORY_SEPARATOR . 'ServiceProviders.php')
         ));
     }
 
@@ -333,7 +333,7 @@ class Application extends Container implements IApplication, Kernel
     public function setDebugEnabled($bool)
     {
         $bool = Boolean::parse($bool);
-        $this->debug = ($bool === true) ? new Debug() : null;
+        // $this->debug = ($bool === true) ? new Debug() : null;
         $this->debugEnabled = $bool;
 
         return $this;
@@ -394,13 +394,13 @@ class Application extends Container implements IApplication, Kernel
      * @return void
      */
     protected function registerDefaultProviders()
-    {  
+    {
         $this->registerProvider(new ElegantServiceProvider($this));
 
         $this->registerProvider(new LogServiceProvider($this));
 
         $this->registerProvider(new RouteServiceProvider($this));
-        
+
         if ($this->runningInConsole()) {
             $this->registerProvider(new YugaServiceProvider($this));
         }
@@ -456,7 +456,7 @@ class Application extends Container implements IApplication, Kernel
             $this->loadedProviders[] = $provider::class;
             return $this;
         }
-        return null;        
+        return null;
     }
 
     public function getProviders()
@@ -492,6 +492,11 @@ class Application extends Container implements IApplication, Kernel
         return array_key_exists($provider::class, $this->loadedProviders);
     }
 
+    protected function getEnvironment()
+    {
+        return env('APP_ENV', 'local');
+    }
+
     /**
      * Boot Miss Tracy for error debugging and dumping variables
      * 
@@ -501,18 +506,76 @@ class Application extends Container implements IApplication, Kernel
      */
     protected function initTracy()
     {
-        if ($this->getDebugEnabled() === true) {
+        if ($this->debuggerStarted || !class_exists(Debugger::class)) {
+            return $this;
+        }
+
+        $logDir = storage('logs');
+
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0775, true);
+        }
+
+        // $debug = $this->shouldEnableDebug();
+        if ($this->getDebugEnabled() && $this->getEnvironment() != 'production') {
             Debugger::enable(Debugger::Development);
-            $this->debuggerStarted = true;
-        } else {
-            $logDir = storage('logs');
-            if(!is_dir($logDir)) {
-                mkdir($logDir);
-            }
-            // Debugger::enable(Debugger::Production, $logDir);
+            Debugger::$strictMode = true;
+            // Debugger::$showBar = $debug;
+        }
+
+        if (!$this->getDebugEnabled() && $this->getEnvironment() != 'production') {
+            Debugger::enable(Debugger::Development);
+            
+        }
+
+        if ($this->getDebugEnabled() && $this->getEnvironment() == 'production') {
+            Debugger::enable(Debugger::Development, storage('logs'));
             set_error_handler([new LogServiceProvider($this), 'logErrorToFile'], E_ALL);
-        }    
+        }
+
         return $this;
+    }
+
+    protected function shouldEnableDebug(): bool
+    {
+        $environment = $this->environment();
+
+        $default = match ($environment) {
+            'local', 'development', 'dev', 'testing' => true,
+            default => false,
+        };
+
+        $override = env('DEBUG_MODE');
+
+        if ($override !== null) {
+            return Boolean::parse($override);
+        }
+
+        return $default;
+    }
+
+    public function environment(): string
+    {
+        return strtolower(env('APP_ENV', 'production'));
+    }
+
+    public function isProduction(): bool
+    {
+        return $this->environment() === 'production';
+    }
+
+    public function isLocal(): bool
+    {
+        return in_array($this->environment(), [
+            'local',
+            'development',
+            'dev',
+        ], true);
+    }
+
+    public function isDebug(): bool
+    {
+        return $this->debugEnabled;
     }
 
     /**
@@ -526,7 +589,7 @@ class Application extends Container implements IApplication, Kernel
     {
         return $this->charset;
     }
-    
+
     /**
      * Get the Application's Locale setting
      * 
@@ -540,8 +603,8 @@ class Application extends Container implements IApplication, Kernel
     }
 
     /**
-    * @return string $timezone
-    */
+     * @return string $timezone
+     */
     public function getTimezone()
     {
         return $this->timezone;
@@ -644,7 +707,7 @@ class Application extends Container implements IApplication, Kernel
             $router->prepareForRequest($yugaRequest);
         }
 
-        ob_start(); 
+        ob_start();
 
         try {
             $result = $router->routeRequest();
@@ -660,20 +723,19 @@ class Application extends Container implements IApplication, Kernel
             }
 
             return $response;
-
         } catch (\Throwable $e) {
             while (ob_get_level() > 0) {
                 ob_end_clean();
             }
 
-            // throw $e;
-            return $this->renderThrowable($e);
+            throw $e;
+            // return $this->renderThrowable($e);
         }
     }
 
     protected function renderThrowable(\Throwable $e): \Psr\Http\Message\ResponseInterface
     {
-        // if ($this->debuggerStarted == true && class_exists(\Tracy\Debugger::class)) {
+        if ($this->debuggerStarted == true && class_exists(\Tracy\Debugger::class)) {
             ob_start();
 
             Debugger::getBlueScreen()->render($e);
@@ -683,9 +745,352 @@ class Application extends Container implements IApplication, Kernel
                 ['Content-Type' => 'text/html; charset=UTF-8'],
                 ob_get_clean()
             );
-        // }
+        }
 
-        // throw $e;
+        return new \Nyholm\Psr7\Response(
+            500,
+            ['Content-Type' => 'text/html; charset=UTF-8'],
+            $this->renderProductionErrorPage($e)
+        );
+    }
+
+    protected function renderThrowableLater(\Throwable $e)//: \Psr\Http\Message\ResponseInterface
+    {
+        if ($this->debuggerStarted && class_exists(\Tracy\Debugger::class)) {
+            ob_start();
+
+            \Tracy\Debugger::getBlueScreen()->render($e);
+
+            return new \Nyholm\Psr7\Response(
+                500,
+                ['Content-Type' => 'text/html; charset=UTF-8'],
+                ob_get_clean()
+            );
+        }
+
+        return new \Nyholm\Psr7\Response(
+            500,
+            ['Content-Type' => 'text/html; charset=UTF-8'],
+            $this->renderProductionErrorPage($e)
+        );
+    }
+
+    protected function renderProductionErrorPage(\Throwable $e): string
+    {
+        $status = $this->determineStatusCode($e);
+
+        $view = path("resources/views/errors/{$status}.hax.php");
+
+        if (!file_exists($view)) {
+            $view = path("resources/views/errors/default.hax.php");
+        }
+
+        if (file_exists($view)) {
+
+            $title = match ($status) {
+                404 => 'Page Not Found',
+                403 => 'Forbidden',
+                401 => 'Unauthorized',
+                419 => 'Page Expired',
+                default => 'Server Error',
+            };
+
+            $message = match ($status) {
+                404 => 'The page you requested could not be found.',
+                403 => 'You are not allowed to access this page.',
+                401 => 'Authentication is required.',
+                419 => 'Your session has expired.',
+                default => 'Something went wrong while processing your request.',
+            };
+
+            ob_start();
+
+            include $view;
+
+            return ob_get_clean();
+        }
+
+        return $this->defaultErrorPage($status);
+    }
+
+    protected function defaultErrorPage(int $status = 500): string
+    {
+        $title = match ($status) {
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            403 => 'Forbidden',
+            404 => 'Page Not Found',
+            419 => 'Page Expired',
+            429 => 'Too Many Requests',
+            503 => 'Service Unavailable',
+            default => 'Server Error',
+        };
+
+        $message = match ($status) {
+            400 => 'The request could not be understood by the server.',
+            401 => 'You need to be authenticated to access this page.',
+            403 => 'You do not have permission to access this page.',
+            404 => 'The page you are looking for could not be found.',
+            419 => 'Your session has expired. Please refresh and try again.',
+            429 => 'Too many requests have been sent. Please slow down and try again.',
+            503 => 'The service is temporarily unavailable. Please try again shortly.',
+            default => 'Something went wrong while processing your request.',
+        };
+
+        return <<<HTML
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>{$status} - {$title}</title>
+
+                <style>
+                    :root {
+                        color-scheme: light dark;
+                        --bg: #f8fafc;
+                        --card: #ffffff;
+                        --text: #0f172a;
+                        --muted: #64748b;
+                        --border: #e2e8f0;
+                        --primary: #2563eb;
+                        --primary-dark: #1d4ed8;
+                        --code-bg: #eff6ff;
+                    }
+
+                    @media (prefers-color-scheme: dark) {
+                        :root {
+                            --bg: #020617;
+                            --card: #0f172a;
+                            --text: #f8fafc;
+                            --muted: #94a3b8;
+                            --border: #1e293b;
+                            --primary: #60a5fa;
+                            --primary-dark: #3b82f6;
+                            --code-bg: #172554;
+                        }
+                    }
+
+                    * {
+                        box-sizing: border-box;
+                    }
+
+                    body {
+                        margin: 0;
+                        min-height: 100vh;
+                        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                        background:
+                            radial-gradient(circle at top left, rgba(37, 99, 235, .14), transparent 34rem),
+                            radial-gradient(circle at bottom right, rgba(99, 102, 241, .12), transparent 28rem),
+                            var(--bg);
+                        color: var(--text);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 24px;
+                    }
+
+                    .yuga-error {
+                        width: 100%;
+                        max-width: 760px;
+                    }
+
+                    .card {
+                        background: color-mix(in srgb, var(--card) 94%, transparent);
+                        border: 1px solid var(--border);
+                        border-radius: 28px;
+                        padding: 44px;
+                        box-shadow: 0 24px 80px rgba(15, 23, 42, .12);
+                        backdrop-filter: blur(12px);
+                    }
+
+                    .brand {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 10px;
+                        color: var(--muted);
+                        font-size: 14px;
+                        font-weight: 700;
+                        letter-spacing: .04em;
+                        text-transform: uppercase;
+                        margin-bottom: 34px;
+                    }
+
+                    .brand-mark {
+                        width: 34px;
+                        height: 34px;
+                        border-radius: 11px;
+                        background: linear-gradient(135deg, var(--primary), #7c3aed);
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: #ffffff;
+                        font-weight: 900;
+                    }
+
+                    .status {
+                        display: inline-flex;
+                        align-items: center;
+                        border-radius: 999px;
+                        background: var(--code-bg);
+                        color: var(--primary);
+                        font-size: 15px;
+                        font-weight: 800;
+                        padding: 8px 14px;
+                        margin-bottom: 18px;
+                    }
+
+                    h1 {
+                        font-size: clamp(36px, 6vw, 64px);
+                        line-height: 1;
+                        margin: 0 0 18px;
+                        letter-spacing: -0.05em;
+                    }
+
+                    p {
+                        margin: 0;
+                        color: var(--muted);
+                        font-size: 17px;
+                        line-height: 1.7;
+                        max-width: 580px;
+                    }
+
+                    .actions {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 14px;
+                        margin-top: 34px;
+                    }
+
+                    .btn {
+                        appearance: none;
+                        border: 0;
+                        border-radius: 14px;
+                        padding: 13px 18px;
+                        font-size: 15px;
+                        font-weight: 800;
+                        text-decoration: none;
+                        cursor: pointer;
+                        transition: transform .15s ease, background .15s ease, border-color .15s ease;
+                    }
+
+                    .btn:hover {
+                        transform: translateY(-1px);
+                    }
+
+                    .btn-primary {
+                        background: var(--primary);
+                        color: #ffffff;
+                    }
+
+                    .btn-primary:hover {
+                        background: var(--primary-dark);
+                    }
+
+                    .btn-secondary {
+                        background: transparent;
+                        color: var(--text);
+                        border: 1px solid var(--border);
+                    }
+
+                    .footer {
+                        margin-top: 22px;
+                        color: var(--muted);
+                        font-size: 13px;
+                        text-align: center;
+                    }
+
+                    .footer strong {
+                        color: var(--text);
+                    }
+
+                    @media (max-width: 600px) {
+                        .card {
+                            padding: 30px 24px;
+                            border-radius: 22px;
+                        }
+
+                        .actions {
+                            flex-direction: column;
+                        }
+
+                        .btn {
+                            width: 100%;
+                            text-align: center;
+                        }
+                    }
+                </style>
+            </head>
+
+            <body>
+                <main class="yuga-error">
+                    <section class="card">
+                        <div class="brand">
+                            <!-- <span class="brand-mark">Y</span> -->
+                            <span>Yuga Framework</span>
+                        </div>
+
+                        <div class="status">Error {$status}</div>
+
+                        <h1>{$title}</h1>
+
+                        <p>{$message}</p>
+
+                        <div class="actions">
+                            <a href="/" class="btn btn-primary">Go Home</a>
+                            <button onclick="window.location.reload()" class="btn btn-secondary">Reload Page</button>
+                        </div>
+                    </section>
+
+                    <div class="footer">
+                        Powered by <strong>Yuga Framework</strong>
+                    </div>
+                </main>
+            </body>
+            </html>
+        HTML;
+    }
+
+    protected function determineStatusCode(\Throwable $e): int
+    {
+        // HTTP exceptions
+        if ($e instanceof HttpExceptionInterface) {
+            return $e->getStatusCode();
+        }
+
+        // Your framework's HTTP exception base class
+        if ($e instanceof \Yuga\Http\Exceptions\HttpException) {
+            return $e->getStatusCode();
+        }
+
+        // Validation
+        if ($e instanceof \Yuga\Validation\ValidationException) {
+            return 422;
+        }
+
+        // Authentication
+        if ($e instanceof \Yuga\Auth\Exceptions\AuthenticationException) {
+            return 401;
+        }
+
+        // Authorization
+        if ($e instanceof \Yuga\Auth\Exceptions\AuthorizationException) {
+            return 403;
+        }
+
+        // Route not found
+        if ($e instanceof \Yuga\Route\Exceptions\NotFoundHttpException) {
+            return 404;
+        }
+
+        // Generic exception code if it's a valid HTTP code
+        $code = (int) $e->getCode();
+
+        if ($code >= 400 && $code <= 599) {
+            return $code;
+        }
+
+        return 500;
     }
 
     public function terminateRequest(ServerRequestInterface $request, ResponseInterface $response): void
@@ -696,7 +1101,7 @@ class Application extends Container implements IApplication, Kernel
 
         gc_collect_cycles();
     }
-    
+
     /**
      * Shutdown the application
      */

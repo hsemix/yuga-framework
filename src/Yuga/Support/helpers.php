@@ -7,12 +7,27 @@ use Yuga\Support\Str;
 use Yuga\Queue\Jobs\ClosureJob;
 use Yuga\Database\Elegant\Collection;
 use Yuga\Interfaces\Queue\JobDispatcherInterface;
+
 /**
  * @author Mahad Tech Solutions
  */
 
-if (! function_exists('view')) {
-    function view(?string $viewName = null, array $data = [])
+if (!function_exists('view')) {
+    function view(string $view, array $data = []): \Yuga\Views\View
+    {
+        return app('view')->make($view, $data);
+    }
+}
+
+if (!function_exists('fragment')) {
+    function fragment(string $view, string $name, array $data = []): string
+    {
+        return view($view, $data)->fragment($name)->render();
+    }
+}
+
+if (! function_exists('view_old')) {
+    function view_old(?string $viewName = null, array $data = [])
     {
         if ($viewName) {
             if ($viewName instanceof \Yuga\View\ViewModel) {
@@ -22,9 +37,9 @@ if (! function_exists('view')) {
             return new \Yuga\Views\View($viewName, $data);
         } else {
             // Magically find the view
-            $trace = debug_backtrace(); 
-            
-            $inspector = $trace[1]; 
+            $trace = debug_backtrace();
+
+            $inspector = $trace[1];
             $method = $inspector['function'];
             $methodLower = strtolower($method);
             $classPath = explode('\\', $inspector['class']);
@@ -43,7 +58,7 @@ if (! function_exists('view')) {
 if (! function_exists('viewModel')) {
     function viewModel(\Yuga\View\ViewModel $viewModel)
     {
-        echo($viewModel);
+        echo ($viewModel);
     }
 }
 
@@ -151,54 +166,54 @@ if (! function_exists('value')) {
     }
 }
 
-if(!function_exists('resource')) {
-    function resource($value ="")
+if (!function_exists('resource')) {
+    function resource($value = "")
     {
-        return '/'.response()->getOrSetVars()->resource.$value;
+        return '/' . response()->getOrSetVars()->resource . $value;
     }
 }
 
 if (!function_exists('resources')) {
     function resources($file = '')
     {
-        return path('resources/'. $file);
+        return path('resources/' . $file);
     }
 }
 
 
 
-if(!function_exists('host')) {
+if (!function_exists('host')) {
     function host($value = "", $includeHost = true)
     {
         $host = '';
         if ($includeHost) {
             if (!is_null(request()->processHost())) {
                 if (request()->getServer() != request()->gethost()) {
-                    $host = '/'.ltrim((string) $value, '/');
+                    $host = '/' . ltrim((string) $value, '/');
                 } elseif (str_contains(request()->processHost(), '/public')) {
                     $host = scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim((string) $value, '/'));
                 } else {
-                    $host = scheme(request()->getServer(). '/' . ltrim((string) $value, '/'));
-                } 
+                    $host = scheme(request()->getServer() . '/' . ltrim((string) $value, '/'));
+                }
             } else {
                 $host = scheme(request()->getHost() . '/' . ltrim((string) $value, '/'));
             }
         } else {
-            $host = '/'.ltrim((string) $value, '/');
+            $host = '/' . ltrim((string) $value, '/');
         }
-        
+
         return $host;
     }
 }
 
-if(!function_exists('resource')) {
-    function resource($value ="")
+if (!function_exists('resource')) {
+    function resource($value = "")
     {
-        return '/'.response()->getOrSetVars()->resource.$value;
+        return '/' . response()->getOrSetVars()->resource . $value;
     }
 }
 
-if(!function_exists('env')) {
+if (!function_exists('env')) {
     function env($key, $default = null)
     {
         if (isset($_ENV[$key])) {
@@ -217,11 +232,11 @@ if (!function_exists('app')) {
             } else {
                 return \Yuga\Application\Application::getInstance()->make($param);
             }
-        }            
+        }
         return \Yuga\Application\Application::getInstance();
     }
 }
-if(!function_exists('route')) {
+if (!function_exists('route')) {
     function route($name = null, $parameters = null, $getParams = null)
     {
         $route = Route::getUrl($name, $parameters, $getParams);
@@ -229,10 +244,10 @@ if(!function_exists('route')) {
             if (str_contains((string) request()->getHost(), ':')) {
                 $route = rtrim((string) Route::getUrl($name, $parameters, $getParams), '/');
                 if (str_contains((string) request()->getUri(true), 'public')) {
-                    $route = rtrim(request()->processHost().ltrim((string) Route::getUrl($name, $parameters, $getParams), '/'), '/');
+                    $route = rtrim(request()->processHost() . ltrim((string) Route::getUrl($name, $parameters, $getParams), '/'), '/');
                 }
             } elseif (str_contains(request()->processHost(), '/public')) {
-                $route = rtrim(request()->processHost().ltrim((string) Route::getUrl($name, $parameters, $getParams), '/'), '/');
+                $route = rtrim(request()->processHost() . ltrim((string) Route::getUrl($name, $parameters, $getParams), '/'), '/');
             } else {
                 $route = rtrim((string) Route::getUrl($name, $parameters, $getParams), '/');
             }
@@ -242,9 +257,9 @@ if(!function_exists('route')) {
 }
 
 /**
-* @return \Yuga\Http\Response
-*/
-if(!function_exists('response')) {
+ * @return \Yuga\Http\Response
+ */
+if (!function_exists('response')) {
     function response()
     {
         return Route::response();
@@ -252,9 +267,9 @@ if(!function_exists('response')) {
 }
 
 /**
-* @return \Yuga\Http\Request
-*/
-if(!function_exists('request')) {
+ * @return \Yuga\Http\Request
+ */
+if (!function_exists('request')) {
     function request()
     {
         return Route::request();
@@ -262,45 +277,45 @@ if(!function_exists('request')) {
 }
 
 /**
-* Get input class
-* @return \Yuga\Http\Input\Input
-*/
-if(!function_exists('input')) {
+ * Get input class
+ * @return \Yuga\Http\Input\Input
+ */
+if (!function_exists('input')) {
     function input()
     {
         return request()->getInput();
     }
 }
 
-if(!function_exists('redirect')) {
+if (!function_exists('redirect')) {
     function redirect($url = null, $code = 302)
     {
         if ($code !== null) {
             response()->httpCode($code);
         }
-        
+
         return response()->redirect($url);
 
         // return new \Yuga\Http\Redirect(request())->setPath($url);
     }
 }
 
-if(!function_exists('full_host')) {
-    function full_host($value ="")
+if (!function_exists('full_host')) {
+    function full_host($value = "")
     {
         return host($value);
     }
 }
 
-if(!function_exists('scheme')) {
+if (!function_exists('scheme')) {
     function scheme($value = null)
     {
         $scheme = $_SERVER['REQUEST_SCHEME'] ?? 'http';
-        return $scheme .'://'.$value;
+        return $scheme . '://' . $value;
     }
 }
 
-if(!function_exists('assets')) {
+if (!function_exists('assets')) {
     function assets($value = "")
     {
         // echo request()->getHeader('http-host');
@@ -310,42 +325,40 @@ if(!function_exists('assets')) {
                 if (str_contains((string) request()->getUri(true), 'public')) {
                     return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim((string) $value, '/'));
                 }
-                return '/'.ltrim((string) $value, '/');
+                return '/' . ltrim((string) $value, '/');
             } elseif (str_contains(request()->processHost(), '/public')) {
                 return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim((string) $value, '/'));
             } else {
-                return scheme(request()->getServer(). '/' . ltrim((string) $value, '/'));
-            } 
+                return scheme(request()->getServer() . '/' . ltrim((string) $value, '/'));
+            }
         } else {
             return scheme(request()->getHost() . '/' . ltrim((string) $value, '/'));
         }
     }
 }
 
-if(!function_exists('asset')) {
+if (!function_exists('asset')) {
     function asset($value = "")
     {
-        return scheme(request()->getHost().'/'.$value);
+        return scheme(request()->getHost() . '/' . $value);
     }
 }
 
-if(!function_exists('slug')) {
+if (!function_exists('slug')) {
     function slug($key, $separator = '-')
     {
         return \Yuga\Support\Str::slug($key, $separator);
     }
 }
 
-if(!function_exists('array_get')) {
+if (!function_exists('array_get')) {
     function array_get($array, $key, $default = null)
     {
         if (is_null($key)) {
             return $array;
         }
-        foreach (explode('.', $key) as $segment)
-        {
-            if ( ! is_array($array) || ! array_key_exists($segment, $array))
-            {
+        foreach (explode('.', $key) as $segment) {
+            if (! is_array($array) || ! array_key_exists($segment, $array)) {
                 return value($default);
             }
 
@@ -364,7 +377,7 @@ if (!function_exists('path')) {
 }
 
 if (!function_exists('storage')) {
-    function storage($path = null) 
+    function storage($path = null)
     {
         return path('storage' . DIRECTORY_SEPARATOR . $path);
     }
@@ -388,12 +401,12 @@ if (!function_exists('css')) {
         $css = '';
         if (is_array($styles)) {
             foreach ($styles as $style) {
-                $css .= "<link href=\"".assets($style)."\" rel=\"stylesheet\">\n";
+                $css .= "<link href=\"" . assets($style) . "\" rel=\"stylesheet\">\n";
             }
         } else {
-            $css .= "<link href=\"".assets($styles)."\" rel=\"stylesheet\">\n";
+            $css .= "<link href=\"" . assets($styles) . "\" rel=\"stylesheet\">\n";
         }
-        
+
         return $css;
     }
 }
@@ -404,10 +417,10 @@ if (!function_exists('script')) {
         $js = '';
         if (is_array($scripts)) {
             foreach ($scripts as $script) {
-                $js .= "<script type=\"text/javascript\" src=\"".assets($script)."\"></script>\n";
+                $js .= "<script type=\"text/javascript\" src=\"" . assets($script) . "\"></script>\n";
             }
         } else {
-            $js .= "<script type=\"text/javascript\" src=\"".assets($scripts)."\"></script>\n";
+            $js .= "<script type=\"text/javascript\" src=\"" . assets($scripts) . "\"></script>\n";
         }
 
         return $js;
@@ -417,7 +430,7 @@ if (!function_exists('script')) {
 if (!function_exists('token')) {
     function token()
     {
-        return '<input type="hidden" name="_token" value="'. csrf_token() .'">';
+        return '<input type="hidden" name="_token" value="' . csrf_token() . '">';
     }
 }
 
@@ -452,52 +465,52 @@ if (!function_exists('old')) {
  * @param   string   $selector
  * @return  Element
  */
-function jq($selector) 
+function jq($selector)
 {
     return Yuga\View\Client\Jquery::addQuery($selector);
 }
 
-if ( ! function_exists('get_mimes')) {
-	/**
-	 * Returns the MIME types array from config/mimes.php
-	 *
-	 * @return	array
-	 */
-	function &get_mimes()
-	{
-		static $mimes;
+if (! function_exists('get_mimes')) {
+    /**
+     * Returns the MIME types array from config/mimes.php
+     *
+     * @return	array
+     */
+    function &get_mimes()
+    {
+        static $mimes;
 
-		if (empty($mimes)) {
-			$mimes = file_exists('mimes.php') ? require __DIR__ . '/mimes.php' : [];
-		}
+        if (empty($mimes)) {
+            $mimes = file_exists('mimes.php') ? require __DIR__ . '/mimes.php' : [];
+        }
 
-		return $mimes;
-	}
+        return $mimes;
+    }
 }
 
 
-if ( ! function_exists('event')) {
-	/**
-	 * Returns the event object
-	 *
-	 * @return	array
-	 */
-	function event($eventName = "yuga.auto.events", $params = [])
-	{
-		return app()->get('events')->trigger($eventName, $params);
-	}
+if (! function_exists('event')) {
+    /**
+     * Returns the event object
+     *
+     * @return	array
+     */
+    function event($eventName = "yuga.auto.events", $params = [])
+    {
+        return app()->get('events')->trigger($eventName, $params);
+    }
 }
 
-if ( ! function_exists('jsonResponse')) {
-	/**
-	 * Returns json response
-	 *
-	 * @return	array
-	 */
-	function jsonResponse(array $data = [])
-	{
-		return response()->jsonResponse($data);
-	}
+if (! function_exists('jsonResponse')) {
+    /**
+     * Returns json response
+     *
+     * @return	array
+     */
+    function jsonResponse(array $data = [])
+    {
+        return response()->jsonResponse($data);
+    }
 }
 
 if (!function_exists('e')) {
@@ -597,8 +610,7 @@ if (!function_exists('with')) {
     }
 }
 
-if (!function_exists('dispatch'))
-{
+if (!function_exists('dispatch')) {
     /**
      * Dispatch a job to its appropriate handler.
      *
@@ -631,7 +643,7 @@ if (!function_exists('async')) {
      * @return mixed
      */
     function async($callable)
-    {   
+    {
         if (is_callable($callable)) {
             $main = new \Fiber($callable);
             $main->start();
@@ -640,7 +652,6 @@ if (!function_exists('async')) {
         } else {
             throw new Exception("'$callable' is not a callable");
         }
-        
     }
 }
 
@@ -651,7 +662,7 @@ if (!function_exists('suspend')) {
      * @return mixed
      */
     function suspend()
-    {   
+    {
         return \Fiber::suspend();
     }
 }
@@ -663,7 +674,7 @@ if (!function_exists('awaitable')) {
      * @return mixed
      */
     function awaitable()
-    {   
+    {
         return suspend();
     }
 }
@@ -675,12 +686,12 @@ if (!function_exists('await')) {
      * @return mixed
      */
     function await($operation)
-    {   
+    {
         if (!$operation instanceof \Fiber) {
             $operation = async(fn() => $operation);
         }
 
-        return Async::await($operation);     
+        return Async::await($operation);
     }
 }
 
@@ -688,23 +699,23 @@ if (!function_exists('trans')) {
     /**
      * Translates a string into a language
      */
-    function translate($text, $language = 'en') 
+    function translate($text, $language = 'en')
     {
         // Attempt to load the exact language file first
         $lang_file = __DIR__ . "/lang/{$language}.php";
-        
+
         // If the exact language file does not exist, try the base language (e.g., en for en-US)
         if (!file_exists($lang_file)) {
             $base_language = substr((string) $language, 0, 2);
             $lang_file = __DIR__ . "/lang/{$base_language}.php";
         }
-        
+
         // Load the translation file if it exists
         if (file_exists($lang_file)) {
             $translations = include($lang_file);
             return $translations[$text] ?? $text;
         }
-        
+
         // Return the original text if no translation is found
         return $text;
     }
@@ -716,8 +727,7 @@ if (!function_exists('trans')) {
  * @param Closure $callback
  * @param array $data
  */
-if (! function_exists('queue'))
-{
+if (! function_exists('queue')) {
     function queue(Closure $callback, $data = [])
     {
         return ClosureJob::dispatch($callback, $data);

@@ -1,162 +1,98 @@
 <?php
-/**
- * @author Mahad Tech Solutions
- */
+
 namespace Yuga\Views;
 
-use Yuga\App;
 use Yuga\Support\Str;
 
 class View
 {
-	protected $viewFile;
-	protected $viewEngine;
+    protected array $data = [];
+    protected ?string $fragmentName = null;
 
-	/**
-	 * Get the yuga-view-engine instance
-	 * 
-	 * @param string $view 
-	 * @param array|null $data
-	 */
-	public function __construct($view = null, ?array $data = null)
-	{
-		$this->viewEngine = App::make('view');
-		$view = $this->processViewPath($view);
+    public function __construct(
+        protected Engine $engine,
+        protected Finder $finder,
+        protected string $view,
+        array $data = []
+    ) {
+        $this->data = $data;
+    }
 
-		$this->viewFile = $view;
+    public function with(array|string $key, mixed $value = null): static
+    {
+        if (is_array($key)) {
+            $this->data = array_merge($this->data, $key);
+        } else {
+            $this->data[$key] = $value;
+        }
 
-		if ($data) {
-			$this->with($data);
-		}
-	}
+        return $this;
+    }
 
-	protected function processViewPath($path = null)
-	{
-		if ($path)
-			return str_replace(".", "/", $path);
-	}
-
-	/**
-	 * Render the view to the user
-	 * 
-	 * @param null
-	 * 
-	 * @return string
-	 */
-	public function __toString()
-	{
-		$obLevel = ob_get_level();
-		try {
-			return $this->viewEngine->display($this->viewFile);
-		} catch (\Throwable $e) {
-			return $this->handleViewException($e, $obLevel);
-		}
-	}
-
-	protected function processHaxRuntime()
-	{
-		$root = str_replace("./", "", $this->viewEngine->getTemplateDirectory());
-
-		$haxFile = str_replace("/", DIRECTORY_SEPARATOR, $root) . $this->viewFile . ".hax.php";
-		if (file_exists($haxFile))
-			return $haxFile;
-		return false;
-	}
-
-	/**
-	 * Pass data to the view and bind it to variables
-	 * 
-	 * @param array|[] $data
-	 * 
-	 * @return static
-	 */
-	public function with($data = null, $value = null)
-	{
-		if (is_array($data)) {
-			foreach ($data as $var => $value) {
-				$this->viewEngine->$var = $value;	
-			}
-		} else {
-			$this->viewEngine->$data = $value;
-		}
-		return $this;
-	}
-
-	public function shares($key, $value)
+    public function shares(string $key, mixed $value): static
     {
         return $this->with($key, $value);
     }
 
-	/**
-	 * Get the first view that exists in the array and render that instead
-	 * 
-	 * @param array|null
-	 * 
-	 * @return static
-	 */
-	public function first(?array $views = null)
-	{
-		if ($views) {
-			foreach ($views as $view) {
-				if (file_exists(path('resources/views/' . $this->processViewPath($view). '.hax.php'))) {
-					$this->viewFile = $view;
-					break;
-				} elseif (file_exists(path('resources/views/' . $this->processViewPath($view). '.php'))) {
-					$this->viewFile = $view;
-					break;
-				}
-			}
-		}
-		return $this;
-	}
-
-	public static function exists(string $view)
-	{
-		if (file_exists(path('resources/views/' . str_replace(".", "/", $view) . '.hax.php'))) {
-			return true;
-		} elseif (file_exists(path('resources/views/' . str_replace(".", "/", $view) . '.php'))) {
-			return true;
-		}
-
-		return false;
-	}
-
-	public static function make(string $view, array $data = [])
-	{
-		return new static($view, $data);
-	}
-
-	public function __call($method, $parameters)
-	{
-        if (preg_match('/^with(.+)$/', $method, $matches)) {
-			$decamelized = Str::deCamelize($matches[1]);
-			$camelized = Str::camelize($decamelized);
-			return $this->with($camelized, $parameters[0]);
-        }
-		return call_user_func_array([$this->viewEngine, $method], $parameters);
-	}
-
-	protected function handleViewException($e, $obLevel)
+    public function first(?array $views = null): static
     {
-        while (ob_get_level() > $obLevel) {
-            ob_end_clean();
+        if (!$views) {
+            return $this;
         }
 
-        throw $e;
+        foreach ($views as $view) {
+            if ($this->finder->exists($view)) {
+                $this->view = $view;
+                break;
+            }
+        }
+
+        return $this;
     }
 
-	/**
-	 * return this view as a string
-	 * 
-	 * @return string
-	 */
-	public function asString()
-	{
-		ob_start();
-        $this->__toString();
-        $string = ob_get_contents();
-        ob_end_clean();
+    public function fragment(string $name): static
+    {
+        $this->fragmentName = $name;
 
-		return $string;
-	}
+        return $this;
+    }
+
+    public function render(): string
+    {
+        if ($this->fragmentName) {
+            return $this->engine->fragment(
+                $this->view,
+                $this->fragmentName,
+                $this->data
+            );
+        }
+
+        return $this->engine->render($this->view, $this->data);
+    }
+
+    public function asString(): string
+    {
+        return $this->render();
+    }
+
+    public function __toString(): string
+    {
+        try {
+            return $this->render();
+        } catch (\Throwable $e) {
+            throw $e;
+        }
+    }
+
+    public function __call(string $method, array $parameters): mixed
+    {
+        if (preg_match('/^with(.+)$/', $method, $matches)) {
+            $decamelized = Str::deCamelize($matches[1]);
+            $camelized = Str::camelize($decamelized);
+
+            return $this->with($camelized, $parameters[0] ?? null);
+        }
+
+        throw new \BadMethodCallException("Method [{$method}] does not exist.");
+    }
 }
