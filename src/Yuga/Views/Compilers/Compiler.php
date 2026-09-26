@@ -63,7 +63,7 @@ class Compiler
                 file_get_contents($sourcePath)
             );
 
-            $compiled = "<?php /** YUGA_VIEW_PATH: {$sourcePath} */ ?>\n" . $compiled;
+            $compiled = "<?php /** YUGA_VIEW_PATH: {$sourcePath} */ ?>" . $compiled;
 
             file_put_contents($compiledPath, $compiled);
         }

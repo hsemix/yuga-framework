@@ -86,12 +86,14 @@ class Engine
 
         extract($data, EXTR_SKIP);
 
+        $bufferLevel = ob_get_level();
+
         ob_start();
 
         try {
             include $path;
         } catch (\Throwable $e) {
-            while (ob_get_level() > 0) {
+            while (ob_get_level() > $bufferLevel) {
                 ob_end_clean();
             }
 
