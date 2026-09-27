@@ -40,7 +40,10 @@ trait CompilesComponents
                     $matches['attributes'] ?? ''
                 );
 
-                $compiled = "<?php \$__engine->startComponent('{$component}', {$attributes}); echo \$__engine->endComponent(); ?>";
+                $compiled =
+                    "<?php \$__engine->startComponent(" .
+                    "'{$component}', {$attributes}, __LINE__" .
+                    "); ?>";
 
                 return $this->preserveSourceNewlines(
                     $matches[0],
@@ -64,7 +67,8 @@ trait CompilesComponents
                     $matches['attributes'] ?? ''
                 );
 
-                $compiled = "<?php \$__engine->startComponent('{$component}', {$attributes}); ?>";
+
+                $compiled = "<?php \$__engine->startComponent(" . "'{$component}', {$attributes}, __LINE__" . "); ?>";
 
                 return $this->preserveSourceNewlines(
                     $matches[0],

@@ -47,11 +47,18 @@ class Compiler
 
     protected array $extensions = [];
 
+    protected ?string $sourcePath = null;
+
     public function __construct(
         protected ViewCache $cache,
         protected ?AttributeParser $attributeParser = null
     ) {
         $this->attributeParser ??= new AttributeParser();
+    }
+
+    public function sourcePath(): ?string
+    {
+        return $this->sourcePath;
     }
 
     public function compile(string $sourcePath): string

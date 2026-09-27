@@ -11,7 +11,10 @@ use Yuga\Views\Support\ViewComposerManager;
 class Engine
 {
     protected array $componentStack = [];
+
     protected int $renderDepth = 0;
+
+    protected array $viewStack = [];
 
     public function __construct(
         protected Finder $finder,
@@ -88,6 +91,8 @@ class Engine
 
         $bufferLevel = ob_get_level();
 
+        $this->viewStack[] = $viewPath ?? $path;
+
         ob_start();
 
         try {
@@ -107,18 +112,32 @@ class Engine
                 $e,
                 $this->componentTrace()
             );
+        } finally {
+            array_pop($this->viewStack);
         }
 
         return ob_get_clean();
     }
 
-    public function startComponent(string $view, array $data = []): void
+    public function currentView(): ?string
+    {
+        if ($this->viewStack === []) {
+            return null;
+        }
+
+        return $this->viewStack[array_key_last($this->viewStack)];
+    }
+
+    public function startComponent(string $view, array $data = [], ?int $line = null): void
     {
         $this->componentStack[] = [
             'view' => $view,
             'data' => $data,
             'slots' => [],
             'slotStack' => [],
+
+            'source' => $this->currentView(),
+            'line' => $line,
         ];
 
         ob_start();
@@ -193,6 +212,8 @@ class Engine
         return array_map(
             static fn(array $component) => [
                 'view' => $component['view'],
+                'source' => $component['source'] ?? null,
+                'line' => $component['line'] ?? null,
             ],
             $this->componentStack
         );
