@@ -521,11 +521,17 @@ class Application extends Container implements IApplication, Kernel
             Debugger::enable(Debugger::Development);
             Debugger::$strictMode = true;
             // Debugger::$showBar = $debug;
+
+            Debugger::getBlueScreen()->addPanel(
+                new \Yuga\Views\Tracy\HaxViewPanel()
+            );
         }
 
         if (!$this->getDebugEnabled() && $this->getEnvironment() != 'production') {
             Debugger::enable(Debugger::Development);
-            
+            Debugger::getBlueScreen()->addPanel(
+                new \Yuga\Views\Tracy\HaxViewPanel()
+            );
         }
 
         if ($this->getDebugEnabled() && $this->getEnvironment() == 'production') {
