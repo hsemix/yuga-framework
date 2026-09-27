@@ -12,7 +12,8 @@ class ViewException extends RuntimeException
     public function __construct(
         protected string $viewPath,
         protected string $compiledPath,
-        Throwable $previous
+        Throwable $previous,
+        protected array $componentTrace = []
     ) {
         $this->viewLine = $this->resolveViewLine($previous);
 
@@ -39,7 +40,12 @@ class ViewException extends RuntimeException
         return $this->viewLine;
     }
 
-    protected function resolveViewLine(\Throwable $previous): int
+    public function componentTrace(): array
+    {
+        return $this->componentTrace;
+    }
+
+    protected function resolveViewLine(Throwable $previous): int
     {
         if ($previous->getFile() === $this->compiledPath) {
             return $previous->getLine();

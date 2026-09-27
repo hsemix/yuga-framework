@@ -58,13 +58,33 @@ class HaxViewPanel
                     '<code>%s</code>' .
                     '</div>',
                 $active ? ' yuga-hax-line-active' : '',
-                $active ? '›' : '',
+                $active ? '->' : '',
                 $number,
                 $this->escape($source)
             );
         }
 
         $html .= '</div>';
+
+        $trace = $exception->componentTrace();
+
+        if ($trace !== []) {
+            $html .= '<div class="yuga-hax-components">';
+            $html .= '<strong>Component stack</strong>';
+            $html .= '<ol>';
+
+            foreach ($trace as $component) {
+                $html .= sprintf(
+                    '<li><code>&lt;x-%s&gt;</code></li>',
+                    $this->escape(
+                        $this->componentName($component['view'])
+                    )
+                );
+            }
+
+            $html .= '</ol>';
+            $html .= '</div>';
+        }
 
         $html .= <<<'HTML'
             <style>
@@ -122,5 +142,18 @@ class HaxViewPanel
             ENT_QUOTES | ENT_SUBSTITUTE,
             'UTF-8'
         );
+    }
+
+    protected function componentName(string $view): string
+    {
+        if (str_starts_with($view, 'components.')) {
+            return substr($view, strlen('components.'));
+        }
+
+        if (str_contains($view, '::components.')) {
+            return str_replace('::components.', '::', $view);
+        }
+
+        return $view;
     }
 }

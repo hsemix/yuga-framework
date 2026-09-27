@@ -97,10 +97,15 @@ class Engine
                 ob_end_clean();
             }
 
+            if ($e instanceof ViewException) {
+                throw $e;
+            }
+
             throw new ViewException(
                 $viewPath ?? $path,
                 $path,
-                $e
+                $e,
+                $this->componentTrace()
             );
         }
 
@@ -152,27 +157,44 @@ class Engine
     public function endComponent(): string
     {
         if (empty($this->componentStack)) {
-            throw new \RuntimeException('Cannot end component that was not started.');
+            throw new \RuntimeException(
+                'Cannot end component that was not started.'
+            );
         }
 
         $slot = ob_get_clean();
 
-        $component = array_pop($this->componentStack);
+        $index = count($this->componentStack) - 1;
+        $component = $this->componentStack[$index];
 
         $attributes = $component['data'];
 
-        return $this->renderPartial(
-            $component['view'],
-            array_merge(
-                $component['slots'],
-                $attributes,
-                [
-                    'slot' => $slot,
-                    'attributes' => new \Yuga\Views\Support\ComponentAttributeBag(
-                        $attributes
-                    ),
-                ]
-            )
+        try {
+            return $this->renderPartial(
+                $component['view'],
+                array_merge(
+                    $component['slots'],
+                    $attributes,
+                    [
+                        'slot' => $slot,
+                        'attributes' => new \Yuga\Views\Support\ComponentAttributeBag(
+                            $attributes
+                        ),
+                    ]
+                )
+            );
+        } finally {
+            array_pop($this->componentStack);
+        }
+    }
+
+    public function componentTrace(): array
+    {
+        return array_map(
+            static fn(array $component) => [
+                'view' => $component['view'],
+            ],
+            $this->componentStack
         );
     }
 
