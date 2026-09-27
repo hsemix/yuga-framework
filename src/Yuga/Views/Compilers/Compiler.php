@@ -75,41 +75,20 @@ class Compiler
     {
         foreach ($this->compilers as $compiler) {
             $method = 'compile' . ucfirst($compiler);
-
-            $before = substr_count($value, "\n");
-
             $value = $this->{$method}($value);
+        }
 
-            $after = substr_count($value, "\n");
+        $position = strpos($value, '$user');
 
-            if ($before !== $after) {
-                throw new \RuntimeException(
-                    sprintf(
-                        'Hax compiler [%s] changed line count from %d to %d (%+d).',
-                        $compiler,
-                        $before + 1,
-                        $after + 1,
-                        $after - $before
-                    )
-                );
-            }
+        if ($position !== false) {
+            $line = substr_count(
+                substr($value, 0, $position),
+                "\n"
+            ) + 1;
 
-            $position = strpos($value, '->profile()');
-
-            if ($position !== false) {
-                $line = substr_count(
-                    substr($value, 0, $position),
-                    "\n"
-                ) + 1;
-
-                error_log(
-                    sprintf(
-                        '[HAX] After %-10s profile() is on line %d',
-                        $compiler,
-                        $line
-                    )
-                );
-            }
+            dd([
+                'compiled_user_line' => $line,
+            ]);
         }
 
         return $value;
