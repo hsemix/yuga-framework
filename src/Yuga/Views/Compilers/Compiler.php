@@ -93,6 +93,23 @@ class Compiler
                     )
                 );
             }
+
+            $position = strpos($value, '->profile()');
+
+            if ($position !== false) {
+                $line = substr_count(
+                    substr($value, 0, $position),
+                    "\n"
+                ) + 1;
+
+                error_log(
+                    sprintf(
+                        '[HAX] After %-10s profile() is on line %d',
+                        $compiler,
+                        $line
+                    )
+                );
+            }
         }
 
         return $value;
