@@ -7,7 +7,7 @@ class AttributeParser
     public function parse(string $attributes): array
     {
         preg_match_all(
-            '/([:@\w\-\.]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'))?/',
+            '/(\s*)([:@\w\-\.]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'))?/',
             $attributes,
             $matches,
             PREG_SET_ORDER
@@ -16,8 +16,12 @@ class AttributeParser
         $parsed = [];
 
         foreach ($matches as $match) {
-            $name = $match[1];
-            $value = $match[2] ?? $match[3] ?? true;
+            $whitespace = $match[1] ?? '';
+            $name = $match[2];
+            $value = $match[3] !== ''
+                ? $match[3]
+                : ($match[4] !== '' ? $match[4] : true);
+
             $bound = str_starts_with($name, ':');
 
             if ($bound) {
@@ -28,6 +32,7 @@ class AttributeParser
                 'name' => $name,
                 'value' => $value,
                 'bound' => $bound,
+                'whitespace' => $whitespace,
             ];
         }
 
@@ -36,28 +41,36 @@ class AttributeParser
 
     public function compile(array $attributes): string
     {
-        $compiled = [];
+        $compiled = '[';
 
-        foreach ($attributes as $attribute) {
+        foreach ($attributes as $index => $attribute) {
             $name = $attribute['name'];
             $value = $attribute['value'];
             $bound = $attribute['bound'];
+            $whitespace = $attribute['whitespace'] ?? '';
 
-            if ($bound) {
-                $compiled[] = var_export($name, true)
-                    . ' => '
-                    . $value;
+            // We care about source lines, not indentation.
+            $newlines = substr_count($whitespace, "\n");
 
-                continue;
+            if ($newlines > 0) {
+                $compiled .= str_repeat("\n", $newlines);
+            } elseif ($index > 0) {
+                $compiled .= ' ';
             }
 
-            $compiled[] = $value === true
-                ? var_export($name, true) . ' => true'
-                : var_export($name, true)
-                    . ' => '
-                    . var_export($value, true);
+            $compiled .= var_export($name, true) . ' => ';
+
+            if ($bound) {
+                $compiled .= $value;
+            } else {
+                $compiled .= $value === true
+                    ? 'true'
+                    : var_export($value, true);
+            }
+
+            $compiled .= ',';
         }
 
-        return '[' . implode(', ', $compiled) . ']';
+        return $compiled . ']';
     }
 }
