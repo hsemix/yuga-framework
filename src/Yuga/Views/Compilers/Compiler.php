@@ -16,6 +16,7 @@ use Yuga\Views\Compilers\Concerns\CompilesSlots;
 use Yuga\Views\Compilers\Concerns\CompilesStacks;
 use Yuga\Views\Compilers\Concerns\CompilesStatements;
 use Yuga\Views\Compilers\Support\AttributeParser;
+use Yuga\Views\Compilers\Support\ComponentTagParser;
 use Yuga\Views\Support\ViewCache;
 
 class Compiler
@@ -51,9 +52,11 @@ class Compiler
 
     public function __construct(
         protected ViewCache $cache,
-        protected ?AttributeParser $attributeParser = null
+        protected ?AttributeParser $attributeParser = null,
+        protected ?ComponentTagParser $componentTagParser = null
     ) {
         $this->attributeParser ??= new AttributeParser();
+        $this->componentTagParser ??= new ComponentTagParser();
     }
 
     public function sourcePath(): ?string
@@ -144,5 +147,10 @@ class Compiler
         }
 
         return $replacement;
+    }
+
+    public function parseComponentTags(string $value): array
+    {
+        return $this->componentTagParser->parse($value);
     }
 }

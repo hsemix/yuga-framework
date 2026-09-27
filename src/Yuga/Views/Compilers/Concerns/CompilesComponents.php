@@ -6,7 +6,7 @@ trait CompilesComponents
 {
     protected function compileComponents(string $value): string
     {
-        // Named component slots first
+        // Named slots first.
         $value = preg_replace_callback(
             '/<x-slot:([\w\-]+)>/',
             function ($matches) {
@@ -26,55 +26,10 @@ trait CompilesComponents
             $value
         );
 
-        // Self-closing component tags
-        $value = preg_replace_callback(
-            '/<x-([\w\-\.:]+)\s*(?<attributes>[^>]*)\/>/',
-            function ($matches) {
-                if (str_starts_with($matches[1], 'slot:')) {
-                    return $matches[0];
-                }
+        // Opening and self-closing component tags.
+        $value = $this->compileComponentTags($value);
 
-                $component = $this->resolveComponentView($matches[1]);
-
-                $attributes = $this->parseComponentAttributes(
-                    $matches['attributes'] ?? ''
-                );
-
-                $compiled = "<?php \$__engine->startComponent('{$component}', {$attributes}, __LINE__); echo \$__engine->endComponent(); ?>";
-
-                return $this->preserveSourceNewlines(
-                    $matches[0],
-                    $compiled
-                );
-            },
-            $value
-        );
-
-        // Opening component tags
-        $value = preg_replace_callback(
-            '/<x-([\w\-\.:]+)\s*(?<attributes>[^>]*)>/',
-            function ($matches) {
-                if (str_starts_with($matches[1], 'slot:')) {
-                    return $matches[0];
-                }
-
-                $component = $this->resolveComponentView($matches[1]);
-
-                $attributes = $this->parseComponentAttributes(
-                    $matches['attributes'] ?? ''
-                );
-
-                $compiled = "<?php \$__engine->startComponent('{$component}', {$attributes}, __LINE__); ?>";
-
-                return $this->preserveSourceNewlines(
-                    $matches[0],
-                    $compiled
-                );
-            },
-            $value
-        );
-
-        // Closing component tags, but NOT x-slot tags
+        // Closing component tags.
         $value = preg_replace_callback(
             '/<\/x-([\w\-\.:]+)>/',
             function ($matches) {
@@ -106,5 +61,49 @@ trait CompilesComponents
         }
 
         return "components.{$component}";
+    }
+
+    protected function compileComponentTags(string $value): string
+    {
+        $tags = $this->parseComponentTags($value);
+
+        // Let's work backwards so replacing one tag doesn't invalidate
+        // offsets belonging to tags later in the template.
+        foreach (array_reverse($tags) as $tag) {
+            $component = $this->resolveComponentView(
+                $tag['name']
+            );
+
+            $attributes = $this->parseComponentAttributes(
+                $tag['attributes']
+            );
+
+            if ($tag['selfClosing']) {
+                $compiled =
+                    "<?php \$__engine->startComponent(" .
+                    "'{$component}', {$attributes}, __LINE__" .
+                    "); echo \$__engine->endComponent(); ?>";
+            } else {
+                $compiled =
+                    "<?php \$__engine->startComponent(" .
+                    "'{$component}', {$attributes}, __LINE__" .
+                    "); ?>";
+            }
+
+            $compiled = $this->preserveSourceNewlines(
+                $tag['raw'],
+                $compiled
+            );
+
+            $value =
+                substr($value, 0, $tag['offset']) .
+                $compiled .
+                substr(
+                    $value,
+                    $tag['offset'] + $tag['length']
+                );
+        }
+
+        return $value;
     }
 }
