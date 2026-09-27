@@ -19,9 +19,14 @@ trait CompilesEchos
         return preg_replace_callback(
             '/\{\{\s*(.+?)\s*\}\}/s',
             function ($matches) {
-                return '<?= htmlspecialchars((string)(' .
+                $compiled = '<?= htmlspecialchars((string)(' .
                     $this->compileEchoDefaults($matches[1]) .
                     '), ENT_QUOTES, "UTF-8") ?>';
+
+                return $this->preserveNewlines(
+                    $matches[0],
+                    $compiled
+                );
             },
             $value
         );

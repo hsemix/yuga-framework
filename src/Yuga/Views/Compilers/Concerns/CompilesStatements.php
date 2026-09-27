@@ -14,14 +14,27 @@ trait CompilesStatements
                 $expression = $match[3] ?? '';
 
                 if ($this->hasCustomDirective($name)) {
-                    return $this->compileCustomDirective($name, $expression);
+                    $compiled = $this->compileCustomDirective(
+                        $name,
+                        $expression
+                    );
+
+                    return $this->preserveNewlines(
+                        $match[0],
+                        $compiled
+                    );
                 }
 
                 if (!method_exists($this, $method)) {
                     return $match[0];
                 }
 
-                return $this->{$method}($expression);
+                $compiled = $this->{$method}($expression);
+
+                return $this->preserveNewlines(
+                    $match[0],
+                    $compiled
+                );
             },
             $value
         );

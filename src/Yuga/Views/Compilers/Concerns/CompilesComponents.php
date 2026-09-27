@@ -10,7 +10,12 @@ trait CompilesComponents
         $value = preg_replace_callback(
             '/<x-slot:([\w\-]+)>/',
             function ($matches) {
-                return "<?php \$__engine->startComponentSlot('{$matches[1]}'); ?>";
+                $compiled = "<?php \$__engine->startComponentSlot('{$matches[1]}'); ?>";
+
+                return $this->preserveNewlines(
+                    $matches[0],
+                    $compiled
+                );
             },
             $value
         );
@@ -35,7 +40,12 @@ trait CompilesComponents
                     $matches['attributes'] ?? ''
                 );
 
-                return "<?php \$__engine->startComponent('{$component}', {$attributes}); echo \$__engine->endComponent(); ?>";
+                $compiled = "<?php \$__engine->startComponent('{$component}', {$attributes}); echo \$__engine->endComponent(); ?>";
+
+                return $this->preserveNewlines(
+                    $matches[0],
+                    $compiled
+                );
             },
             $value
         );
@@ -54,7 +64,12 @@ trait CompilesComponents
                     $matches['attributes'] ?? ''
                 );
 
-                return "<?php \$__engine->startComponent('{$component}', {$attributes}); ?>";
+                $compiled = "<?php \$__engine->startComponent('{$component}', {$attributes}); ?>";
+
+                return $this->preserveNewlines(
+                    $matches[0],
+                    $compiled
+                );
             },
             $value
         );

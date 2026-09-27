@@ -127,4 +127,30 @@ class Compiler
     {
         return $this->attributeParser->compile($attributes);
     }
+
+    protected function preserveNewlines(string $source, string $replacement): string
+    {
+        $sourceNewlines = substr_count($source, "\n");
+        $replacementNewlines = substr_count($replacement, "\n");
+
+        if ($replacementNewlines < $sourceNewlines) {
+            $replacement .= str_repeat(
+                "\n",
+                $sourceNewlines - $replacementNewlines
+            );
+        }
+
+        return $replacement;
+    }
+
+    protected function preserveSourceNewlines(string $source, string $replacement): string 
+    {
+        $missing = substr_count($source, "\n") - substr_count($replacement, "\n");
+
+        if ($missing > 0) {
+            $replacement .= str_repeat("\n", $missing);
+        }
+
+        return $replacement;
+    }
 }

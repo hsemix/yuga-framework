@@ -8,7 +8,14 @@ trait CompilesFragments
     {
         $value = preg_replace_callback(
             '/<fragment\s+name=["\']([^"\']+)["\']\s*>/',
-            fn ($matches) => "<?php \$__engine->startFragment('{$matches[1]}'); ?>",
+            function ($matches) {
+                $compiled = "<?php \$__engine->startFragment('{$matches[1]}'); ?>";
+
+                return $this->preserveNewlines(
+                    $matches[0],
+                    $compiled
+                );
+            },
             $value
         );
 
