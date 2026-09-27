@@ -14,7 +14,7 @@ class HaxViewPanel
         }
 
         return [
-            'tab' => 'Hax View',
+            'tab' => 'Hax Source',
             'panel' => $this->render($exception),
         ];
     }
@@ -37,41 +37,79 @@ class HaxViewPanel
         $start = max(1, $line - 6);
         $end = min(count($lines), $line + 6);
 
-        $html = '<div class="tracy-inner">';
-        $html .= '<h2>Hax View</h2>';
+        $html = '<div class="tracy-inner yuga-hax-view">';
 
         $html .= sprintf(
-            '<p><code>%s:%d</code></p>',
+            '<p class="yuga-hax-location"><strong>File:</strong> <code>%s:%d</code></p>',
             $this->escape($path),
             $line
         );
 
-        $html .= '<pre>';
+        $html .= '<div class="yuga-hax-source">';
 
         for ($number = $start; $number <= $end; $number++) {
-            $source = rtrim(
-                $lines[$number - 1],
-                "\r\n"
-            );
-
-            if ($number === $line) {
-                $html .= sprintf(
-                    '<strong>&gt; %4d | %s</strong>' . "\n",
-                    $number,
-                    $this->escape($source)
-                );
-
-                continue;
-            }
+            $source = rtrim($lines[$number - 1], "\r\n");
+            $active = $number === $line;
 
             $html .= sprintf(
-                '  %4d | %s' . "\n",
+                '<div class="yuga-hax-line%s">' .
+                    '<span class="yuga-hax-marker">%s</span>' .
+                    '<span class="yuga-hax-number">%d</span>' .
+                    '<code>%s</code>' .
+                    '</div>',
+                $active ? ' yuga-hax-line-active' : '',
+                $active ? '›' : '',
                 $number,
                 $this->escape($source)
             );
         }
 
-        $html .= '</pre>';
+        $html .= '</div>';
+
+        $html .= <<<'HTML'
+            <style>
+            .yuga-hax-location {
+                margin: 0 0 12px;
+            }
+
+            .yuga-hax-source {
+                overflow-x: auto;
+                font-family: monospace;
+                line-height: 1.6;
+            }
+
+            .yuga-hax-line {
+                display: grid;
+                grid-template-columns: 20px 45px minmax(0, 1fr);
+                white-space: pre;
+            }
+
+            .yuga-hax-marker {
+                text-align: center;
+            }
+
+            .yuga-hax-number {
+                padding-right: 12px;
+                text-align: right;
+                user-select: none;
+                opacity: .55;
+            }
+
+            .yuga-hax-line code {
+                white-space: pre;
+                background: transparent;
+            }
+
+            .yuga-hax-line-active {
+                font-weight: bold;
+            }
+
+            .yuga-hax-line-active .yuga-hax-marker {
+                font-weight: bold;
+            }
+            </style>
+        HTML;
+
         $html .= '</div>';
 
         return $html;
