@@ -11,7 +11,7 @@ trait CompilesFragments
             function ($matches) {
                 $compiled = "<?php \$__engine->startFragment('{$matches[1]}'); ?>";
 
-                return $this->preserveNewlines(
+                return $this->preserveSourceNewlines(
                     $matches[0],
                     $compiled
                 );

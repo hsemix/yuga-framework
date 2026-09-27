@@ -19,7 +19,7 @@ trait CompilesStatements
                         $expression
                     );
 
-                    return $this->preserveNewlines(
+                    return $this->preserveSourceNewlines(
                         $match[0],
                         $compiled
                     );
@@ -31,7 +31,7 @@ trait CompilesStatements
 
                 $compiled = $this->{$method}($expression);
 
-                return $this->preserveNewlines(
+                return $this->preserveSourceNewlines(
                     $match[0],
                     $compiled
                 );

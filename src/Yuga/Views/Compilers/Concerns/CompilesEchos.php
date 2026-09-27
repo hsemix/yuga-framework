@@ -6,8 +6,9 @@ trait CompilesEchos
 {
     protected function compileEchos(string $value): string
     {
+        // Raw echos
         $value = preg_replace_callback(
-            '/\{!!\s*(.+?)\s*!!\}/s',
+            '/\{!!(.+?)!!\}/s',
             function ($matches) {
                 return '<?= ' .
                     $this->compileEchoDefaults($matches[1]) .
@@ -16,17 +17,13 @@ trait CompilesEchos
             $value
         );
 
+        // Escaped echos
         return preg_replace_callback(
-            '/\{\{\s*(.+?)\s*\}\}/s',
+            '/\{\{(.+?)\}\}/s',
             function ($matches) {
-                $compiled = '<?= htmlspecialchars((string)(' .
+                return '<?= htmlspecialchars((string)(' .
                     $this->compileEchoDefaults($matches[1]) .
                     '), ENT_QUOTES, "UTF-8") ?>';
-
-                return $this->preserveNewlines(
-                    $matches[0],
-                    $compiled
-                );
             },
             $value
         );
@@ -35,8 +32,8 @@ trait CompilesEchos
     protected function compileEchoDefaults(string $value): string
     {
         return preg_replace(
-            '/^(?=\$)(.+?)(?:\s+or\s+)(.+?)$/s',
-            'isset($1) ? $1 : $2',
+            '/^(\s*)(?=\$)(.+?)(?:\s+or\s+)(.+?)(\s*)$/s',
+            '$1isset($2) ? $2 : $3$4',
             $value
         );
     }

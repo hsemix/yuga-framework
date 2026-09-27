@@ -12,7 +12,7 @@ trait CompilesComponents
             function ($matches) {
                 $compiled = "<?php \$__engine->startComponentSlot('{$matches[1]}'); ?>";
 
-                return $this->preserveNewlines(
+                return $this->preserveSourceNewlines(
                     $matches[0],
                     $compiled
                 );
@@ -42,7 +42,7 @@ trait CompilesComponents
 
                 $compiled = "<?php \$__engine->startComponent('{$component}', {$attributes}); echo \$__engine->endComponent(); ?>";
 
-                return $this->preserveNewlines(
+                return $this->preserveSourceNewlines(
                     $matches[0],
                     $compiled
                 );
@@ -66,7 +66,7 @@ trait CompilesComponents
 
                 $compiled = "<?php \$__engine->startComponent('{$component}', {$attributes}); ?>";
 
-                return $this->preserveNewlines(
+                return $this->preserveSourceNewlines(
                     $matches[0],
                     $compiled
                 );
