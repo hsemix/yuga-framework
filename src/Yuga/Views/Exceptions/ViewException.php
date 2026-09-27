@@ -39,7 +39,7 @@ class ViewException extends RuntimeException
         return $this->viewLine;
     }
 
-    protected function resolveViewLine(Throwable $previous): int
+    protected function resolveViewLine(\Throwable $previous): int
     {
         if ($previous->getFile() === $this->compiledPath) {
             return $previous->getLine();
@@ -47,7 +47,7 @@ class ViewException extends RuntimeException
 
         foreach ($previous->getTrace() as $frame) {
             if (($frame['file'] ?? null) === $this->compiledPath) {
-                return (int) $frame['line'];
+                return (int) ($frame['line'] ?? $previous->getLine());
             }
         }
 

@@ -76,7 +76,23 @@ class Compiler
         foreach ($this->compilers as $compiler) {
             $method = 'compile' . ucfirst($compiler);
 
+            $before = substr_count($value, "\n");
+
             $value = $this->{$method}($value);
+
+            $after = substr_count($value, "\n");
+
+            if ($before !== $after) {
+                throw new \RuntimeException(
+                    sprintf(
+                        'Hax compiler [%s] changed line count from %d to %d (%+d).',
+                        $compiler,
+                        $before + 1,
+                        $after + 1,
+                        $after - $before
+                    )
+                );
+            }
         }
 
         return $value;
@@ -128,22 +144,7 @@ class Compiler
         return $this->attributeParser->compile($attributes);
     }
 
-    protected function preserveNewlines(string $source, string $replacement): string
-    {
-        $sourceNewlines = substr_count($source, "\n");
-        $replacementNewlines = substr_count($replacement, "\n");
-
-        if ($replacementNewlines < $sourceNewlines) {
-            $replacement .= str_repeat(
-                "\n",
-                $sourceNewlines - $replacementNewlines
-            );
-        }
-
-        return $replacement;
-    }
-
-    protected function preserveSourceNewlines(string $source, string $replacement): string 
+    protected function preserveSourceNewlines(string $source, string $replacement): string
     {
         $missing = substr_count($source, "\n") - substr_count($replacement, "\n");
 
