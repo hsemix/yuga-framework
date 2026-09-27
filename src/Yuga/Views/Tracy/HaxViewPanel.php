@@ -176,7 +176,7 @@ class HaxViewPanel
         $depth = count($trace);
 
         $html .= sprintf(
-            '<div style="margin-left:%dpx">%s:%d <strong>← error</strong></div>',
+            '<div style="margin-left:%dpx">%s:%d <strong><- error</strong></div>',
             $depth * 20,
             $this->escape(
                 $this->shortenPath($exception->viewPath())
