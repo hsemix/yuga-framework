@@ -90,8 +90,9 @@ class Engine
         extract($data, EXTR_SKIP);
 
         $bufferLevel = ob_get_level();
+        $currentView = $viewPath ?? $path;
 
-        $this->viewStack[] = $viewPath ?? $path;
+        $this->viewStack[] = $currentView;
 
         ob_start();
 
@@ -107,7 +108,7 @@ class Engine
             }
 
             throw new ViewException(
-                $viewPath ?? $path,
+                $currentView,
                 $path,
                 $e,
                 $this->componentTrace()
@@ -143,36 +144,6 @@ class Engine
         ob_start();
     }
 
-    public function startComponentSlot(string $name): void
-    {
-        $index = count($this->componentStack) - 1;
-
-        if ($index < 0) {
-            throw new \RuntimeException('Cannot start a component slot outside a component.');
-        }
-
-        $this->componentStack[$index]['slotStack'][] = $name;
-
-        ob_start();
-    }
-
-    public function endComponentSlot(): void
-    {
-        $index = count($this->componentStack) - 1;
-
-        if ($index < 0) {
-            throw new \RuntimeException('Cannot end a component slot outside a component.');
-        }
-
-        $name = array_pop($this->componentStack[$index]['slotStack']);
-
-        if (!$name) {
-            throw new \RuntimeException('Cannot end component slot that was not started.');
-        }
-
-        $this->componentStack[$index]['slots'][$name] = ob_get_clean();
-    }
-
     public function endComponent(): string
     {
         if (empty($this->componentStack)) {
@@ -205,6 +176,36 @@ class Engine
         } finally {
             array_pop($this->componentStack);
         }
+    }
+
+    public function startComponentSlot(string $name): void
+    {
+        $index = count($this->componentStack) - 1;
+
+        if ($index < 0) {
+            throw new \RuntimeException('Cannot start a component slot outside a component.');
+        }
+
+        $this->componentStack[$index]['slotStack'][] = $name;
+
+        ob_start();
+    }
+
+    public function endComponentSlot(): void
+    {
+        $index = count($this->componentStack) - 1;
+
+        if ($index < 0) {
+            throw new \RuntimeException('Cannot end a component slot outside a component.');
+        }
+
+        $name = array_pop($this->componentStack[$index]['slotStack']);
+
+        if (!$name) {
+            throw new \RuntimeException('Cannot end component slot that was not started.');
+        }
+
+        $this->componentStack[$index]['slots'][$name] = ob_get_clean();
     }
 
     public function componentTrace(): array

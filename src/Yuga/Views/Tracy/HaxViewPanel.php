@@ -74,12 +74,29 @@ class HaxViewPanel
             $html .= '<ol>';
 
             foreach ($trace as $component) {
+                $html .= '<li>';
+
                 $html .= sprintf(
-                    '<li><code>&lt;x-%s&gt;</code></li>',
+                    '<code>&lt;x-%s&gt;</code>',
                     $this->escape(
                         $this->componentName($component['view'])
                     )
                 );
+
+                if (!empty($component['source'])) {
+                    $location = $component['source'];
+
+                    if (!empty($component['line'])) {
+                        $location .= ':' . $component['line'];
+                    }
+
+                    $html .= sprintf(
+                        '<div class="yuga-hax-component-location">%s</div>',
+                        $this->escape($location)
+                    );
+                }
+
+                $html .= '</li>';
             }
 
             $html .= '</ol>';
@@ -126,6 +143,21 @@ class HaxViewPanel
 
             .yuga-hax-line-active .yuga-hax-marker {
                 font-weight: bold;
+            }
+
+            .yuga-hax-component-location {
+                margin-top: 3px;
+                opacity: .65;
+                font-family: monospace;
+                font-size: .9em;
+            }
+
+            .yuga-hax-components {
+                margin-top: 18px;
+            }
+
+            .yuga-hax-components ol {
+                margin-bottom: 0;
             }
             </style>
         HTML;
