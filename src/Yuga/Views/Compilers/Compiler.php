@@ -73,44 +73,11 @@ class Compiler
 
     public function compileString(string $value): string
     {
-        $debug = [];
-
         foreach ($this->compilers as $compiler) {
             $method = 'compile' . ucfirst($compiler);
 
             $value = $this->{$method}($value);
-
-            $profilePosition = strpos($value, '->profile()');
-
-            if ($profilePosition === false) {
-                continue;
-            }
-
-            $beforeProfile = substr(
-                $value,
-                0,
-                $profilePosition
-            );
-
-            $userPosition = strrpos(
-                $beforeProfile,
-                '$user'
-            );
-
-            $debug[$compiler] = [
-                'user' => substr_count(
-                    substr($value, 0, $userPosition),
-                    "\n"
-                ) + 1,
-
-                'profile' => substr_count(
-                    substr($value, 0, $profilePosition),
-                    "\n"
-                ) + 1,
-            ];
         }
-
-        dd($debug);
 
         return $value;
     }
