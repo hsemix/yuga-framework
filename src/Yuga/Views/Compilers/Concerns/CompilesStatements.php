@@ -39,4 +39,13 @@ trait CompilesStatements
             $value
         );
     }
+
+    protected function compileProps(string $expression): string
+    {
+        return "<?php extract("
+            . "\$__engine->resolveComponentProps("
+            . $expression
+            . ", get_defined_vars()"
+            . "), EXTR_OVERWRITE); ?>";
+    }
 }

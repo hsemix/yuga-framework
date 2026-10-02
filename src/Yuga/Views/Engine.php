@@ -4,7 +4,9 @@ namespace Yuga\Views;
 
 use Yuga\Views\Compilers\Compiler;
 use Yuga\Views\Exceptions\ViewException;
+use Yuga\Views\Support\ComponentAttributeBag;
 use Yuga\Views\Support\FragmentManager;
+use Yuga\Views\Support\RequiredProp;
 use Yuga\Views\Support\SectionManager;
 use Yuga\Views\Support\ViewComposerManager;
 
@@ -244,5 +246,49 @@ class Engine
         }
 
         return $this->fragments->get($name);
+    }
+
+    public function resolveComponentProps(array $definitions, array $scope): array
+    {
+        $resolved = [];
+        $propNames = [];
+
+        foreach ($definitions as $key => $value) {
+            if (is_int($key)) {
+                $name = $value;
+                $default = null;
+            } else {
+                $name = $key;
+                $default = $value;
+            }
+
+            $propNames[] = $name;
+
+            $resolved[$name] = array_key_exists($name, $scope)
+                ? $scope[$name]
+                : $default;
+
+            if ($default instanceof RequiredProp) {
+                if (!array_key_exists($name, $scope)) {
+                    throw new \InvalidArgumentException(
+                        "Required component prop [{$name}] was not provided."
+                    );
+                }
+
+                $resolved[$name] = $scope[$name];
+
+                continue;
+            }
+        }
+
+        $attributes = $scope['attributes'] ?? null;
+
+        if ($attributes instanceof ComponentAttributeBag) {
+            $resolved['attributes'] = $attributes->except(
+                $propNames
+            );
+        }
+
+        return $resolved;
     }
 }
