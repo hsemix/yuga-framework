@@ -1,42 +1,48 @@
-<?php 
+<?php
+
+declare(strict_types=1);
 
 namespace Yuga\Queue\Console;
 
-use Yuga\Console\CLI;
-use Yuga\Console\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
+use Yuga\Queue\Contracts\FailedJobTransportInterface;
 
-/**
- * Queue Table creation.
- */
-class MakeQueueRetryCommand extends Command
+class MakeQueueRetryCommand extends FailedJobCommand
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
 	protected $name = 'queue:retry';
-    
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Retries a failed queue job';
 
+	protected $description = 'Retry one failed queue job.';
 
-	/**
-	 * Creates a queue table
-	 */
-	public function handle()
+	protected function perform(
+		FailedJobTransportInterface $transport
+	): int {
+		$retried = $transport->retryFailed(
+			(string) $this->argument('failure-id'),
+			$this->integerOption('delay', 0)
+		);
+
+		$this->output->writeln(
+			$retried
+				? 'Failed job returned to the queue.'
+				: 'Job not found or no longer failed.'
+		);
+
+		return $retried ? self::SUCCESS : self::FAILURE;
+	}
+
+	protected function getArguments()
 	{
-		$cli = new CLI;
-        $cli->writeLine('Resetting Failed Jobs Queue...', 'yellow');
+		return [
+			['failure-id', InputArgument::REQUIRED, 'Failure ID from queue:failed'],
+		];
+	}
 
-        $queue = $this->yuga['queue'];
-
-		$queue->reset();
-
-		$cli->writeLine('Completed Resetting Failed Jobs the queue can now retry them', 'green');
+	protected function getOptions()
+	{
+		return [
+			['connection', null, InputOption::VALUE_REQUIRED, 'Connection name'],
+			['delay', null, InputOption::VALUE_REQUIRED, 'Retry delay in seconds', 0],
+		];
 	}
 }

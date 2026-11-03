@@ -1,112 +1,178 @@
-<?php 
+<?php
+
+declare(strict_types=1);
 
 namespace Yuga\Queue\Console;
 
-use Yuga\Console\Command;
+use InvalidArgumentException;
 use Nette\PhpGenerator\PhpFile;
+use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
+use Yuga\Console\Command;
+use Yuga\Interfaces\Queue\JobInterface;
+use Yuga\Interfaces\Queue\ShouldQueueInterface;
+use Yuga\Queue\Attributes\QueueJob;
+use Yuga\Queue\DispatchableTrait;
 
-/**
- * Queue Table creation.
- */
 class MakeQueueJobCommand extends Command
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
-	protected $name = 'make:job';
-    
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Creates a new Job class';
+    protected $name = 'make:job';
 
-	/**
-	 * Jobs Dir
-	 * 
-	 * @var string
-	 */
-	protected $path = 'app/Jobs';
+    protected $description = 'Create a queueable PHP job class.';
 
-	/**
-	 * Creates a queue table
-	 */
+    protected $path = 'app/Jobs';
+
     public function handle()
     {
-        $name = $this->argument('name');
+        try {
+            $name = str_replace(
+                '\\',
+                '/',
+                trim((string) $this->argument('name'))
+            );
 
-        $this->createDirectories();
-        $this->processJobCreation($name);
-        $this->info('Job Created Successfully.');
+            $parts = explode('/', $name);
+
+            foreach ($parts as $part) {
+                if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $part)) {
+                    throw new InvalidArgumentException(
+                        'Use a class name or nested name such as Reports/GenerateReport.'
+                    );
+                }
+            }
+
+            $className = array_pop($parts);
+
+            $namespace = trim(
+                (string) env('APP_NAMESPACE', 'App'),
+                '\\'
+            ) . '\\Jobs';
+
+            if ($parts !== []) {
+                $namespace .= '\\' . implode('\\', $parts);
+            }
+
+            // Generate first: invalid PHP identifiers must not create files.
+            $contents = $this->generateJob($namespace, $className);
+
+            $target = path($this->path . '/' . $name . '.php');
+            $directory = dirname($target);
+
+            if (
+                !is_dir($directory)
+                && !mkdir($directory, 0775, true)
+                && !is_dir($directory)
+            ) {
+                throw new RuntimeException(
+                    'Could not create the jobs directory.'
+                );
+            }
+
+            // Exclusive creation prevents overwriting an existing job.
+            $handle = @fopen($target, 'xb');
+
+            if ($handle === false) {
+                throw new RuntimeException(
+                    'Could not create the job file. It may already exist.'
+                );
+            }
+
+            try {
+                $offset = 0;
+
+                while ($offset < strlen($contents)) {
+                    $written = fwrite(
+                        $handle,
+                        substr($contents, $offset)
+                    );
+
+                    if ($written === false || $written === 0) {
+                        throw new RuntimeException(
+                            'Could not write the job file.'
+                        );
+                    }
+
+                    $offset += $written;
+                }
+
+                if (!fflush($handle)) {
+                    throw new RuntimeException(
+                        'Could not flush the job file.'
+                    );
+                }
+            } catch (Throwable $exception) {
+                fclose($handle);
+                @unlink($target);
+
+                throw $exception;
+            }
+
+            fclose($handle);
+
+            $this->output->writeln(
+                "Created: {$target}",
+                OutputInterface::OUTPUT_RAW
+            );
+
+            $this->output->writeln(
+                'The job will be discovered on the next application boot '
+                    . 'when its directory is configured for discovery.'
+            );
+
+            return self::SUCCESS;
+        } catch (Throwable $exception) {
+            $this->output->writeln(
+                $exception->getMessage(),
+                OutputInterface::OUTPUT_RAW
+            );
+
+            return self::FAILURE;
+        }
     }
 
+    protected function generateJob(
+        string $namespaceName,
+        string $className
+    ): string {
+        $file = new PhpFile();
+        $file->setStrictTypes();
 
-	/**
-     * Process The Job Creation 
-     * 
-     * @param string $handler
-     * @param string $method
-     * @param string $eventName
-     * 
-     * @return void
-     */
-    protected function processJobCreation(string $name)
-    {
-        file_put_contents(
-            path($this->path . '/' . trim($name) . '.php'),
-            $this->generateJob($name)
-        );
-        // file_put_contents(
-        //     path('config/AppCommands.php'),
-        //     $this->processAppConfigFiles($name)
-        // );
+        $namespace = $file->addNamespace($namespaceName);
+
+        $namespace->addUse(JobInterface::class);
+        $namespace->addUse(ShouldQueueInterface::class);
+        $namespace->addUse(DispatchableTrait::class);
+        $namespace->addUse(QueueJob::class);
+
+        $class = $namespace->addClass($className);
+
+        $class->addAttribute(QueueJob::class);
+        $class->addImplement(JobInterface::class);
+        $class->addImplement(ShouldQueueInterface::class);
+        $class->addTrait(DispatchableTrait::class);
+
+        $class->addMethod('__construct')
+            ->setPublic()
+            ->setBody('// Store serializable job data here.');
+
+        $class->addMethod('run')
+            ->setPublic()
+            ->setReturnType('void')
+            ->setBody('// Execute the job.');
+
+        return (string) $file;
     }
 
-    /**
-     * Generate Command logic
-     * 
-     * @param string $name
-     * 
-     * @return void
-     */
-    protected function generateJob($name)
-    {
-        $file = new PhpFile;
-        $file->addComment('This file was auto-generated.');
-
-        $namespace = $file->addNamespace(env('APP_NAMESPACE', 'App'). '\\Jobs');
-
-		$namespace->addUse(\Yuga\Queue\DispatchableTrait::class);
-        $namespace->addUse(\Yuga\Interfaces\Queue\JobInterface::class);
-
-        $class = $namespace->addClass(trim($name));
-
-        $class->addImplement(\Yuga\Interfaces\Queue\JobInterface::class);
-		$class->addTrait(\Yuga\Queue\DispatchableTrait::class);
-
-		$classConstructor = $class->addMethod('__construct')->setBody('//');
-		$classConstructor->addComment('Create a new job instance.')->addComment('@return void');
-		
-        $classRunMethod = $class->addMethod('run')->setBody('//');
-		$classRunMethod->addComment('Run the job.')->addComment('@return void');
-        
-        return $file;
-    }
-
-    /**
-     * Get the console command arguments.
-     *
-     * @return array
-     */
-    #[\Override]
     protected function getArguments()
     {
         return [
-            ['name', InputArgument::REQUIRED, 'The name of the class'],
+            [
+                'name',
+                InputArgument::REQUIRED,
+                'Job name, for example Reports/GenerateReport',
+            ],
         ];
     }
 }

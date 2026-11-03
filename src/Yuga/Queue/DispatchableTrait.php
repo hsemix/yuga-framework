@@ -1,34 +1,29 @@
 <?php
 
-namespace Yuga\Queue;
+declare(strict_types=1);
 
-use Yuga\Interfaces\Queue\ShouldQueueInterface;
+namespace Yuga\Queue;
 
 trait DispatchableTrait
 {
-
-    /**
-     * Dispatch the job with the given arguments.
-     *
-     * @return mixed
-     */
-    public static function dispatch()
+    public static function dispatch(mixed ...$arguments): mixed
     {
-        $args = func_get_args();
-
-        // return new PendingDispatch(new static(...$args));
-        return new static(...$args)->queueOrNot();
+        return app('queue.dispatcher')->dispatch(
+            new static(...$arguments)
+        );
     }
 
-    protected function queueOrNot()
+    public static function dispatchNow(mixed ...$arguments): mixed
     {
-        if ($this instanceof ShouldQueueInterface) {
-            $queue = app('queue');
-            // return $this;
-            
-            return $queue->createPayload($this);
-        } else {
-            return app()->call([$this, 'run']);
-        }
+        return app('queue.dispatcher')->dispatchNow(
+            new static(...$arguments)
+        );
+    }
+
+    public static function prepare(mixed ...$arguments): PendingDispatch
+    {
+        return app('queue.dispatcher')->prepare(
+            new static(...$arguments)
+        );
     }
 }

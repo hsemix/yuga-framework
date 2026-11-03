@@ -4,33 +4,43 @@ declare(strict_types=1);
 
 namespace Yuga\Queue\Console;
 
-use Yuga\Console\Command;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
+use Yuga\Queue\Contracts\FailedJobTransportInterface;
 
-/**
- * Queue Table creation.
- */
-class MakeQueueForgetCommand extends Command
+class MakeQueueForgetCommand extends FailedJobCommand
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
 	protected $name = 'queue:forget';
-    
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Deletes a failed queue job';
 
+	protected $description = 'Delete one failed queue job.';
 
-	/**
-	 * Creates a queue table
-	 */
-	public function handle()
+	protected function perform(
+		FailedJobTransportInterface $transport
+	): int {
+		$deleted = $transport->forgetFailed(
+			(string) $this->argument('failure-id')
+		);
+
+		$this->output->writeln(
+			$deleted
+				? 'Failed job deleted.'
+				: 'Job not found or no longer failed.'
+		);
+
+		return $deleted ? self::SUCCESS : self::FAILURE;
+	}
+
+	protected function getArguments()
 	{
-        
+		return [
+			['failure-id', InputArgument::REQUIRED, 'Failure ID from queue:failed'],
+		];
+	}
+
+	protected function getOptions()
+	{
+		return [
+			['connection', null, InputOption::VALUE_REQUIRED, 'Connection name'],
+		];
 	}
 }

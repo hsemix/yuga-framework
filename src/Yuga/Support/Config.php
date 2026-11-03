@@ -145,7 +145,7 @@ class Config implements ArrayAccess, Countable, IteratorAggregate, JsonSerializa
      */
     public function offsetExists($key): bool
     {
-        return $this->has($key);
+        return $this->exists($key);
     }
 
     /**
