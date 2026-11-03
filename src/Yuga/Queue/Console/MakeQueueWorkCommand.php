@@ -1,199 +1,224 @@
-<?php 
+<?php
+
+declare(strict_types=1);
 
 namespace Yuga\Queue\Console;
 
-use Yuga\Console\CLI;
-use Yuga\Carbon\Carbon;
-use Yuga\Console\Command;
-use Yuga\Queue\Exceptions\QueueException;
-use Symfony\Component\Console\Input\InputOption;
+use InvalidArgumentException;
 use Symfony\Component\Console\Input\InputArgument;
-use Yuga\Database\Query\Exceptions\DatabaseQueryException;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
+use Yuga\Console\Command;
+use Yuga\Queue\Worker;
+use Yuga\Queue\WorkerResult;
 
-/**
- * Generates a skeleton migration file.
- */
 class MakeQueueWorkCommand extends Command
 {
-	/**
-	 * The Command's Name
-	 *
-	 * @var string
-	 */
 	protected $name = 'queue:work';
 
-	/**
-	 * The Command's Description
-	 *
-	 * @var string
-	 */
-	protected $description = 'Works the queue.';
+	protected $description = 'Process jobs using a registered queue transport.';
 
-	protected $startTime;
+	private bool $shouldQuit = false;
 
-	/**
-	 * Actually execute a command.
-	 *
-	 * @param array $params
-	 */
 	public function handle()
-    {
-        $cli = new CLI;
-        $queue = $this->option('queue') ?? config('queue')['default'];
-        $cli->writeLine('Working Queue: ' . $queue, 'yellow');
+	{
+		$this->shouldQuit = false;
 
-		$shouldStop = $this->option('stop');
+		$previousHandlers = [];
+		$previousAsyncSignals = null;
 
-        $response      = true;
-		$jobsProcessed = 0;
-		$startTime     = time();
-		$this->yuga['queue']->startTime();
-		if ($queue != 'wait') {
-			$maxTries = 5;
-			do {
-				try {
-					if ($shouldStop == true) {
-                        $this->stopIfNecessary($startTime, $jobsProcessed);
-                    }
-	
-					$response = $this->yuga['queue']->fetch($this->fire(...), $queue, $shouldStop);
-	
-					// echo $response;
-					$jobsProcessed++;
+		try {
+			$queue = (string) $this->option('queue');
 
-					// After working, sleep
-					$this->yuga['queue']->sleep();
-				} catch (DatabaseQueryException) {
-					usleep(5 * 1000000);
-					$response = false;
-				} catch (\Exception $e) {
-					$cli->writeLine('Failed', 'red');
-					$cli->writeLine("Exception: {$e->getCode()} - {$e->getMessage()}\nfile: {$e->getFile()}:{$e->getLine()}");
-					usleep(5 * 1000000);
-				} finally {
-					usleep(5 * 1000000);
-					// usleep($this->yuga['queue']->getTimeout() * 1000000);
+			if (trim($queue) === '') {
+				throw new InvalidArgumentException(
+					'Queue name must not be empty.'
+				);
+			}
+
+			$sleep = $this->integerOption('sleep', 0);
+			$maxJobs = $this->integerOption('max-jobs', 0);
+			$maxTime = $this->integerOption('max-time', 0);
+			$memory = $this->integerOption('memory', 0);
+
+			$stopWhenEmpty = (bool) $this->option('stop');
+			$once = (bool) $this->option('once');
+
+			$settings = config('queue_transport')['worker'] ?? [];
+
+			$transport = app('queue.manager')->transport(
+				$this->argument('connection')
+			);
+
+			$worker = new Worker(
+				transport: $transport,
+				codecs: app('queue.codecs'),
+				handlers: app('queue.handlers'),
+				maxAttempts: (int) ($settings['max_attempts'] ?? 3),
+				retryDelaySeconds: (int) ($settings['retry_delay'] ?? 5),
+				reservationSeconds: (int) (
+					$settings['reservation_seconds'] ?? 60
+				),
+				reporter: app('queue.reporter')
+			);
+
+			if (
+				function_exists('pcntl_async_signals')
+				&& function_exists('pcntl_signal')
+				&& function_exists('pcntl_signal_get_handler')
+			) {
+				$previousAsyncSignals = pcntl_async_signals(true);
+
+				foreach ([SIGTERM, SIGINT] as $signal) {
+					$previousHandlers[$signal] =
+						pcntl_signal_get_handler($signal);
+
+					pcntl_signal($signal, function (int $signal): void {
+						$this->shouldQuit = true;
+					});
 				}
-			} while($response === true);
-		}
-        
-		$cli->writeLine('Completed Working Queue', 'green');
-    }
+			}
 
-	/**
-	 * work an individual item in the queue.
-	 *
-	 * @param array $data
-	 *
-	 * @return string
-	 */
-	public function fire($data)
-	{
-		$cli = new CLI;
-		
-		// $data
-		if ($data['job'] == 'Yuga\Queue\CallQueuedHandler@call') {
-			$job = unserialize($data['data']['job']);
-			$cli->writeLine('Running Job #' . $data['data']['jobName'], 'yellow');
-			$app = app()->call([$job, 'run']);
-			$cli->writeLine();
-			$cli->writeLine('Finished Job #' . $data['data']['jobName'], 'green');
-		} else {
-			$cli->writeLine('Failed to run Job', 'red');
+			$startedAt = hrtime(true);
+			$processed = 0;
+
+			$this->output->writeln(
+				'Working queue: ' . $queue,
+				OutputInterface::OUTPUT_RAW
+			);
+
+			$restartStore = app('queue.restart');
+			$initialRestartToken = $restartStore->token();
+
+			while (!$this->shouldQuit) {
+
+				if ($restartStore->token() !== $initialRestartToken) {
+					$this->output->writeln('Restart requested; exiting worker.');
+
+					break;
+				}
+
+				if ($maxJobs > 0 && $processed >= $maxJobs) {
+					break;
+				}
+
+				if (
+					$maxTime > 0
+					&& (hrtime(true) - $startedAt) / 1_000_000_000 >= $maxTime
+				) {
+					break;
+				}
+
+				if (
+					$memory > 0
+					&& memory_get_usage(true) >= $memory * 1024 * 1024
+				) {
+					break;
+				}
+
+				$result = $worker->runOnce($queue);
+
+				if ($result === WorkerResult::Idle) {
+					if ($stopWhenEmpty || $once) {
+						break;
+					}
+
+					$this->sleepWhenIdle($sleep);
+
+					continue;
+				}
+
+				$processed++;
+
+				$this->output->writeln(
+					'Job outcome: ' . $result->value,
+					OutputInterface::OUTPUT_RAW
+				);
+
+				if ($once) {
+					break;
+				}
+			}
+
+			$this->output->writeln(
+				"Worker stopped. Reservations processed: {$processed}"
+			);
+
+			return self::SUCCESS;
+		} catch (Throwable $exception) {
+			$this->output->writeln(
+				$exception::class . ': ' . $exception->getMessage(),
+				OutputInterface::OUTPUT_RAW
+			);
+
+			// A process supervisor can restart the worker.
+			return self::FAILURE;
+		} finally {
+			foreach ($previousHandlers as $signal => $handler) {
+				pcntl_signal($signal, $handler);
+			}
+
+			if ($previousAsyncSignals !== null) {
+				pcntl_async_signals($previousAsyncSignals);
+			}
 		}
 	}
 
-	/**
-	 * Determine if we should stop the worker.
-	 *
-	 * @param integer $startTime
-	 * @param integer $jobsProcessed
-	 */
-	protected function stopIfNecessary($startTime, $jobsProcessed)
+	private function integerOption(string $name, int $minimum): int
 	{
-        $cli = new CLI;
-		$shouldQuit = false;
+		$value = filter_var(
+			$this->option($name),
+			FILTER_VALIDATE_INT
+		);
 
-		$maxTime = ini_get('max_execution_time') - 5; //max execution time minus a bit of a buffer (5 sec).
-
-		$maxMemory   = ($this->getMemoryLimit() / 1024 / 1024) - 10; //max memory with a buffer (10MB);
-		$memoryUsage = memory_get_usage(true) / 1024 / 1024;
-
-		$maxBatch = config('queue')['settings']['maxWorkerBatch'];
-
-		//max time limit.
-		if ($maxTime > 0 && time() - $startTime > $maxTime) {
-            $shouldQuit = true;
-            $reason     = 'Time Limit Reached';
-        } elseif ($maxMemory > 0 && $memoryUsage > $maxMemory) {
-            $shouldQuit = true;
-            $reason     = 'Memory Limit Reached';
-        } elseif ($maxBatch > 0 && $jobsProcessed >= $maxBatch) {
-            $shouldQuit = true;
-            $reason     = 'Maximum Batch Size Reached';
-        }
-
-		if (isset($reason)) {
-			$cli->writeLine('Exiting Worker: ' . $reason, 'yellow');
+		if ($value === false || $value < $minimum) {
+			throw new InvalidArgumentException(
+				"Option --{$name} must be an integer >= {$minimum}."
+			);
 		}
 
-		return $shouldQuit;
+		return $value;
 	}
-	/**
-	 * calculate the memory limit
-	 *
-	 * @return integer memory limit in bytes.
-	 */
-	protected function getMemoryLimit()
+
+	private function sleepWhenIdle(int $seconds): void
 	{
-		$memory_limit = ini_get('memory_limit');
+		// Short intervals allow shutdown signals to be handled promptly.
+		$deadline = hrtime(true) + $seconds * 1_000_000_000;
 
-		//if there is no memory limit just set it to 2GB
-		if (($memory_limit = -1) !== 0) {
-            return 2 * 1024 * 1024 * 1024;
-        }
+		while (!$this->shouldQuit && hrtime(true) < $deadline) {
+			$remaining = $deadline - hrtime(true);
 
-		preg_match('/^(\d+)(.)$/', $memory_limit, $matches);
+			if ($remaining <= 0) {
+				break;
+			}
 
-		if (!isset($matches[2])) {
-            throw new \Exception('Unknown Memory Limit');
-        }
-
-		match ($matches[2]) {
-            'G' => $matches[1] * 1024 * 1024 * 1024,
-            'M' => $matches[1] * 1024 * 1024,
-            'K' => $matches[1] * 1024,
-            default => throw new \Exception('Unknown Memory Limit'),
-        };
-        return null;
+			usleep((int) min(100_000, max(1, $remaining / 1000)));
+		}
 	}
 
-    /**
-     * Get the console command arguments.
-     *
-     * @return array
-     */
-    #[\Override]
-    protected function getArguments()
-    {
-        return [
-            ['connection', InputArgument::OPTIONAL, 'The name of connection', null],
+	protected function getArguments()
+	{
+		return [
+			[
+				'connection',
+				InputArgument::OPTIONAL,
+				'Configured queue connection name',
+				null,
+			],
 		];
-    }
+	}
 
-	/**
-     * Get the console command options.
-     *
-     * @return array
-     */
-    #[\Override]
-    protected function getOptions()
-    {
-        return [
-            ['queue',  null, InputOption::VALUE_OPTIONAL, 'The queue to listen on'],
-			['stop',  null, InputOption::VALUE_NONE, 'Whether to stop the the queue run when it is idle'],
-			['sleep',  null, InputOption::VALUE_OPTIONAL, 'Number of seconds to sleep when no job is available', 3],
-        ];
-    }
-
+	protected function getOptions()
+	{
+		return [
+			['queue', null, InputOption::VALUE_REQUIRED, 'Queue name', 'default'],
+			['stop', null, InputOption::VALUE_NONE, 'Stop when currently empty'],
+			['once', null, InputOption::VALUE_NONE, 'Make one reservation attempt'],
+			['sleep', null, InputOption::VALUE_REQUIRED, 'Idle sleep in seconds', 3],
+			['max-jobs', null, InputOption::VALUE_REQUIRED, 'Reservation limit; 0 disables', 0],
+			['max-time', null, InputOption::VALUE_REQUIRED, 'Runtime in seconds; 0 disables', 0],
+			['memory', null, InputOption::VALUE_REQUIRED, 'Memory limit in MB; 0 disables', 128],
+		];
+	}
 }

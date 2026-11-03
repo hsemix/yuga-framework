@@ -315,32 +315,33 @@ if (!function_exists('scheme')) {
     }
 }
 
-if (!function_exists('assets')) {
-    function assets($value = "")
+
+if (!function_exists('asset')) {
+    function asset($value = '')
     {
-        // echo request()->getHeader('http-host');
-        // die();
-        if (!is_null(request()->processHost())) {
-            if (request()->getServer() != request()->gethost()) {
-                if (str_contains((string) request()->getUri(true), 'public')) {
-                    return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim((string) $value, '/'));
-                }
-                return '/' . ltrim((string) $value, '/');
-            } elseif (str_contains(request()->processHost(), '/public')) {
-                return scheme(request()->getHost() . '/' . ltrim(request()->processHost(), '/') . ltrim((string) $value, '/'));
-            } else {
-                return scheme(request()->getServer() . '/' . ltrim((string) $value, '/'));
-            }
-        } else {
-            return scheme(request()->getHost() . '/' . ltrim((string) $value, '/'));
+        $value = (string) $value;
+
+        // Preserve explicitly supplied external URLs.
+        if (
+            preg_match('~^https?://~i', $value)
+            || str_starts_with($value, '//')
+        ) {
+            return $value;
         }
+
+        $base = rtrim(
+            trim((string) env('ASSET_URL', '')),
+            '/'
+        );
+
+        return $base . '/' . ltrim($value, '/');
     }
 }
 
-if (!function_exists('asset')) {
-    function asset($value = "")
+if (!function_exists('assets')) {
+    function assets($value = '')
     {
-        return scheme(request()->getHost() . '/' . $value);
+        return asset($value);
     }
 }
 
@@ -610,19 +611,6 @@ if (!function_exists('with')) {
     }
 }
 
-if (!function_exists('dispatch')) {
-    /**
-     * Dispatch a job to its appropriate handler.
-     *
-     * @param  mixed  $job
-     * @return mixed
-     */
-    function dispatch($job)
-    {
-        return app(JobDispatcherInterface::class)->dispatch($job);
-    }
-}
-
 if (!function_exists('windows_os')) {
     /**
      * Determine whether the current envrionment is Windows based.
@@ -727,10 +715,31 @@ if (!function_exists('trans')) {
  * @param Closure $callback
  * @param array $data
  */
-if (! function_exists('queue')) {
-    function queue(Closure $callback, $data = [])
+if (!function_exists('queue')) {
+    function queue(\Closure $callback, mixed $data = [], ?\Closure $onFailure = null, string $queue = 'default', ?string $connection = null, int $delaySeconds = 0): \Yuga\Queue\Payload\JobEnvelope {
+        return app('queue.dispatcher')->enqueue(
+            new \Yuga\Queue\Jobs\ClosureJob(
+                $callback,
+                $data,
+                $onFailure
+            ),
+            $connection,
+            $queue,
+            $delaySeconds
+        );
+    }
+}
+
+if (!function_exists('dispatch')) {
+    /**
+     * Dispatch a job to its appropriate handler.
+     *
+     * @param  mixed  $job
+     * @return mixed
+     */
+    function dispatch($job)
     {
-        return ClosureJob::dispatch($callback, $data);
+        return app('queue.dispatcher')->dispatch($job);;
     }
 }
 

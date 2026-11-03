@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Route\Exceptions;
 
 use Exception;
@@ -14,14 +15,14 @@ class NotFoundHttpExceptionHandler extends RouteExceptionHandler
      */
     public function handleError(Request $request, Exception $error)
     {
-        // Return json errors if we encounter an error on the API.
-        if ($request->isAjax() !== false) {
-            response()->json(['error' => $error->getMessage()]);
-        }
         if ($error instanceof NotFoundHttpException && $error->getCode() == 404) {
-            $request->setRewriteCallback('Yuga\Controllers\PageController@notFound');
+            $request->setRewriteCallback(
+                'Yuga\Controllers\PageController@notFound'
+            );
+
             return $request;
         }
+
         throw $error;
     }
 }

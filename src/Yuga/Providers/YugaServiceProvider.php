@@ -7,24 +7,16 @@ use Yuga\Console\Commands\MakeAppCommand;
 use Yuga\Events\Console\MakeEventCommand;
 use Yuga\Models\Console\MakeModelCommand;
 use Yuga\Scheduler\Console\MakeRunCommand;
-use Yuga\Queue\Console\MakeQueueJobCommand;
 use Yuga\View\Console\MakeViewModelCommand;
 use Yuga\Http\Console\MakeMiddlewareCommand;
 use Yuga\Interfaces\Application\Application;
 use Yuga\Models\Console\MakeScaffoldCommand;
-use Yuga\Queue\Console\MakeQueueWorkCommand;
-use Yuga\Queue\Console\MakeQueueFlushCommand;
-use Yuga\Queue\Console\MakeQueueRetryCommand;
-use Yuga\Queue\Console\MakeQueueTableCommand;
 use Yuga\Scheduler\Console\MakeEnableCommand;
 use Yuga\Scheduler\Console\MakeListerCommand;
 use Yuga\Authenticate\Console\MakeAuthCommand;
-use Yuga\Queue\Console\MakeQueueForgetCommand;
 use Yuga\Scheduler\Console\MakeDisableCommand;
 use Yuga\Scheduler\Console\MakePublishCommand;
 use Yuga\Database\Console\MakeMigrationCommand;
-use Yuga\Queue\Console\MakeQueueMonitorCommand;
-use Yuga\Queue\Console\MakeQueueRestartCommand;
 use Yuga\Events\Console\MakeEventHandlerCommand;
 use Yuga\Database\Console\MakeMigrationUpCommand;
 use Yuga\Providers\Console\PackagePublishCommand;
@@ -67,14 +59,6 @@ class YugaServiceProvider extends ServiceProvider
         'MakeSchedulerLister'   => 'yuga.command.scheduler.lister',
         'MakeSchedulerRun'      => 'yuga.command.scheduler.run',
         'MakeSchedulerPublish'  => 'yuga.command.scheduler.publish',
-        'MakeQueueTable'        => 'yuga.command.queue.table.make',
-        'MakeQueueWork'         => 'yuga.command.queue.work.make',
-        'MakeQueueFlush'        => 'yuga.command.queue.flush.make',
-        'MakeQueueForget'       => 'yuga.command.queue.forget.make',
-        'MakeQueueMonitor'      => 'yuga.command.queue.monitor.make',
-        'MakeQueueRestart'      => 'yuga.command.queue.restart.make',
-        'MakeQueueRetry'        => 'yuga.command.queue.retry.make',
-        'MakeQueueJob'          => 'yuga.command.queue.job.make',
         'DiscoverPackage'       => 'yuga.command.module.discover',
         'PackagePublish'       => 'yuga.command.modules.publish',
     ];
@@ -344,48 +328,6 @@ class YugaServiceProvider extends ServiceProvider
     protected function registerMakeSchedulerPublishCommand(string $command, $app)
     {
         $app->singleton($command, fn() => new MakePublishCommand);
-    }
-
-    protected function registerMakeQueueTableCommand(string $command, $app)
-    {
-        $app->singleton($command, fn() => new MakeQueueTableCommand);
-    }
-
-    protected function registerMakeQueueWorkCommand(string $command, $app)
-    {
-        $app->singleton($command, MakeQueueWorkCommand::class);
-        $app->resolve($command);
-    }
-
-
-    protected function registerMakeQueueFlushCommand(string $command, $app)
-    {
-        $app->singleton($command, fn() => new MakeQueueFlushCommand);
-    }
-
-    protected function registerMakeQueueForgetCommand(string $command, $app)
-    {
-        $app->singleton($command, fn() => new MakeQueueForgetCommand);
-    }
-
-    protected function registerMakeQueueMonitorCommand(string $command, $app)
-    {
-        $app->singleton($command, fn() => new MakeQueueMonitorCommand);
-    }
-
-    protected function registerMakeQueueRestartCommand(string $command, $app)
-    {
-        $app->singleton($command, fn() => new MakeQueueRestartCommand);
-    }
-
-    protected function registerMakeQueueRetryCommand(string $command, $app)
-    {
-        $app->singleton($command, fn() => new MakeQueueRetryCommand);
-    }
-
-    protected function registerMakeQueueJobCommand(string $command, $app)
-    {
-        $app->singleton($command, fn() => new MakeQueueJobCommand);
     }
 
     /**

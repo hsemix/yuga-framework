@@ -14,16 +14,38 @@ trait CompilesStatements
                 $expression = $match[3] ?? '';
 
                 if ($this->hasCustomDirective($name)) {
-                    return $this->compileCustomDirective($name, $expression);
+                    $compiled = $this->compileCustomDirective(
+                        $name,
+                        $expression
+                    );
+
+                    return $this->preserveSourceNewlines(
+                        $match[0],
+                        $compiled
+                    );
                 }
 
                 if (!method_exists($this, $method)) {
                     return $match[0];
                 }
 
-                return $this->{$method}($expression);
+                $compiled = $this->{$method}($expression);
+
+                return $this->preserveSourceNewlines(
+                    $match[0],
+                    $compiled
+                );
             },
             $value
         );
+    }
+
+    protected function compileProps(string $expression): string
+    {
+        return "<?php extract("
+            . "\$__engine->resolveComponentProps("
+            . $expression
+            . ", get_defined_vars()"
+            . "), EXTR_OVERWRITE); ?>";
     }
 }

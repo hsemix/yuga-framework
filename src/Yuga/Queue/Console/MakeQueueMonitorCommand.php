@@ -1,72 +1,63 @@
-<?php 
+<?php
 
 namespace Yuga\Queue\Console;
 
-use Yuga\Console\Command;
-use Symfony\Component\Process\Process;
+use Throwable;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Yuga\Console\Command;
+use Yuga\Queue\Contracts\MonitorableTransportInterface;
+use Yuga\Queue\Exceptions\UnsupportedCapabilityException;
 
 /**
  * Queue Table creation.
  */
 class MakeQueueMonitorCommand extends Command
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
-	protected $name = 'queue:watch';
-    
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Watches the Queue Worker execution';
+	protected $name = 'queue:monitor';
 
+	protected $description = 'Show a queue statistics snapshot.';
 
-	/**
-	 * Creates a queue table
-	 */
 	public function handle()
 	{
-		$logger = "> /dev/null 2> /dev/null &";
-		if (null !== $this->option('log')) {
-			$logger = ' > ' . storage('logs/queue/' . $this->option('log')) . ' 2> ' . storage('logs/queue/' . $this->option('log')) . ' &';
+		try {
+			$transport = app('queue.manager')->connection(
+				$this->option('connection')
+			);
 
-			if (!is_dir($directory = storage('logs/queue'))) {
-				mkdir($directory, 0755, true);
+			if (!$transport instanceof MonitorableTransportInterface) {
+				throw new UnsupportedCapabilityException(
+					'The selected transport does not support queue monitoring.'
+				);
 			}
+
+			$queue = $this->option('queue');
+
+			$this->output->writeln(
+				json_encode([
+					'queue' => $queue,
+					'observed_at' => gmdate('Y-m-d\TH:i:s\Z'),
+					'statistics' => $transport->statistics($queue),
+				], JSON_THROW_ON_ERROR),
+				OutputInterface::OUTPUT_RAW
+			);
+
+			return self::SUCCESS;
+		} catch (Throwable $exception) {
+			$this->output->writeln(
+				$exception->getMessage(),
+				OutputInterface::OUTPUT_RAW
+			);
+
+			return self::FAILURE;
 		}
-		
-		$this->line("\n");
-		$this->comment('**** Starting a watching Process... ****');
-        $this->line("\n");
-		file_put_contents(
-			path('queue.sh'),
-			str_replace(DIRECTORY_SEPARATOR, '/', str_replace(
-				'{command}',
-				path('yuga queue:work'),
-				file_get_contents(__DIR__ . '/temps/queue-watch.temp')
-			))
-		);
-
-		proc_open(path("queue.sh &"), [STDIN, STDOUT, STDOUT], $pipes);
-
-		$this->info('Watcher Started');
 	}
 
-	/**
-     * Get the console command options.
-     *
-     * @return array
-     */
-    #[\Override]
-    protected function getOptions()
-    {
-        return [
-            ['log',  'l', InputOption::VALUE_OPTIONAL, 'File to log responses to'],
-        ];
-    }
+	protected function getOptions()
+	{
+		return [
+			['connection', null, InputOption::VALUE_REQUIRED, 'Connection name'],
+			['queue', null, InputOption::VALUE_REQUIRED, 'Queue name; omit for all'],
+		];
+	}
 }

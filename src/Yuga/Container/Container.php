@@ -1,4 +1,5 @@
 <?php
+
 namespace Yuga\Container;
 
 use Closure;
@@ -36,7 +37,6 @@ class Container implements ArrayAccess
         } else {
             $this->bindings[$key] = ['value' => $value, 'singleton' => $singleton];
         }
-        
     }
 
     /**
@@ -70,7 +70,7 @@ class Container implements ArrayAccess
     {
         return $this->bind($key, $value, true);
     }
-    
+
     public function getBinding($key)
     {
         $key = ltrim((string) $key, '\\');
@@ -109,7 +109,6 @@ class Container implements ArrayAccess
         } else {
             return $this->resolve($key);
         }
-        
     }
 
     public function getSingletons()
@@ -120,7 +119,7 @@ class Container implements ArrayAccess
     protected function isSingleton($key)
     {
         $binding = $this->getBinding($key);
-        return $binding !== null;//$binding['singleton'];// === true;
+        return $binding !== null; //$binding['singleton'];// === true;
     }
 
     protected function singletonResolved($key)
@@ -144,45 +143,46 @@ class Container implements ArrayAccess
 
     public function resolve($key, array $arguments = [])
     {
-        
+
         $class = $this->getBinding($key);
         if ($class === null) {
             $class = $key;
         }
 
-        
+
 
         if ($this->isSingleton($key) && $this->singletonResolved($key)) {
             return $this->getSingletonInstance($key);
         }
-        
+
         $object = $this->buildObject($class, $arguments);
         return $this->prepareObject($key, $object);
     }
 
     public function inSingletons($class)
     {
-        foreach(array_values($this->getSingletons()) as $instance){
-            if($instance::class == $class){
+        foreach ($this->getSingletons() as $instance) {
+            if (is_object($instance) && $instance instanceof $class) {
                 return $instance;
             }
         }
+
         return false;
     }
 
     protected function buildDependencies($arguments, $dependencies, $className)
     {
-        
+
         foreach ($dependencies as $dependency) {
 
             $name = $dependency->getName();
-            
+
             $type = $dependency->getType();
 
             if ($dependency->isOptional()) {
                 continue;
-            }    
-            
+            }
+
             if ($dependency->getType() === null) {
                 continue;
             }
@@ -210,7 +210,6 @@ class Container implements ArrayAccess
 
                 // push to $dependencies array
                 $arguments[]  = $paramInstance;
-
             } else {
 
                 $name = $dependency->getName(); // get the name of param
@@ -225,9 +224,7 @@ class Container implements ArrayAccess
                     // check if not optional
                     throw new Exception("Class {$name} cannot be Instantiated");
                 }
-
             }
-
         }
 
         return $arguments;
@@ -236,28 +233,27 @@ class Container implements ArrayAccess
 
     protected function buildObject($class, array $arguments = [])
     {
-        
+
         $className = is_array($class) ? $class['value'] : $class;
-        
+
         $reflector = new ReflectionClass($className);
-        
+
         if (!$reflector->isInstantiable()) {
             throw new ClassNotInstantiableException("Class {$className} cannot be Instantiated");
         }
 
-       
-        
+
+
         if (!is_null($reflector->getConstructor())) {
             $constructor = $reflector->getConstructor();
             $dependencies = $constructor->getParameters();
 
-            $arguments = $this->buildDependencies($arguments, $dependencies, $class); 
-            $object = $reflector->newInstanceArgs($arguments);    
-            
+            $arguments = $this->buildDependencies($arguments, $dependencies, $class);
+            $object = $reflector->newInstanceArgs($arguments);
         } else {
             $object = new $reflector->name;
         }
-        
+
         return $object;
     }
 
@@ -341,7 +337,7 @@ class Container implements ArrayAccess
         return str_contains($callback, '@');
     }
 
-     /**
+    /**
      * Get all dependencies for a given method.
      *
      * @param  callable|string  $callback
@@ -352,7 +348,7 @@ class Container implements ArrayAccess
         $dependencies = [];
 
         //  
-        
+
         $reflector = $this->getCallReflector($callback);
 
         foreach ($reflector->getParameters() as $parameter) {

@@ -3,6 +3,8 @@
 namespace Yuga\Http;
 
 use InvalidArgumentException;
+use Nyholm\Psr7\Response as Psr7Response;
+use Psr\Http\Message\ResponseInterface;
 
 class Response
 {
@@ -104,15 +106,26 @@ class Response
      * Json encode array
      * @param array $value
      */
-    public function json($value, int $options = 0, int $code = 200, $dept = 512)
-    {
-        if (($value instanceof \JsonSerializable) === false && \is_array($value) === false) {
-            throw new InvalidArgumentException('Invalid type for parameter "value". Must be of type array or object implementing the \JsonSerializable interface.');
+    public function json(
+        $value,
+        int $options = 0,
+        int $code = 200,
+        $dept = 512
+    ): ResponseInterface {
+        if (
+            !is_array($value)
+            && !$value instanceof \JsonSerializable
+        ) {
+            throw new \InvalidArgumentException(
+                'Value must be an array or implement JsonSerializable.'
+            );
         }
-        $this->httpCode($code);
-        $this->header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($value, $options, $dept);
-        exit(0);
+
+        return new Psr7Response(
+            $code,
+            ['Content-Type' => 'application/json; charset=utf-8'],
+            json_encode($value, $options | JSON_THROW_ON_ERROR, $dept)
+        );
     }
 
     /**
@@ -144,5 +157,4 @@ class Response
     {
         return \App::make('view');
     }
-
 }

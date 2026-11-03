@@ -4,14 +4,19 @@ namespace Yuga\Views;
 
 use Yuga\Views\Compilers\Compiler;
 use Yuga\Views\Exceptions\ViewException;
+use Yuga\Views\Support\ComponentAttributeBag;
 use Yuga\Views\Support\FragmentManager;
+use Yuga\Views\Support\RequiredProp;
 use Yuga\Views\Support\SectionManager;
 use Yuga\Views\Support\ViewComposerManager;
 
 class Engine
 {
     protected array $componentStack = [];
+
     protected int $renderDepth = 0;
+
+    protected array $viewStack = [];
 
     public function __construct(
         protected Finder $finder,
@@ -86,35 +91,93 @@ class Engine
 
         extract($data, EXTR_SKIP);
 
+        $bufferLevel = ob_get_level();
+        $currentView = $viewPath ?? $path;
+
+        $this->viewStack[] = $currentView;
+
         ob_start();
 
         try {
             include $path;
         } catch (\Throwable $e) {
-            while (ob_get_level() > 0) {
+            while (ob_get_level() > $bufferLevel) {
                 ob_end_clean();
             }
 
+            if ($e instanceof ViewException) {
+                throw $e;
+            }
+
             throw new ViewException(
-                $viewPath ?? $path,
+                $currentView,
                 $path,
-                $e
+                $e,
+                $this->componentTrace()
             );
+        } finally {
+            array_pop($this->viewStack);
         }
 
         return ob_get_clean();
     }
 
-    public function startComponent(string $view, array $data = []): void
+    public function currentView(): ?string
+    {
+        if ($this->viewStack === []) {
+            return null;
+        }
+
+        return $this->viewStack[array_key_last($this->viewStack)];
+    }
+
+    public function startComponent(string $view, array $data = [], ?int $line = null): void
     {
         $this->componentStack[] = [
             'view' => $view,
             'data' => $data,
             'slots' => [],
             'slotStack' => [],
+
+            'source' => $this->currentView(),
+            'line' => $line,
         ];
 
         ob_start();
+    }
+
+    public function endComponent(): string
+    {
+        if (empty($this->componentStack)) {
+            throw new \RuntimeException(
+                'Cannot end component that was not started.'
+            );
+        }
+
+        $slot = ob_get_clean();
+
+        $index = count($this->componentStack) - 1;
+        $component = $this->componentStack[$index];
+
+        $attributes = $component['data'];
+
+        try {
+            return $this->renderPartial(
+                $component['view'],
+                array_merge(
+                    $component['slots'],
+                    $attributes,
+                    [
+                        'slot' => $slot,
+                        'attributes' => new \Yuga\Views\Support\ComponentAttributeBag(
+                            $attributes
+                        ),
+                    ]
+                )
+            );
+        } finally {
+            array_pop($this->componentStack);
+        }
     }
 
     public function startComponentSlot(string $name): void
@@ -147,30 +210,15 @@ class Engine
         $this->componentStack[$index]['slots'][$name] = ob_get_clean();
     }
 
-    public function endComponent(): string
+    public function componentTrace(): array
     {
-        if (empty($this->componentStack)) {
-            throw new \RuntimeException('Cannot end component that was not started.');
-        }
-
-        $slot = ob_get_clean();
-
-        $component = array_pop($this->componentStack);
-
-        $attributes = $component['data'];
-
-        return $this->renderPartial(
-            $component['view'],
-            array_merge(
-                $component['slots'],
-                $attributes,
-                [
-                    'slot' => $slot,
-                    'attributes' => new \Yuga\Views\Support\ComponentAttributeBag(
-                        $attributes
-                    ),
-                ]
-            )
+        return array_map(
+            static fn(array $component) => [
+                'view' => $component['view'],
+                'source' => $component['source'] ?? null,
+                'line' => $component['line'] ?? null,
+            ],
+            $this->componentStack
         );
     }
 
@@ -198,5 +246,49 @@ class Engine
         }
 
         return $this->fragments->get($name);
+    }
+
+    public function resolveComponentProps(array $definitions, array $scope): array
+    {
+        $resolved = [];
+        $propNames = [];
+
+        foreach ($definitions as $key => $value) {
+            if (is_int($key)) {
+                $name = $value;
+                $default = null;
+            } else {
+                $name = $key;
+                $default = $value;
+            }
+
+            $propNames[] = $name;
+
+            $resolved[$name] = array_key_exists($name, $scope)
+                ? $scope[$name]
+                : $default;
+
+            if ($default instanceof RequiredProp) {
+                if (!array_key_exists($name, $scope)) {
+                    throw new \InvalidArgumentException(
+                        "Required component prop [{$name}] was not provided."
+                    );
+                }
+
+                $resolved[$name] = $scope[$name];
+
+                continue;
+            }
+        }
+
+        $attributes = $scope['attributes'] ?? null;
+
+        if ($attributes instanceof ComponentAttributeBag) {
+            $resolved['attributes'] = $attributes->except(
+                $propNames
+            );
+        }
+
+        return $resolved;
     }
 }

@@ -7,13 +7,19 @@ use RuntimeException;
 
 class ViewException extends RuntimeException
 {
+    protected int $viewLine;
+
     public function __construct(
         protected string $viewPath,
         protected string $compiledPath,
-        Throwable $previous
+        Throwable $previous,
+        protected array $componentTrace = []
     ) {
+        $this->viewLine = $this->resolveViewLine($previous);
+
         parent::__construct(
-            "Error rendering view [{$viewPath}]: " . $previous->getMessage(),
+            "Error rendering view [{$viewPath}:{$this->viewLine}]: " .
+                $previous->getMessage(),
             (int) $previous->getCode(),
             $previous
         );
@@ -27,5 +33,30 @@ class ViewException extends RuntimeException
     public function compiledPath(): string
     {
         return $this->compiledPath;
+    }
+
+    public function viewLine(): int
+    {
+        return $this->viewLine;
+    }
+
+    public function componentTrace(): array
+    {
+        return $this->componentTrace;
+    }
+
+    protected function resolveViewLine(Throwable $previous): int
+    {
+        if ($previous->getFile() === $this->compiledPath) {
+            return $previous->getLine();
+        }
+
+        foreach ($previous->getTrace() as $frame) {
+            if (($frame['file'] ?? null) === $this->compiledPath) {
+                return (int) ($frame['line'] ?? $previous->getLine());
+            }
+        }
+
+        return $previous->getLine();
     }
 }

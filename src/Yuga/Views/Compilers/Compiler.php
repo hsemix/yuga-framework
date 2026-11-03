@@ -16,6 +16,7 @@ use Yuga\Views\Compilers\Concerns\CompilesSlots;
 use Yuga\Views\Compilers\Concerns\CompilesStacks;
 use Yuga\Views\Compilers\Concerns\CompilesStatements;
 use Yuga\Views\Compilers\Support\AttributeParser;
+use Yuga\Views\Compilers\Support\ComponentTagParser;
 use Yuga\Views\Support\ViewCache;
 
 class Compiler
@@ -47,11 +48,20 @@ class Compiler
 
     protected array $extensions = [];
 
+    protected ?string $sourcePath = null;
+
     public function __construct(
         protected ViewCache $cache,
-        protected ?AttributeParser $attributeParser = null
+        protected ?AttributeParser $attributeParser = null,
+        protected ?ComponentTagParser $componentTagParser = null
     ) {
         $this->attributeParser ??= new AttributeParser();
+        $this->componentTagParser ??= new ComponentTagParser();
+    }
+
+    public function sourcePath(): ?string
+    {
+        return $this->sourcePath;
     }
 
     public function compile(string $sourcePath): string
@@ -63,7 +73,7 @@ class Compiler
                 file_get_contents($sourcePath)
             );
 
-            $compiled = "<?php /** YUGA_VIEW_PATH: {$sourcePath} */ ?>\n" . $compiled;
+            $compiled = "<?php /** YUGA_VIEW_PATH: {$sourcePath} */ ?>" . $compiled;
 
             file_put_contents($compiledPath, $compiled);
         }
@@ -126,5 +136,21 @@ class Compiler
     public function compileAttributes(array $attributes): string
     {
         return $this->attributeParser->compile($attributes);
+    }
+
+    protected function preserveSourceNewlines(string $source, string $replacement): string
+    {
+        $missing = substr_count($source, "\n") - substr_count($replacement, "\n");
+
+        if ($missing > 0) {
+            $replacement .= str_repeat("\n", $missing);
+        }
+
+        return $replacement;
+    }
+
+    public function parseComponentTags(string $value): array
+    {
+        return $this->componentTagParser->parse($value);
     }
 }

@@ -72,7 +72,7 @@ abstract class Route implements IRoute
         if (env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}') != null) {
             $debugSettings = json_decode((string) env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}'), true);
             if (isset($debugSettings['controller_missing']) && $debugSettings['controller_missing'] === true) {
-                $exception = NotFoundHttpControllerException::class;  
+                $exception = NotFoundHttpControllerException::class;
             }
         }
         if (class_exists($name) === false) {
@@ -95,23 +95,17 @@ abstract class Route implements IRoute
             } elseif (array_key_exists($param->name, $this->getParameters())) {
                 $classes[$param->name] = $this->getParameters()[$param->name];
             }
-            
         }
         return $classes;
     }
 
     protected function isSingleton(Application $app, $class)
     {
-        foreach(array_values($app->getSingletons()) as $instance){
-            if($instance::class == $class){
-                return $instance;
-            }
-        }
-        return false;
+        return $app->inSingletons($class);
     }
 
     protected function runMiddleware(Request $request, $middleware)
-    { 
+    {
         if (is_object($middleware) === false) {
             $routeMiddleware = $this->loadClass(RouteMiddleware::class);
             $wares = array_merge($routeMiddleware->routerMiddleWare, require path('config/AppMiddleWare.php'));
@@ -123,7 +117,7 @@ abstract class Route implements IRoute
 
             $next = function ($next) use ($routeMiddleware, $request) {
                 $result = $routeMiddleware->run($request, fn($next) => $next);
-                
+
                 if ($result instanceof ViewModel || is_string($result) || $result instanceof View || is_scalar($result)) {
                     return $result;
                 } elseif ($result instanceof Redirect) {
@@ -153,18 +147,18 @@ abstract class Route implements IRoute
                             } else {
                                 throw new NotFoundHttpException("You have not provided a Redirect URL");
                             }
-                        } 
+                        }
                     };
                 } else {
                     throw new NotFoundHttpException(sprintf('Middleware "%s" does not exist', $ware), 404);
-                } 
-            }  
-            
+                }
+            }
+
             return $next($request);
         }
 
-        
-        
+
+
         // $result = Pipeline::send($request)->through($routeMiddlewares)->thenReturn();
 
         // if ($result instanceof ViewModel || is_string($result) || $result instanceof View ) {
@@ -185,94 +179,31 @@ abstract class Route implements IRoute
     public function renderRoute(Request $request)
     {
         // async(function () use ($request) {
-            $callback = $this->getCallback();
+        $callback = $this->getCallback();
 
-            if ($callback === null) {
-                return;
+        if ($callback === null) {
+            return;
+        }
+
+        if (is_array($callback)) {
+            if (isset($callback['middleware'])) {
+                $middleware = $callback['middleware'];
+                $callback = $callback[0];
+                $this->runMiddleware($request, $middleware);
             }
 
-            if (is_array($callback)) {
-                if (isset($callback['middleware'])) {
-                    $middleware = $callback['middleware'];
-                    $callback = $callback[0];
-                    $this->runMiddleware($request, $middleware);
-                }
+            $controller = $callback[0];
+            $class = $this->loadClass($controller);
+            $method = $callback[1];
+        }
 
-                $controller = $callback[0];
-                $class = $this->loadClass($controller);
-                $method = $callback[1];
-            }
+        /* Render callback function */
+        if (is_callable($callback)) {
 
-            /* Render callback function */
-            if (is_callable($callback)) {
+            /* When the callback is a function */
+            $result = call_user_func_array($callback, $this->instantiated($callback, $request));
 
-                /* When the callback is a function */
-                $result = call_user_func_array($callback, $this->instantiated($callback, $request));
-
-                // if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View) {
-                //     return $result;
-                // } elseif ($result instanceof Redirect) {
-                //     if ($result->getPath() !== null) {
-                //         $result->header('Location: ' . $result->getPath());
-                //         exit();
-                //     } else {
-                //         throw new NotFoundHttpException("You have not provided a Redirect URL");
-                //     }
-                // }
-                // return;
-                return $result;
-
-            }
-
-            if ($callback instanceof ViewModel) {
-                return $callback;
-            }
-
-            if (is_string($callback)) {
-                /* When the callback is a class + method */
-                $controller = explode('@', $callback);
-
-                $namespace = $this->getNamespace();
-
-                if (count($controller) === 1) {
-                    $viewModel = $this->loadClass($controller[0]);
-                    if ($viewModel instanceof ViewModel) {
-                        return $viewModel;
-                    } else {
-                        $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
-                        throw new NotFoundHttpException(sprintf('Method not provided for controller class "%s"', $className), 404);
-                    }
-                }
-                
-                $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
-
-                $class = $this->loadClass($className);
-                $method = $controller[1];
-            }
-            
-            
-            if (method_exists($class, $method) === false) {
-                $exception = NotFoundHttpException::class;
-                if (env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}') != null) {
-                    $debugSettings = json_decode((string) env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}'), true);
-                    
-                    if (isset($debugSettings['method_missing']) && $debugSettings['method_missing'] === true) {
-                        $exception = NotFoundHttpMethodException::class; 
-                    }
-                }
-                throw new $exception(sprintf('Method "%s" does not exist in class "%s"', $method, $class::class), 404);
-            }
-
-            $parameters = $this->getParameters();
-
-            
-            /* Filter parameters with null-value */
-
-            if ($this->filterEmptyParams === true) {
-                $parameters = array_filter($parameters, fn($var) => $var !== null);
-            }
-            // $result = async(fn() => call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters, $request)));
-            // if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View ) {
+            // if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View) {
             //     return $result;
             // } elseif ($result instanceof Redirect) {
             //     if ($result->getPath() !== null) {
@@ -282,9 +213,71 @@ abstract class Route implements IRoute
             //         throw new NotFoundHttpException("You have not provided a Redirect URL");
             //     }
             // }
-             return call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters, $request));
+            // return;
+            return $result;
+        }
+
+        if ($callback instanceof ViewModel) {
+            return $callback;
+        }
+
+        if (is_string($callback)) {
+            /* When the callback is a class + method */
+            $controller = explode('@', $callback);
+
+            $namespace = $this->getNamespace();
+
+            if (count($controller) === 1) {
+                $viewModel = $this->loadClass($controller[0]);
+                if ($viewModel instanceof ViewModel) {
+                    return $viewModel;
+                } else {
+                    $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
+                    throw new NotFoundHttpException(sprintf('Method not provided for controller class "%s"', $className), 404);
+                }
+            }
+
+            $className = ($namespace !== null && $controller[0][0] !== '\\') ? $namespace . '\\' . $controller[0] : $controller[0];
+
+            $class = $this->loadClass($className);
+            $method = $controller[1];
+        }
+
+
+        if (method_exists($class, $method) === false) {
+            $exception = NotFoundHttpException::class;
+            if (env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}') != null) {
+                $debugSettings = json_decode((string) env('DEBUG_MODE_SETTINGS', '{"controller_missing": true, "method_missing": true}'), true);
+
+                if (isset($debugSettings['method_missing']) && $debugSettings['method_missing'] === true) {
+                    $exception = NotFoundHttpMethodException::class;
+                }
+            }
+            throw new $exception(sprintf('Method "%s" does not exist in class "%s"', $method, $class::class), 404);
+        }
+
+        $parameters = $this->getParameters();
+
+
+        /* Filter parameters with null-value */
+
+        if ($this->filterEmptyParams === true) {
+            $parameters = array_filter($parameters, fn($var) => $var !== null);
+        }
+        // $result = async(fn() => call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters, $request)));
+        // if ($result instanceof ViewModel || is_string($result) || is_scalar($result) || $result instanceof View ) {
+        //     return $result;
+        // } elseif ($result instanceof Redirect) {
+        //     if ($result->getPath() !== null) {
+        //         $result->header('Location: ' . $result->getPath());
+        //         exit();
+        //     } else {
+        //         throw new NotFoundHttpException("You have not provided a Redirect URL");
+        //     }
+        // }
+        return call_user_func_array([$class, $method], $this->methodInjection($class, $method, $parameters, $request));
         // });
-        
+
     }
 
     protected function processBindings($request = null)
@@ -298,10 +291,10 @@ abstract class Route implements IRoute
         if (count($modelBindingSettings) > 0) {
             $routeBindings = [];
             foreach ($modelBindingSettings as $routeBinding => $fields) {
-                
+
                 if (count(explode('/', trim((string) $routeBinding, '/'))) === count(explode('/', trim((string) $request->getUri(), '/')))) {
                     $regex = sprintf(static::PARAMETERS_REGEX_FORMAT, $this->paramModifiers[0], $this->paramOptionalSymbol, $this->paramModifiers[1]);
-                    
+
                     if (preg_match_all('/' . $regex . '/', (string) $routeBinding, $parameters)) {
 
                         foreach (explode(',', $fields) as $index => $field) {
@@ -324,7 +317,7 @@ abstract class Route implements IRoute
             $reflectionParameters = $reflectionMethod->getParameters();
             $dependecies = [];
 
-            
+
             foreach ($reflectionParameters as $parameter) {
                 if (!is_null($parameter->getType())) {
                     $dependency = $parameter->getType()->getName();
@@ -352,7 +345,7 @@ abstract class Route implements IRoute
                             throw new ModelNotFoundException("Model $dependency with $field = '$value' not found");
                         }
                     } elseif (!$type->isBuiltIn()) {
-                        if($binding = $this->isSingleton($app, $dependency)) {
+                        if ($binding = $this->isSingleton($app, $dependency)) {
                             $dependecies[$parameter->name] = $binding;
                         } else {
                             $dependecies[$parameter->name] = $app->resolve($dependency);
@@ -362,11 +355,11 @@ abstract class Route implements IRoute
                     }
                 } elseif (array_key_exists($parameter->name, $params)) {
                     $dependecies[$parameter->name] = $params[$parameter->name];
-                } 
+                }
             }
-            
+
             // $dependecies[] = $app;
-            
+
         }
         //$parameters = array_merge($dependecies, $params);
 
@@ -402,14 +395,12 @@ abstract class Route implements IRoute
                     }
 
                     $regex = sprintf('\-?\/?(?P<%s>%s)', $name, $regex) . $parameters[2][$key];
-
                 }
 
                 $urlParts[$key] = preg_quote($t, '/') . $regex;
             }
 
             $urlRegex = implode('', $urlParts);
-
         } else {
             $urlRegex = preg_quote((string) $route, '/');
         }
@@ -813,5 +804,4 @@ abstract class Route implements IRoute
     {
         return $this->defaultParameterRegex;
     }
-
 }

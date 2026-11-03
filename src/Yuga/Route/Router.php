@@ -8,25 +8,26 @@ namespace Yuga\Route;
 
 use Exception;
 use ReflectionClass;
-use Yuga\Views\View;
-use Yuga\Support\Str;
-use Yuga\Http\Request;
-use Yuga\Http\Redirect;
-use Yuga\View\ViewModel;
-use Yuga\Route\Shared\Shared;
-use Yuga\Route\Support\IRoute;
-use Yuga\Exceptions\IException;
+use Throwable;
 use Yuga\Application\Application;
-use Yuga\Route\Support\IGroupRoute;
+use Yuga\Exceptions\IException;
 use Yuga\Handlers\IExceptionHandler;
-use Yuga\Route\Support\ILoadableRoute;
-use Yuga\Route\Exceptions\HttpException;
-use Yuga\Route\Support\IControllerRoute;
 use Yuga\Http\Middleware\BaseCsrfVerifier;
-use Yuga\Route\Support\IRouterBootManager;
+use Yuga\Http\Redirect;
+use Yuga\Http\Request;
+use Yuga\Route\Exceptions\HttpException;
+use Yuga\Route\Exceptions\NotFoundHttpControllerException;
 use Yuga\Route\Exceptions\NotFoundHttpException;
 use Yuga\Route\Exceptions\NotFoundHttpMethodException;
-use Yuga\Route\Exceptions\NotFoundHttpControllerException;
+use Yuga\Route\Shared\Shared;
+use Yuga\Route\Support\IControllerRoute;
+use Yuga\Route\Support\IGroupRoute;
+use Yuga\Route\Support\ILoadableRoute;
+use Yuga\Route\Support\IRoute;
+use Yuga\Route\Support\IRouterBootManager;
+use Yuga\Support\Str;
+use Yuga\View\ViewModel;
+use Yuga\Views\View;
 
 class Router
 {
@@ -371,9 +372,7 @@ class Router
 
                     if ($rewriteRoute !== null) {
                         $rewriteRoute->loadMiddleware($this->request);
-                        $rewriteRoute->renderRoute($this->request);
-
-                        return;
+                        return $rewriteRoute->renderRoute($this->request);
                     }
 
                     /* If the request has changed */
@@ -395,12 +394,12 @@ class Router
                     return $route->renderRoute($this->request);
                 }
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->handleException($e);
         }
 
         if ($routeNotAllowed) {
-            $this->handleException(new HttpException('Route or method not allowed', 403));
+            return $this->handleException(new HttpException('Route or method not allowed', 403));
         }
 
         if ($this->request->getLoadedRoute() === null) {
@@ -417,7 +416,7 @@ class Router
             if (env('MATCH_ROUTES_TO_CONTROLLERS', false) || env('IMPLICIT_ROUTING', false)) {
                 return $this->matchRoutesToControllers($this->request);
             } else {
-                $this->handleException(new NotFoundHttpException($message, 404));
+                return $this->handleException(new NotFoundHttpException($message, 404));
             }
         }
     }
@@ -492,9 +491,7 @@ class Router
 
                 if ($rewriteRoute !== null) {
                     $rewriteRoute->loadMiddleware($this->request);
-                    $rewriteRoute->renderRoute($this->request);
-
-                    return;
+                    return $rewriteRoute->renderRoute($this->request);
                 }
 
                 $rewriteUrl = $this->request->getRewriteUrl();
@@ -503,9 +500,7 @@ class Router
                 if ($rewriteUrl !== null && $rewriteUrl !== $url) {
                     unset($this->exceptionHandlers[$i]);
                     $this->exceptionHandlers = array_values($this->exceptionHandlers);
-                    $this->routeRequest(true);
-
-                    return;
+                    return $this->routeRequest(true);
                 }
             }
         }

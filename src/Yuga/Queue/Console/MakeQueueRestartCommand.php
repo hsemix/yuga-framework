@@ -4,33 +4,33 @@ declare(strict_types=1);
 
 namespace Yuga\Queue\Console;
 
+use Throwable;
+use Symfony\Component\Console\Output\OutputInterface;
 use Yuga\Console\Command;
 
-/**
- * Queue Table creation.
- */
 class MakeQueueRestartCommand extends Command
 {
-	/**
-	 * The Command's name
-	 *
-	 * @var string
-	 */
 	protected $name = 'queue:restart';
-    
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Restarts queue worker daemons after their current job';
 
+	protected $description = 'Request graceful shutdown of running queue workers.';
 
-	/**
-	 * Creates a queue table
-	 */
 	public function handle()
 	{
-        
+		try {
+			app('queue.restart')->request();
+
+			$this->output->writeln(
+				'Restart requested. Workers will exit after their current job.'
+			);
+
+			return self::SUCCESS;
+		} catch (Throwable $exception) {
+			$this->output->writeln(
+				$exception->getMessage(),
+				OutputInterface::OUTPUT_RAW
+			);
+
+			return self::FAILURE;
+		}
 	}
 }
