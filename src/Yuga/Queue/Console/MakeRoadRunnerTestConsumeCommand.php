@@ -12,7 +12,7 @@ use UnexpectedValueException;
 use Yuga\Console\Command;
 use Yuga\Queue\Transport\RoadRunnerEnvelopeMapper;
 
-class MakeRoadRunnerTestConsumeCommand extends Command
+class MakeRoadRunnerTestConsumeCommand //extends Command
 {
     protected $name = 'queue:roadrunner-test';
 
